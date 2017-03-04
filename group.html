@@ -62,12 +62,13 @@ var transformItems;  //hold information about transformation items
 var cardItems;  //hold information about card items
 var lastListMemberId = '';  // hold last member id to be used with groups
 var noQuestsInChat = 0;
+var captureTableData = {};
 
 //////////////////////////////////////////////////////////////////////
 ////   Global Constants                              /////////////////
 //////////////////////////////////////////////////////////////////////
-var DOUBLEQUOTES = '"' //This is to make my life easier... 
-
+var DOUBLEQUOTES = 		'"' //This is to make my life easier... 
+var SECTIONREFRESH = 	"SectionRefresh"
 
 
 
@@ -85,39 +86,40 @@ var DOUBLEQUOTES = '"' //This is to make my life easier...
 
 //index array for looping
 var dashboardToDisplay = [
-	{id: 'memberCount', label: 'Total', hoverText: 'Total Members in the Group', value: 'group.memberCount', status: 'neutral', showOnly: ''},
-	{id: 'memberFetch', label: 'Fetched', hoverText: 'Total Members Fetch in the Data Sample', value: 'group.memberTotals.fetchCount', status: 'neutral', showOnly: ''},
-	{id: 'memberQuest', label: 'Questing', hoverText: 'Number of members who have elected to quest', value: 'group.quest.memberCount', status: 'neutral', showOnly: 'party'},
-	{id: 'memberFetch', label: 'In Inn', hoverText: 'Total Members In the Inn', value: 'group.memberTotals.inInn', status: 'danger', showOnly: ''},
-	{id: 'memberFetch', label: 'Active < 12 hr', hoverText: 'Total Members Active in 12 Hours or Less', value: 'group.memberTotals.activeLess12Hr', status: 'safe', showOnly: ''},
-	{id: 'memberFetch', label: 'Active 12 hr < 24 hr', hoverText: 'Total Members Active between 12 and 24 Hours', value: 'group.memberTotals.activeLess24Hr - group.memberTotals.activeLess12Hr', status: 'safe', showOnly: ''},
-	{id: 'memberFetch', label: 'Active 24 hr < 1 wk', hoverText: 'Total Members Active between 24 Hours and 1 week', value: 'group.memberTotals.activeLessWeek - group.memberTotals.activeLess24Hr', status: 'neutral', showOnly: ''},
-	{id: 'memberFetch', label: 'Active 1 wk < 1 mth', hoverText: 'Total Members Active between 1 week and 1 month', value: 'group.memberTotals.activeLessMonth - group.memberTotals.activeLessWeek', status: 'neutral', showOnly: ''},
-	{id: 'memberFetch', label: 'Active > 1 month', hoverText: 'Total Members Active over 1 month', value: 'group.memberTotals.fetchCount - group.memberTotals.activeLessMonth', status: 'danger', showOnly: ''}
+	{id: 'memberCount', label: 'Total', hoverText: 'Total Members in the Group', value: 'group.memberCount', status: 'neutral', showOnly: []},
+	{id: 'memberFetch', label: 'Fetched', hoverText: 'Total Members Fetch in the Data Sample', value: 'group.memberTotals.fetchCount', status: 'neutral', showOnly: []},
+	{id: 'memberQuest', label: 'Questing', hoverText: 'Number of members who have elected to quest', value: 'group.quest.memberCount', status: 'neutral', showOnly: ['party']},
+	{id: 'memberFetch', label: 'In Inn', hoverText: 'Total Members In the Inn', value: 'group.memberTotals.inInn', status: 'danger', showOnly: []},
+	{id: 'memberFetch', label: 'Active < 12 hr', hoverText: 'Total Members Active in 12 Hours or Less', value: 'group.memberTotals.activeLess12Hr', status: 'safe', showOnly: []},
+	{id: 'memberFetch', label: 'Active 12 hr < 24 hr', hoverText: 'Total Members Active between 12 and 24 Hours', value: 'group.memberTotals.activeLess24Hr - group.memberTotals.activeLess12Hr', status: 'safe', showOnly: []},
+	{id: 'memberFetch', label: 'Active 24 hr < 1 wk', hoverText: 'Total Members Active between 24 Hours and 1 week', value: 'group.memberTotals.activeLessWeek - group.memberTotals.activeLess24Hr', status: 'neutral', showOnly: []},
+	{id: 'memberFetch', label: 'Active 1 wk < 1 mth', hoverText: 'Total Members Active between 1 week and 1 month', value: 'group.memberTotals.activeLessMonth - group.memberTotals.activeLessWeek', status: 'neutral', showOnly: []},
+	{id: 'memberFetch', label: 'Active > 1 month', hoverText: 'Total Members Active over 1 month', value: 'group.memberTotals.fetchCount - group.memberTotals.activeLessMonth', status: 'danger', showOnly: []}
 ]
 
 
 var sectionsToDisplay = [	
-	{type: 'heading', id: 'headingGroup', title: 'Party & Guild Details', showOnly: '', description: ''},
-		{type: 'sectionCustom', id: 'overview', title: 'Overview', showOnly: '', description: 'Overview of Party & Guild with Guild stats.', functionCreate: 'formatOverviewSection'},
-		{type: 'sectionTable', id: 'transformMembers', title: 'Transformation Items & Cards', showOnly: 'party', description: 'Give cards to or transform all your party members with your transformational items!'},
-		{type: 'sectionTable', id: 'leadershipTool', title: 'Leadership Tools', showOnly: 'leader', description: 'Tools for Guild and Party leaders to bulk remove users and/or change guild leadership.'},
-	{type: 'heading', id: 'headingGroup2', title: '', showOnly: 'party', description: ''},
-		{type: 'sectionTable', id: 'chatExport', title: 'Chat Export', showOnly: '', description: 'Exportable table of the chat from the Party & Guild. The easy way to see if your challengers posted new prompts. Or to track team work.'},
-		{type: 'sectionTable', id: 'chatNotSystemExport', title: 'Chat Export without System Msg', showOnly: 'party', description: 'Will only show if party is selected. Exportable table of the chat from the Party & Guild without system messages.'},
-	{type: 'heading', id: 'headingMember', title: 'Member Information', showOnly: '', description: ''},
-		{type: 'sectionTable', id: 'memberList', title: 'Member List', showOnly: '', description: 'A table listing profile information of each member of the group.'},
-		{type: 'sectionTable', id: 'memberActivity', title: 'Member Activity', showOnly: '', description: 'A table listing how active each member of the group is (date-hour format).'},
-		{type: 'sectionTable', id: 'memberRelativeActivity', title: 'Member Activity (Relative)', showOnly: '', description: 'A table listing how long it has been since each one of the members has been active. Now, you&#39;ll see how many people achieved this important task of your challenge in the last hours!'},
-	{type: 'heading', id: 'headingMember2', title: '', showOnly: '', description: ''},	
-		{type: 'sectionTable', id: 'memberStats', title: 'Member Stats', showOnly: '', description: 'A table listing health, mana, XP and other stats of each member.'},
-		{type: 'sectionTable', id: 'memberAttributes', title: 'Member Attributes', showOnly: '', description: 'A table listing strength, intelligence, perception and constitution of the members.'},
-		{type: 'sectionTable', id: 'memberBuff', title: 'Member Buffs & Transformation', showOnly: 'party', description: 'A table listing the number of buff and transformations completed by members.'},
-	{type: 'heading', id: 'headingQuest', title: 'Quests!', showOnly: 'party', description: ''},
-		{type: 'sectionTable', id: 'memberQuest', title: 'Quests Participation', showOnly: 'party', description: 'Only available for a party (and not a guild). A table showing if any members are in a quest.'},
-		{type: 'sectionTable', id: 'memberDamage', title: 'Member Quest Progress', showOnly: 'party', description: 'A table listing the quest progress completed by members.'},
-		{type: 'sectionTable', id: 'questCompleted', title: 'All Quests Completed', showOnly: 'party', description: 'A table showing which quests have and have not been completed by the party.'},
-		{type: 'sectionTable', id: 'questPetCompleted', title: 'Pet Quests Completed', showOnly: 'party', description: 'Focus on the Pet Quests and shows which ones have been completed by the party, or left unfinished.'}
+	{type: 'heading', id: 'headingGroup', title: 'Party & Guild Details', showOnly: [], description: ''},
+		{type: 'sectionCustom', id: 'overview', title: 'Overview', showOnly: [], description: 'Overview of Party & Guild with Guild stats.', functionCreate: 'formatOverviewSection'},
+		{type: 'sectionTable', id: 'transformMembers', title: 'Transformation Items & Cards', showOnly: ['party'], description: 'Give cards to or transform all your party members with your transformational items!'},
+		{type: 'sectionTable', id: 'leadershipTool', title: 'Leadership Tools', showOnly: ['leader'], description: 'Tools for Guild and Party leaders to bulk remove users and/or change guild leadership.'},
+	{type: 'heading', id: 'headingGroup2', title: '', showOnly: ['party'], description: ''},
+		{type: 'sectionTable', id: 'chatExport', title: 'Chat Export', showOnly: [], description: 'Exportable table of the chat from the Party & Guild. The easy way to see if your challengers posted new prompts. Or to track team work.'},
+		{type: 'sectionTable', id: 'chatNotSystemExport', title: 'Chat Export without System Msg', showOnly: ['party'], description: 'Will only show if party is selected. Exportable table of the chat from the Party & Guild without system messages.'},
+		{type: 'sectionTable', id: 'chatSystemExport', title: 'Chat Export only System Msg', showOnly: ['party'], description: 'Will only show if party is selected. Exportable table of the chat from the Party & Guild of only the system messages.'},
+	{type: 'heading', id: 'headingMember', title: 'Member Information', showOnly: [], description: ''},
+		{type: 'sectionTable', id: 'memberList', title: 'Member List', showOnly: [], description: 'A table listing profile information of each member of the group.'},
+		{type: 'sectionTable', id: 'memberActivity', title: 'Member Activity', showOnly: [], description: 'A table listing how active each member of the group is (date-hour format).'},
+		{type: 'sectionTable', id: 'memberRelativeActivity', title: 'Member Activity (Relative)', showOnly: [], description: 'A table listing how long it has been since each one of the members has been active. Now, you&#39;ll see how many people achieved this important task of your challenge in the last hours!'},
+	{type: 'heading', id: 'headingMember2', title: '', showOnly: [], description: ''},	
+		{type: 'sectionTable', id: 'memberStats', title: 'Member Stats', showOnly: [], description: 'A table listing health, mana, XP and other stats of each member.'},
+		{type: 'sectionTable', id: 'memberAttributes', title: 'Member Attributes', showOnly: [], description: 'A table listing strength, intelligence, perception and constitution of the members.'},
+		{type: 'sectionTable', id: 'memberBuff', title: 'Member Buffs & Transformation', showOnly: ['party'], description: 'A table listing the number of buff and transformations completed by members.'},
+	{type: 'heading', id: 'headingQuest', title: 'Quests!', showOnly: ['party'], description: ''},
+		{type: 'sectionTable', id: 'memberQuest', title: 'Quests Participation', showOnly: ['party'], description: 'Only available for a party (and not a guild). A table showing if any members are in a quest.'},
+		{type: 'sectionTable', id: 'memberDamage', title: 'Member Quest Progress', showOnly: ['party'], description: 'A table listing the quest progress completed by members.'},
+		{type: 'sectionTable', id: 'questCompleted', title: 'All Quests Completed', showOnly: ['party'], description: 'A table showing which quests have and have not been completed by the party.'},
+		{type: 'sectionTable', id: 'questPetCompleted', title: 'Pet Quests Completed', showOnly: ['party'], description: 'Focus on the Pet Quests and shows which ones have been completed by the party, or left unfinished.'}
 ]
 
 //named for searching
@@ -129,7 +131,7 @@ sectionTables['leadershipTool'] = {
 	dataSet: [], 
 	dataSetHeader: ['User Id', 'User', 'Class', 'Level', 'Tier', 'Born', 'Last Active', 'Last Cron', 'Last Drop', 'Last Chat', 'Total Chat Lines', 'Last Chat Text', 'In Inn'], 
 	dataTable: ['id', 'profile.namePretty', 'stats.classPretty', 'stats.lvl',  'contribPretty.level', 'creation.shortDate', 'lastActive.shortDate', 'lastLoggedIn.shortDate', 'lastDropItem.shortDate', 'lastChat.occured.shortDate', 'lastChat.countTotal', 'lastChat.textPretty', 'preferences.sleep'],
-	babyBear: {show: [0,1,6,12], orderBy: [[1, 'asc']]},
+	babyBear: {show: [1,6,12], orderBy: [[1, 'asc']]},
 	mamaBear: {show: [0,1,2,3,6,7,8,9,12], orderBy: [[1, 'asc']]},
 	papaBear: {show: ['all'], orderBy: [[1, 'asc']]},
 	extraColumnDefs: [{'className': 'dt-center', 'targets': [ 12 ]}],
@@ -182,7 +184,7 @@ sectionTables['transformMembers'] = {
 	dataSet: [], 
 	dataSetHeader: ['User Id', 'User', 'Tier', 'Contributor', 'Last Active', 'Last Cron', 'Last Drop', 'Last Chat',  'Transform Status'], 
 	dataTable: ['id', 'profile.namePretty', 'contribPretty.level', 'contribPretty.text', 'lastActive.shortDate',  'lastLoggedIn.shortDate', 'lastDropItem.shortDate', 'lastChat.occured.shortDate', 'transformStatus'],
-	babyBear: {show: [0,1,5,8], orderBy: [[7, 'asc']]},
+	babyBear: {show: [1,5,8], orderBy: [[7, 'asc']]},
 	mamaBear: {show: [0,1,2,4,5,8], orderBy: [[7, 'asc']]},
 	papaBear: {show: ['all'], orderBy: [[7, 'asc']]},
 	extraColumnDefs: [],
@@ -268,7 +270,7 @@ sectionTables['chatExport'] = {
 	dataSet: [], 
 	dataSetHeader: ['User Id', 'User', 'Tier', 'Contributor', 'Contributions', 'Admin', 'Posted', 'Epoch', 'Text'], 
 	dataTable: ['uuid', 'userPretty', 'contribPretty.level', 'contribPretty.text', 'contribPretty.contributions', 'contribPretty.admin', 'creation.shortDate', 'timestamp', 'textPretty'],
-	babyBear: {show: [0,1,6,8], orderBy: [[6, 'desc']]},
+	babyBear: {show: [1,6,8], orderBy: [[6, 'desc']]},
 	mamaBear: {show: [0,1,2,3,6,8], orderBy: [[6, 'desc']]},
 	papaBear: {show: ['all'], orderBy: [[6, 'desc']]},
 	extraColumnDefs: [],
@@ -285,7 +287,7 @@ sectionTables['chatNotSystemExport'] = {
 	dataSet: [], 
 	dataSetHeader: ['User Id', 'User', 'Tier', 'Contributor', 'Contributions', 'Admin', 'Posted', 'Epoch', 'Text'], 
 	dataTable: ['uuid', 'userPretty', 'contribPretty.level', 'contribPretty.text', 'contribPretty.contributions', 'contribPretty.admin', 'creation.shortDate', 'timestamp', 'textPretty'],
-	babyBear: {show: [0,1,6,8], orderBy: [[6, 'desc']]},
+	babyBear: {show: [1,6,8], orderBy: [[6, 'desc']]},
 	mamaBear: {show: [0,1,2,3,6,8], orderBy: [[6, 'desc']]},
 	papaBear: {show: ['all'], orderBy: [[6, 'desc']]},
 	extraColumnDefs: [],
@@ -297,14 +299,30 @@ sectionTables['chatNotSystemExport'] = {
 	}
 }
 
+sectionTables['chatSystemExport'] = {
+	type: 'chat',
+	dataSet: [], 
+	dataSetHeader: ['User Id', 'User', 'Tier', 'Contributor', 'Contributions', 'Admin', 'Posted', 'Epoch', 'Text'], 
+	dataTable: ['uuid', 'userPretty', 'contribPretty.level', 'contribPretty.text', 'contribPretty.contributions', 'contribPretty.admin', 'creation.shortDate', 'timestamp', 'textPretty'],
+	babyBear: {show: [1,6,8], orderBy: [[6, 'desc']]},
+	mamaBear: {show: [0,1,2,3,6,8], orderBy: [[6, 'desc']]},
+	papaBear: {show: ['all'], orderBy: [[6, 'desc']]},
+	extraColumnDefs: [],
+	subTitle: function (){
+		var html = ''
+		
+		html += '<p><span class="highlight">Chat period: </span>' + group.chatTotals.firstChat.dateAndTime + ' to ' + group.chatTotals.lastChat.dateAndTime + ' (' + group.chatTotals.chatDayPeriod + ' days)</p>'
+		return html 
+	}
+}
 
 sectionTables['memberList'] = {
 	type: 'member',
 	dataSet: [], 
-	dataSetHeader: ['User Id', 'User', 'Profile', 'Class', 'Level', 'Tier', 'Contributor', 'Contributions',  'Admin', 'Can PM?'],
-	dataTable: ['id', 'profile.nameLink', 'blurbPretty', 'stats.classPretty', 'stats.lvl', 'contribPretty.level', 'contribPretty.text',  'contribPretty.contributions', 'contribPretty.admin', 'inbox.canPM'],
-	babyBear: {show: [0,1,3,4], orderBy: [[1, 'asc']]},
-	mamaBear: {show: [0,1,2,3,4,5,6,7], orderBy: [[1, 'asc']]},
+	dataSetHeader: ['User Id', 'User', 'Profile', 'Class', 'Level', 'Tier', 'Contributor', 'Contributions',  'Admin',  'Born', 'Next Birthday', 'Can PM?'],
+	dataTable: ['id', 'profile.nameLink', 'blurbPretty', 'stats.classPretty', 'stats.lvl', 'contribPretty.level', 'contribPretty.text',  'contribPretty.contributions', 'contribPretty.admin',  'creation.shortDate',  'creation.nextBirthday.shortDate', 'inbox.canPM'],
+	babyBear: {show: [1,3,4], orderBy: [[1, 'asc']]},
+	mamaBear: {show: [0,1,2,3,4,5,6,10], orderBy: [[1, 'asc']]},
 	papaBear: {show: ['all'], orderBy: [[1, 'asc']]},
 	extraColumnDefs: [{'className': 'dt-center', 'targets': [ 9 ]}],
 	subTitle: function (){
@@ -317,7 +335,7 @@ sectionTables['memberActivity'] = {
 	dataSet: [], 
 	dataSetHeader: ['User Id', 'User', 'Class', 'Level', 'Tier', 'Born', 'Last Active', 'Last Cron', 'Last Drop', 'Last Chat', 'Total Chat Lines', 'Last Chat Text', 'In Inn'], 
 	dataTable: ['id', 'profile.namePretty', 'stats.classPretty', 'stats.lvl',  'contribPretty.level', 'creation.shortDate', 'lastActive.shortDate', 'lastLoggedIn.shortDate', 'lastDropItem.shortDate', 'lastChat.occured.shortDate', 'lastChat.countTotal', 'lastChat.textPretty', 'preferences.sleep'],
-	babyBear: {show: [0,1,6,12], orderBy: [[1, 'asc']]},
+	babyBear: {show: [1,6,12], orderBy: [[1, 'asc']]},
 	mamaBear: {show: [0,1,2,3,6,7,8,9,12], orderBy: [[1, 'asc']]},
 	papaBear: {show: ['all'], orderBy: [[1, 'asc']]},
 	extraColumnDefs: [{'className': 'dt-center', 'targets': [ 12 ]}],
@@ -331,7 +349,7 @@ sectionTables['memberRelativeActivity'] = {
 	dataSet: [], 
 	dataSetHeader: ['User Id', 'User', 'Class', 'Level', 'Tier', 'Born', 'Last Active', 'Last Cron', 'Last Drop', 'Last Chat', 'Total Chat Lines', 'Last Chat Text', 'In Inn'], 
 	dataTable: ['id', 'profile.namePretty', 'stats.classPretty', 'stats.lvl',  'contribPretty.level', 'creation.relativeTime', 'lastActive.relativeTime', 'lastLoggedIn.relativeTime', 'lastDropItem.relativeTime', 'lastChat.occured.relativeTime', 'lastChat.countTotal', 'lastChat.textPretty', 'preferences.sleep'],
-	babyBear: {show: [0,1,6,12], orderBy: [[1, 'asc']]},
+	babyBear: {show: [1,6,12], orderBy: [[1, 'asc']]},
 	mamaBear: {show: [0,1,2,3,6,7,8,9,12], orderBy: [[1, 'asc']]},
 	papaBear: {show: ['all'], orderBy: [[1, 'asc']]},
 	extraColumnDefs: [
@@ -348,7 +366,7 @@ sectionTables['memberStats'] = {
 	dataSet: [], 
 	dataSetHeader: ['User Id', 'User', 'Class', 'Level', 'Tier', 'Born', 'Last Active', 'Last Cron', 'Health', 'Current Mana', 'Mana Max', 'Current Mana %', 'Gold', 'XP', 'XP to Next Level' ], 
 	dataTable: ['id', 'profile.namePretty', 'stats.classPretty', 'stats.lvl',  'contribPretty.level', 'creation.shortDate', 'lastActive.shortDate', 'lastLoggedIn.shortDate', 'stats.hpPretty', 'stats.mpPretty', 'stats.maxMPPretty', 'stats.percentageMP', 'stats.gpPretty', 'stats.expPretty', 'stats.toNextLevelPretty'],
-	babyBear: {show: [0,1,8,9,10], orderBy: [[1, 'asc']]},
+	babyBear: {show: [1,8,9,10], orderBy: [[1, 'asc']]},
 	mamaBear: {show: [0,1,2,3,6,7,8,9,10,11], orderBy: [[1, 'asc']]},
 	papaBear: {show: ['all'], orderBy: [[1, 'asc']]},
 	extraColumnDefs: [{'className': 'dt-right', 'targets': [8,9,10,11,12,13,14]}],
@@ -384,6 +402,7 @@ sectionTables['memberBuff'] = {
 	subTitle: function (){
 		var html = ''
 		html = '<p>Buff Totals are only counted for chat period showing.</br><span class="highlight">Chat period: </span>' + group.chatTotals.firstChat.dateAndTime + ' to ' + group.chatTotals.lastChat.dateAndTime + ' (' + group.chatTotals.chatDayPeriod + ' days)</p>'
+		html += '<p>Buffs and Transformational castings stats are based off the players name. If the player has changed their name recently their stats may not show correctly.</p>'
 		return html 
 	}
 }
@@ -393,7 +412,7 @@ sectionTables['memberQuest'] = {
 	dataSet: [], 
 	dataSetHeader: ['User Id', 'User', 'Class', 'Level', 'Tier', 'Last Active', 'Last Cron', 'Owner', 'In Inn', 'In Quest' ], 
 	dataTable: ['id', 'profile.namePretty', 'stats.classPretty', 'stats.lvl',  'contribPretty.level', 'lastActive.shortDate', 'lastLoggedIn.shortDate', 'quest.leader', 'preferences.sleep', 'quest.inQuest'],
-	babyBear: {show: [0,1,8,9], orderBy: [[1, 'asc']]},
+	babyBear: {show: [1,8,9], orderBy: [[1, 'asc']]},
 	mamaBear: {show: [0,1,2,3,5,6,8,9], orderBy: [[1, 'asc']]},
 	papaBear: {show: ['all'], orderBy: [[1, 'asc']]},
 	extraColumnDefs: [],
@@ -460,7 +479,7 @@ sectionTables['memberDamage'] = {
 			}
 		}
 		html += '</p>'
-		
+		html += '<p>Quest progress stats are based off the players name. If the player has changed their name recently their stats may not show correctly.</p>'		
 		return html 
 	}
 }
@@ -484,9 +503,9 @@ sectionTables['questPetCompleted'] = {
 	dataSet: [], 
 	dataSetHeader: ['Scroll', 'Name', 'Pet', 'Type', 'Defeat By', 'XP', 'GP', 'Other Reward', 'Total Completed', 'Not At All', '1 Times', '2 Times', '3 Times', '4 Times', '5 Times', '6 Times', '7 Or More'], 
 	dataTable: ['imgTagQuestScroll', 'text', 'pet.text', 'typeOf', 'defeatBy', 'drop.exp', 'drop.gp', 'drop.rewardItemString', 'memberCompleted.memberCount', 'memberCompleted.missingCount',  'memberCompleted.only1',  'memberCompleted.only2',  'memberCompleted.only3',  'memberCompleted.only4',  'memberCompleted.only5',  'memberCompleted.only6',  'memberCompleted.only7OrMore'],
-	babyBear: {show: [2,3,4,7,9,16], orderBy: [[16, 'asc'],[9, 'desc']]},
-	mamaBear: {show: [0,2,3,4,5,6,7,9,16], orderBy: [[16, 'asc'],[9, 'desc']]},
-	papaBear: {show: ['all'], orderBy: [[16, 'asc'],[9, 'desc']]},
+	babyBear: {show: [2,3,4,7,9,16], orderBy: [[9, 'desc'],[16, 'asc'],[15, 'asc'],[14, 'asc'],[13, 'asc'],[12, 'asc'],[11, 'asc'],[10, 'asc']]},
+	mamaBear: {show: [0,2,3,4,5,6,7,9,16], orderBy: [[9, 'desc'],[16, 'asc'],[15, 'asc'],[14, 'asc'],[13, 'asc'],[12, 'asc'],[11, 'asc'],[10, 'asc']]},
+	papaBear: {show: ['all'], orderBy: [[9, 'desc'],[16, 'asc'],[15, 'asc'],[14, 'asc'],[13, 'asc'],[12, 'asc'],[11, 'asc'],[10, 'asc']]},
 	extraColumnDefs: [],
 	subTitle: function (){
 		var html = ''
@@ -559,8 +578,8 @@ var imageFileSuffix				= '.png'
 var userId						= '';
 var apiToken					= '';
 var groupId 					= ''; //holds selected group (drop down)
-var exportOption 			 	= 'papaBear';
-var exportFormat			 	= 0;
+var exportOption 			 	= 'babyBear';
+var exportFormat			 	= 1;
 var maxMembersToFetch 			; //hold the max members to fetch input (will be rounded up to nearest 30 due to function)
 var debug						= false;
 var debugShowObject				= false;
@@ -641,7 +660,9 @@ if (debug) console.log('debug enableShowHideToggling');
 		html +=  '<select name="exportOption" id="exportOption">';
 		if (debugShowObject) console.log(exportOptions);
 		$.each(exportOptions, function(index, obj){
-			html += '<option value="' + obj.id + '">' + obj.shortDesc + '</option>';
+			html += '<option value="' + obj.id + '"'
+			if (obj.id == exportOption) html += ' selected '
+			html += '>' + obj.shortDesc + '</option>';
 		});
 		html += '</select></label>'
 
@@ -649,7 +670,9 @@ if (debug) console.log('debug enableShowHideToggling');
 		html +=  '<select name="exportFormat" id="exportFormat">';
 		if (debugShowObject) console.log(exportOptions);
 		$.each(exportFormats, function(index, obj){
-			html += '<option value="' + obj.id + '">' + obj.shortDesc + '</option>';
+			html += '<option value="' + obj.id + '"'
+			if (obj.id == exportFormat) html += ' selected '
+			html += '>' + obj.shortDesc + '</option>';
 		});
 		html += '</select></label>'
 
@@ -734,6 +757,8 @@ if (debug) console.log('debug #userApiDetailsForm (Login Events)');
 	};
 	if (debug) console.log('Group ID is ' +  groupId);
 	
+	//Clear as submit option used and group may of change
+	$('#MAIN').html('');
     fetchData();
 });
 
@@ -747,6 +772,7 @@ function fetchData() {
     $('#loading #serverName').text(serverName);
     $('#loading .good').show();
     $('#loading .bad' ).hide();
+	$('#loading .error' ).hide();
 	
 	lastListMemberId = '' // clear from previous fetches
 	members = []; // clear from previous fetches
@@ -917,6 +943,10 @@ function fetchData() {
 		if (memberListToFetch.length > 0) {
 			if (memberListToFetch[memberListToFetch.length -1]._id == lastListMemberId || memberListToFetch.length >= maxMembersToFetch || memberListToFetch.length == group.memberCount) {
 			//The extra test as sometimes the Member Count is not accurate
+				if (group.memberCount < memberListToFetch.length || memberListToFetch[memberListToFetch.length -1]._id == lastListMemberId ) {
+					$('#loading #groupDetail').text(group.name + ' (Group Id: ' + groupId + ')');
+					$('#loading .error' ).show();
+				}
 				if (debugShowObject) console.log(memberListToFetch);
 				fetchMembers()		 
 			} else {
@@ -1529,7 +1559,7 @@ function parseData() {
 
 	var fetchtime = myDateConverter(new Date(), 'pretty');
 	
-	
+
     collateAndDisplayData(); //This is one function as memberActivty requires both Member and Guild data.
 
 	userDataInHeader();
@@ -1547,7 +1577,14 @@ function parseData() {
 	
 	formatAndDisplayDASHBOARD();
     formatAndDisplayTOC();
-    formatAndDisplayMAIN();
+	
+	
+	if ($('#MAIN')[0].innerHTML.length > 1) {
+		//Keep previous table settings
+		refreshAndDisplayMAIN();
+	} else {
+		formatAndDisplayMAIN();
+	}
 	
 	function formatAndDisplayDASHBOARD() {
 		// Not required to be changed. Section controlled by Sections defined above.
@@ -1555,7 +1592,7 @@ function parseData() {
 		var valueToDisplay = ''
 		
 		$.each(dashboardToDisplay, function(index, obj){
-			if (obj.showOnly == '' || (obj.showOnly == 'party' && groupId == 'party') || (obj.showOnly == 'leader' && userId == group.leader.id)){
+			if (obj.showOnly.length == 0 || (obj.showOnly.includes('party') == true && groupId == 'party') || (obj.showOnly.includes('leader') == true && userId == group.leader.id)) {
 				var data = obj;
 				
 				var classes = (data.hidden) ? 'hide' : '';
@@ -1594,7 +1631,7 @@ function parseData() {
 		
 		$.each(sectionsToDisplay, function(index, obj){
 			keyToAdd=''
-			if (obj.showOnly == '' || (obj.showOnly == 'party' && groupId == 'party') || (obj.showOnly == 'leader' && userId == group.leader.id)){
+			if (obj.showOnly.length == 0 || (obj.showOnly.includes('party') == true && groupId == 'party') || (obj.showOnly.includes('leader') == true && userId == group.leader.id)) {
 				if (obj.type != 'heading'){
 					keyToAdd = obj.id
 				} else {
@@ -1630,15 +1667,14 @@ function parseData() {
 					   '</ul><div class="clear"></div><hr class="padded" />');
 	}
 
-
 	function formatAndDisplayMAIN() {
-		// Not requred to be changed. Section controlled by Sections defined above.
+		// Not required to be changed. Section controlled by Sections defined above.
 		var keys = [];
 		var keyToAdd = ''
 		
 		$.each(sectionsToDisplay, function(index, obj){
 			keyToAdd=''
-			if (obj.showOnly == '' || (obj.showOnly == 'party' && groupId == 'party') || (obj.showOnly == 'leader' && userId == group.leader.id)){
+			if (obj.showOnly.length == 0 || (obj.showOnly.includes('party') == true && groupId == 'party') || (obj.showOnly.includes('leader') == true && userId == group.leader.id)) {
 				keyToAdd = obj.id
 				if (obj.type == 'heading') keyToAdd = ''
 				if (keyToAdd != '') keys.push(keyToAdd)
@@ -1683,6 +1719,54 @@ function parseData() {
 		}
 	}
 
+	function refreshAndDisplayMAIN() {
+		// Not required to be changed. Section controlled by Sections defined above.
+		var keys = [];
+		var keyToAdd = ''
+		
+		$.each(sectionsToDisplay, function(index, obj){
+			keyToAdd=''
+			if (obj.showOnly.length == 0 || (obj.showOnly.includes('party') == true && groupId == 'party') || (obj.showOnly.includes('leader') == true && userId == group.leader.id)) {
+				keyToAdd = obj.id
+				if (obj.type == 'heading') keyToAdd = ''
+				if (keyToAdd != '') keys.push(keyToAdd)
+			}
+		});
+		if (debugShowObject) console.log(keys);
+		
+		var html = '';		
+		var functions = []; // functions to run after HTML code has been loaded
+		var functionsPar = []; //Par to be passed in Function
+		for (var i=0,ic=keys.length; i<ic; i++) {
+			var data = MAIN[keys[i]];
+			if (! data) {
+				continue;
+			}
+
+			html = data.refreshHtml
+			$('#' + data.id + ' #' + data.refreshId).html(html)
+			
+			if (data['function']) {
+				functions.push(data['function']);
+				functionsPar.push(data['functionPar']);
+			}
+		}
+
+		// execute any functions that need to be run AFTER the bulk of the
+		// HTML has been created:
+		$.each(functions, function(index,fn){
+			var passPar = functionsPar[index];
+			fn(passPar);
+		});
+		if (sectionOpen && sectionOpen  !=  'documentationAndForm'
+						&& sectionOpen  !=  'versionChanges'
+		) {
+			// reopen the section that the user had open before re-fetching
+			// data (except for sections that don't display the user's own data):
+			$('#' + sectionOpen).show();
+			openRelatedSections();
+		}
+	}
 
 	openRelatedSections = function() {
 
@@ -1793,42 +1877,54 @@ function parseData() {
 		
 		if (debug) console.log('debug constructTable ' + dataSetSectionId);		
 		
-		//create column header
-		$.each(dataSetTableHeader, function(index, obj){
-			formattedTableHeader.push({'title': obj, 'classname': dataSetTableSection + '_' + obj.replace(/ /g, ''),  'defaultContent': ''})
-		});
-		
-		if (debugShowObject) console.log(formattedTableHeader);
-		
-		
-		showButtons = formatShowButton()
-		
-		if (debugShowObject) console.log(showButtons);
+		if ($('#'+ dataSetTableSection)[0].rows.length != 0){
+			if (debug) console.log ('Table exists')
 
-		allColumnDefs = [
-			{ targets: defaultShow, visible: true},
-			{ targets: '_all', visible: false }
-		]
-		allColumnDefs = allColumnDefs.concat(sectionTables[dataSetSectionId].extraColumnDefs)
-		
-		if (debugShowObject) console.log(allColumnDefs);
+			var table = $('#'+ dataSetTableSection).DataTable();
 
-		
-		sectionTables[dataSetSectionId].events = $('#events');
-		$(document).ready(function() {
-			sectionTables[dataSetSectionId].table = $('#'+ dataSetTableSection).DataTable( {
-				data: dataSetTable,
-				columns: formattedTableHeader,
-				columnDefs: allColumnDefs,
-				order: defaultOrderBy,
-				lengthMenu: [ [10, 25, 50, 100, 200, 500, -1], [10, 25, 50, 100, 200, 500, "All"] ],
-				select: selectValue, 
-				dom: 'Bfrtip',
-				buttons: showButtons
+			table.clear();
+			table.draw();
 				
+			table.rows.add(dataSetTable);
+			table.draw()
+		} else {
+			if (debug) console.log ('Table does not exists')
+			//create column header
+			$.each(dataSetTableHeader, function(index, obj){
+				formattedTableHeader.push({'title': obj, 'classname': dataSetTableSection + '_' + obj.replace(/ /g, ''),  'defaultContent': ''})
+			});
+			
+			if (debugShowObject) console.log(formattedTableHeader);
+			
+			
+			showButtons = formatShowButton()
+			
+			if (debugShowObject) console.log(showButtons);
+
+			allColumnDefs = [
+				{ targets: defaultShow, visible: true},
+				{ targets: '_all', visible: false }
+			]
+			allColumnDefs = allColumnDefs.concat(sectionTables[dataSetSectionId].extraColumnDefs)
+			
+			if (debugShowObject) console.log(allColumnDefs);
+
+			
+			sectionTables[dataSetSectionId].events = $('#events');
+			$(document).ready(function() {
+				sectionTables[dataSetSectionId].table = $('#'+ dataSetTableSection).DataTable( {
+					data: dataSetTable,
+					columns: formattedTableHeader,
+					columnDefs: allColumnDefs,
+					order: defaultOrderBy,
+					lengthMenu: [ [10, 25, 50, 100, 200, 500, -1], [10, 25, 50, 100, 200, 500, "All"] ],
+					select: selectValue, 
+					dom: 'Bfrtip',
+					buttons: showButtons
+					
+				} );
 			} );
-		} );
-		
+		}
 		
 		function formatShowButton() {
 			var returnButtons = []
@@ -1971,7 +2067,6 @@ function parseData() {
 	
 	
 	
-	
 	//////////////////////////////////////////////////////////////////////
     ////   Math Functions  					 ////////////
     //////////////////////////////////////////////////////////////////////
@@ -2048,13 +2143,14 @@ function parseData() {
 		//run functions to create for TOC / MAIN 
 		$.each(sectionsToDisplay, function(index, obj){
 			if (obj.type == 'sectionTable') {
-				if (obj.showOnly == '' || (obj.showOnly == 'party' && groupId == 'party') || (obj.showOnly == 'leader' && userId == group.leader.id)){
+				if (obj.showOnly.length == 0 || (obj.showOnly.includes('party') == true && groupId == 'party') || (obj.showOnly.includes('leader') == true && userId == group.leader.id)) {
 					formatTableSection(obj.id, obj.title)
 				}
 			} else if (obj.type == 'sectionCustom') {
 				var fn = obj.functionCreate
 				eval(fn + '("' + obj.id + '", "' + obj.title + '")')
 			}
+			
 		});
 		
 		
@@ -2095,7 +2191,7 @@ function parseData() {
 			var cardArrayToConstruct = ['birthday', 'greeting', 'thankyou'] // Other options  'valentine', 'nye' have to test if available manually.
 			var utcNowArray = moment().utc().toArray() 
 			if ((utcNowArray[1] == 11 && utcNowArray[2] >= 30) || (utcNowArray[1] == 0 && utcNowArray[2] < 3)) cardArrayToConstruct.push('nye')
-			if (utcNowArray[1] == 1 && utcNowArray[2] >= 12 && utcNowArray[2] < 16) cardArrayToConstruct.push('valentine')
+			if (utcNowArray[1] == 1 && utcNowArray[2] >= 11 && utcNowArray[2] < 18) cardArrayToConstruct.push('valentine')
 			
 			var cardItemToConstruct = [
 				{id: 'id', struct: 'stringValue', value: '"~id~"', calcOnly: 'party'},
@@ -2461,14 +2557,14 @@ function parseData() {
 				
 				
 				$.each(sectionsToDisplay, function(index2, obj2){
-					if (obj2.type == 'sectionTable' && (obj2.showOnly != 'party' || groupId == 'party')){
+					if (obj2.type == 'sectionTable' && (obj2.showOnly.includes('party') != true || groupId == 'party')) {
 						if (sectionTables[obj2.id].type == 'chat'){
 							arrayToAdd = []; //clear array
 							$.each(sectionTables[obj2.id].dataTable, function(index3, obj3){
 								arrayToAdd.push(eval('obj.' + obj3))
 							});
 							//Don't include system messages if chatNotSystemExport
-							if (obj.uuid != 'system' || obj2.id != 'chatNotSystemExport') sectionTables[obj2.id].dataSet.push(arrayToAdd); 
+							if ((obj.uuid != 'system' && obj2.id == 'chatNotSystemExport') || (obj.uuid == 'system' && obj2.id == 'chatSystemExport') || (obj2.id != 'chatNotSystemExport' && obj2.id != 'chatSystemExport')) sectionTables[obj2.id].dataSet.push(arrayToAdd); 
 						}
 						
 					}
@@ -2490,8 +2586,16 @@ function parseData() {
 			
 				group.memberTotals.fetchCount++
 			
+			
+				//Fix Rounding issues with Members
+				members[obj.id].quest.damageTotal =  Math.round(Number(members[obj.id].quest.damageTotal)* 10000) / 10000
+				members[obj.id].quest.damageTotalCurrent =  Math.round(Number(members[obj.id].quest.damageTotalCurrent)* 10000) / 10000
+				members[obj.id].quest.damageTotalPrevious =  Math.round(Number(members[obj.id].quest.damageTotalPrevious)* 10000) / 10000
+				members[obj.id].quest.damageBoss =  Math.round(Number(members[obj.id].quest.damageBoss)* 10000) / 10000
+				members[obj.id].quest.damageBossCurrent =  Math.round(Number(members[obj.id].quest.damageBossCurrent)* 10000) / 10000
+				members[obj.id].quest.damageBossPrevious =  Math.round(Number(members[obj.id].quest.damageBossPrevious)* 10000) / 10000
 
-				
+			
 				//Attribute Calculates
 				members[obj.id].attributeTotals = {}
 				$.each(attributeArrayToConstruct, function (index2, obj2){
@@ -2625,7 +2729,7 @@ function parseData() {
 			//////////////////////////////////////////////////////////////
 			$.each(tempMembersList, function(index, obj){			
 				$.each(sectionsToDisplay, function(index2, obj2){
-					if (obj2.type == 'sectionTable' && (obj2.showOnly != 'party' || groupId == 'party')){
+					if (obj2.type == 'sectionTable' && (obj2.showOnly.includes('party') != true || groupId == 'party')) {
 						if (sectionTables[obj2.id].type == 'member'){
 							arrayToAdd = []; //clear array
 							$.each(sectionTables[obj2.id].dataTable, function(index3, obj3){
@@ -2648,7 +2752,7 @@ function parseData() {
 					quests[obj.key].memberCompleted.missingCount = group.memberTotals.fetchCount - quests[obj.key].memberCompleted.memberCount
 				
 					$.each(sectionsToDisplay, function(index2, obj2){
-						if (obj2.type == 'sectionTable' && (obj2.showOnly != 'party' || groupId == 'party')){
+						if (obj2.type == 'sectionTable' && (obj2.showOnly.includes('party') != true || groupId == 'party')) {
 							if (sectionTables[obj2.id].type == 'quest'){
 								arrayToAdd = []; //clear array
 								$.each(sectionTables[obj2.id].dataTable, function(index3, obj3){
@@ -2737,6 +2841,26 @@ function parseData() {
 			}
 			obj.inbox.canPM = !obj.inbox.optOut;
 			obj.creation  = reformatDate(obj.auth.timestamps.created);
+			var nextBirthday = moment({
+											year: moment().year(),
+											month: moment(obj.auth.timestamps.created).month(),
+											day: moment(obj.auth.timestamps.created).date(),
+											hour: moment(obj.auth.timestamps.created).hour(),
+											minute: moment(obj.auth.timestamps.created).minute(),
+											second: moment(obj.auth.timestamps.created).second()
+										})
+			if (moment() > nextBirthday) nextBirthday = moment({
+											year: moment().year()+1,
+											month: moment(obj.auth.timestamps.created).month(),
+											day: moment(obj.auth.timestamps.created).date(),
+											hour: moment(obj.auth.timestamps.created).hour(),
+											minute: moment(obj.auth.timestamps.created).minute(),
+											second: moment(obj.auth.timestamps.created).second()
+										})
+			
+			obj.creation.nextBirthday =  reformatDate(nextBirthday)
+			
+			
 			obj.lastLoggedIn  = reformatDate(obj.auth.timestamps.loggedin);
 			obj.lastDropItem  = reformatDate(obj.items.lastDrop.date);
 			//if (debugShowObject) console.log(obj);
@@ -2928,12 +3052,13 @@ function parseData() {
 			//Finally just return the data!
 			if (! html) {
 				return;
-			}
+			} 
 			var id    = sectionId + 'Section';
 			var orderId = sectionId;
-					
+			var refreshId = sectionId + SECTIONREFRESH 
+			html = '<span id="' + refreshId + '">' + html + '</span>'		
 			TOC[orderId] = {'target': id, 'title':  title};
-			MAIN[orderId] = {'id': id, 'title': title, 'longContent': true,
+			MAIN[orderId] = {'id': id, 'title': title, 'refreshHtml': html, 'refreshId': refreshId, 'longContent': true,
 				'html': html};
 		}
 
@@ -2945,25 +3070,28 @@ function parseData() {
 			var orderId = sectionId;
 			var tableSectionId = sectionId + 'display';
 			var subTitle = sectionTables[sectionId].subTitle()
-			var html = formatTableData(subTitle, tableSectionId);
+			var refreshId = sectionId + SECTIONREFRESH 
+			var html = formatTableData(subTitle, refreshId, tableSectionId);
 			if (! html) {
 				return;
 			}
 			TOC[orderId] = {'target': id, 'title':  title};
 			MAIN[orderId] = {'id': id, 'title': title, 'longContent': true,
-				'html': html, 'dataSetTblSection': tableSectionId, 'function': constructTable, 'functionPar':  [sectionId, sectionTables[sectionId].dataSet, sectionTables[sectionId].dataSetHeader, tableSectionId]};
+				'html': html, 'refreshHtml': subTitle, 'refreshId': refreshId,
+				'dataSetTblSection': tableSectionId, 'function': constructTable, 
+				'functionPar':  [sectionId, sectionTables[sectionId].dataSet, sectionTables[sectionId].dataSetHeader, tableSectionId]};
 		}
 		
 		
 		//Function used by sections to create HTML To display table
-		function formatTableData(subText, tableId) {
+		function formatTableData(subText, refreshId, tableId) {
 			//Used by sections above if a table is required in there HTML
 			var html = '';
 			
 			html += '<table id="' + tableId + '" class="display" width="100%"></table>'
 
 			if (html) {
-				return subText + '<p><div id="headerExport"></div></p>' + html ;
+				return '<span id="' + refreshId + '">' + subText + '</span><p><div id="headerExport"></div></p>' + html ;
 			}
 			else {
 				return '';
@@ -2976,9 +3104,6 @@ function parseData() {
 }
 
 
-	
-
-if (debugShowObject) console.log(group);	
 if (debug) console.log('debug 99');	
 });
 </script>	
@@ -3343,7 +3468,7 @@ ul#tableOfContents > li {
 </head>
 <body><div id="innerBody">	
 <h1><a href="https://habitica.com/">Habitica</a> Party & Guild Data Tool
-    <span class="showHideToggle" data-target="versionChanges" data-closemainsections="true">(v1.6)</span></h1><!-- VERSION TOGGLE -->
+    <span class="showHideToggle" data-target="versionChanges" data-closemainsections="true">(v1.7)</span></h1><!-- VERSION TOGGLE -->
 <div id="headerExtras"></div>
 <hr class="clear" />
 <div id="headerGroupExtras"></div>
@@ -3351,6 +3476,10 @@ ul#tableOfContents > li {
 
 
 <div id="loading">
+    <div class="error hide">
+        <p>ERROR! The membership count does not match what is recorded. Please report in the Report Bug Guild that<br> 
+        <span id="groupDetail">GROUP name (ID: 1234)</span> membership count does not match the listed users.</p>
+    </div>
     <div class="good hide">
         <p>Please wait. Fetching data from
         <span id="serverName">Habitica</span>... <span id="statusFetch"></span></p>
@@ -3376,7 +3505,34 @@ ul#tableOfContents > li {
 <div id="versionChanges" class="hide"><!-- VERSION SECTION -->
     <h2>Version History</h2>
     <dl>
-		<dt>1.6 - Minor Rearrange<span class="date">2016-01-16</span></dt>
+		<dt>1.7 - Lets have cake! Celebrate birthdays & no more need rearrange the furniture when refreshing.<span class="date">2017-03-04</span></dt>
+        <dd><ul>
+			<li>Features
+                <ul>
+					<li>Tables no longer loose there settings when changing Porridge option OR re-fetching data. (Fetching will reset the table settings to the options). YAH!</li>
+					<li class="subheading">Chat Export only System Msg</li>
+					<li>Displaying error message if the recorded (group.count) is incorrect</li>
+					<li>Adding to the Member List, Born (papa) and Next Birthday(mama).</li>
+					<li>Removing UID for all sections in Baby option.</li>
+					<li>Changing the ordering for Pets Quests so the most not completed first and then completed afterwards</li>
+					<li>Changing default option to Hot. (Voted prefer to have best display option then best export option).</li>
+				</ul>
+			</li>
+			<li>Bug
+                <ul>
+					<li>Forced rounding of damage figures. (Still don't why I had to do it but I did it anyway).</li>
+	
+				</ul>
+			</li>
+            <li>Documentation
+                <ul>
+					<li>Minor edits due to renaming of guilds & clean up of version history</li>
+					<li>Adding notification stats may be incorrect for Buffs, Transformational items and Quest Progress if player name changed recently.</li>
+				</ul>
+			</li>	
+		</ul></dd>	
+	
+		<dt>1.6 - Minor Rearrange<span class="date">2017-01-16</span></dt>
         <dd><ul>
             <li>Documentation Code
                 <ul>
@@ -3385,7 +3541,7 @@ ul#tableOfContents > li {
 				</ul>
 			</li>	
 		</ul></dd>
-		<dt>1.5 - PMs, Buffing, Transformation & Quest Progress Stats<span class="date">2016-01-16</span></dt>
+		<dt>1.5 - PMs, Buffing, Transformation & Quest Progress Stats<span class="date">2017-01-16</span></dt>
         <dd><ul>
             <li>Features
                 <ul>
@@ -3613,19 +3769,18 @@ ul#tableOfContents > li {
 
 		<h2>Known Bugs</h2>
 		<p>The hiding and closing of sections is a bit funky. (One day I will fix it but not today.)</p>
-		<p>Choosing a porridge option looses your current table settings. (Not sure there is much I can do there...)</p>
 
 		<p>Internet Explorer will produce odd results if you use the "Re-Fetch Data" button. Reloading the page will fix the problem. Avoid using that button. Avoiding Internet Explorer will also work.</p>
 		<p>This page will not work correctly on old browsers because it uses modern website features and relies on compliance to standards (both can be lacking in old browsers). <a href="http://browsehappy.com/">Updating your browser is important for general safety on the Internet!</a> If you have upgraded your browser to the latest version and are still having problems, please tell me! Contact details are below.</p>
 		<p>Regardless of what bugs there might be, this page cannot damage your account. It does not contain any code that could result in any changes being made on Habitica.</p>
 
-	   <h2>Thank You!</h2>
-	   <p>Thank you to @Alys & Ryan for their code which this is based. Thank you all in the <a href="https://habitica.com/#/options/groups/guilds/349a36c3-66f3-4bf8-91b6-475056d9b6bb">Javascript</a> and <a href="https://habitica.com/#/options/groups/guilds/2ff9822b-27f2-4774-98da-db349b57a38e">Aspiring Comrades</a> in answering my newbie questions. Shout to Blade who help this newbie with her arrays. Thank you to the Pirates (and conscripted socialites) who were keelhauled, walked the plank and thrown overboard in testing this product. Thank you to all the parties I joined that help me test this product; hopefully you dried out from all the snow.<p> 
-	   
-       <h2>Help and Contact Details</h2>
-       <p>This page has been created by <a href="http://habitica.wikia.com/wiki/User:CTheDragons">cTheDragons</a>. If you have questions, problems, or suggestions, you're welcome to contact me, although I cannot guarantee that I'll always be able to spend a lot of time on this. You can contact me at <a href="https://habitica.com/#/options/groups/guilds/d9a0ec1e-352b-4697-a5d5-fb45c98fb4a3">Testing & Bug Squashing for Dragon Tools</a>. I tend to ignore emails & PMs.</p>
-	   <p>Code can be source at  <a href="https://github.com/cTheDragons/Habitica-Party-Guild-Data-Tool">Github<a>. Contributions are welcome. As already stated, any issues please report to  <a href="https://habitica.com/#/options/groups/guilds/d9a0ec1e-352b-4697-a5d5-fb45c98fb4a3">Testing & Bug Squashing for Dragon Tools</a> for a faster response and to avoid duplication. </p>
-        <p>If you have general questions about Habitica, post them to <a href="https://habitica.com/#/options/groups/tavern">Tavern Talk</a>, <a href="https://habitica.com/#/options/groups/guilds/5481ccf3-5d2d-48a9-a871-70a7380cee5a">The Newbies Guild</a> or <a href="http://habitica.wikia.com/wiki/Board:The_Quarters_-_Q_%26_A">The Quarters - Q & A board</a>.</p>
+		<h2>Thank You!</h2>
+		<p>Thank you to @Alys & Ryan for their code which this is based. Thank you all in the <a href="https://habitica.com/#/options/groups/guilds/349a36c3-66f3-4bf8-91b6-475056d9b6bb">Javascript</a> and <a href="https://habitica.com/#/options/groups/guilds/2ff9822b-27f2-4774-98da-db349b57a38e">Aspiring Comrades</a> in answering my newbie questions. Shout to Blade who help this newbie with her arrays. Thank you to the Pirates (and conscripted socialites) who were keelhauled, walked the plank and thrown overboard in testing this product. Thank you to all the parties I joined that help me test this product; hopefully you dried out from all the snow.<p> 
+
+		<h2>Help and Contact Details</h2>
+		<p>This page has been created by <a href="http://habitica.wikia.com/wiki/User:CTheDragons">cTheDragons</a>. If you have questions, problems, or suggestions, you're welcome to contact me, although I cannot guarantee that I'll always be able to spend a lot of time on this. You can contact me at <a href="https://habitica.com/#/options/groups/guilds/d9a0ec1e-352b-4697-a5d5-fb45c98fb4a3">Testing & Bug Squashing for Dragon Tools</a>. I tend to ignore emails & PMs.</p>
+		<p>Code can be source at  <a href="https://github.com/cTheDragons/Habitica-Party-Guild-Data-Tool">Github<a>. Contributions are welcome. As already stated, any issues please report to  <a href="https://habitica.com/#/options/groups/guilds/d9a0ec1e-352b-4697-a5d5-fb45c98fb4a3">Testing & Bug Squashing for Dragon Tools</a> for a faster response and to avoid duplication. </p>
+		<p>If you have general questions about Habitica, post them to <a href="https://habitica.com/#/options/groups/tavern">Tavern</a> or <a href="https://habitica.com/#/options/groups/guilds/5481ccf3-5d2d-48a9-a871-70a7380cee5a">Habitica Help: Ask a Question Guild</a>.</p>
     </div>
 	
 	<div id="documentationAndFormClose" class="showHideToggle closer" data-target="documentationAndForm" data-resettoggletext="documentationAndFormToggle">hide documentation / options</div>
