@@ -12,8 +12,7 @@ This code is licensed under the same terms as Habitica:
 
 https://github.com/Alys/tools-for-habitrpg/blob/master/habitrpg_user_data_display.html
 
-https://oldgods.net/habitrpg/habitrpg_user_data_display.html
-    or http://is.gd/hrpguserdata
+https://oldgods.net/habitica/cTheDragons/group.html
 
 Contributors:
     cTheDragons https://github.com/cTheDragons
@@ -61,6 +60,7 @@ var quests; //holds quest information
 var transformItems;  //hold information about transformation items
 var cardItems;  //hold information about card items
 var lastListMemberId = '';  // hold last member id to be used with groups
+var userIsAdmin; 
 var noQuestsInChat = 0;
 var captureTableData = {};
 
@@ -89,12 +89,12 @@ var dashboardToDisplay = [
 	{id: 'memberCount', label: 'Total', hoverText: 'Total Members in the Group', value: 'group.memberCount', status: 'neutral', showOnly: []},
 	{id: 'memberFetch', label: 'Fetched', hoverText: 'Total Members Fetch in the Data Sample', value: 'group.memberTotals.fetchCount', status: 'neutral', showOnly: []},
 	{id: 'memberQuest', label: 'Questing', hoverText: 'Number of members who have elected to quest', value: 'group.quest.memberCount', status: 'neutral', showOnly: ['party']},
-	{id: 'memberFetch', label: 'In Inn', hoverText: 'Total Members In the Inn', value: 'group.memberTotals.inInn', status: 'danger', showOnly: []},
-	{id: 'memberFetch', label: 'Active < 12 hr', hoverText: 'Total Members Active in 12 Hours or Less', value: 'group.memberTotals.activeLess12Hr', status: 'safe', showOnly: []},
-	{id: 'memberFetch', label: 'Active 12 hr < 24 hr', hoverText: 'Total Members Active between 12 and 24 Hours', value: 'group.memberTotals.activeLess24Hr - group.memberTotals.activeLess12Hr', status: 'safe', showOnly: []},
-	{id: 'memberFetch', label: 'Active 24 hr < 1 wk', hoverText: 'Total Members Active between 24 Hours and 1 week', value: 'group.memberTotals.activeLessWeek - group.memberTotals.activeLess24Hr', status: 'neutral', showOnly: []},
-	{id: 'memberFetch', label: 'Active 1 wk < 1 mth', hoverText: 'Total Members Active between 1 week and 1 month', value: 'group.memberTotals.activeLessMonth - group.memberTotals.activeLessWeek', status: 'neutral', showOnly: []},
-	{id: 'memberFetch', label: 'Active > 1 month', hoverText: 'Total Members Active over 1 month', value: 'group.memberTotals.fetchCount - group.memberTotals.activeLessMonth', status: 'danger', showOnly: []}
+	{id: 'memberInInn', label: 'In Inn', hoverText: 'Total Members In the Inn', value: 'group.memberTotals.inInn', status: 'danger', showOnly: []},
+	{id: 'memberActiveLess12Hr', label: 'Active < 12 hr', hoverText: 'Total Members Active in 12 Hours or Less', value: 'group.memberTotals.activeLess12Hr', status: 'safe', showOnly: []},
+	{id: 'memberActiveLess24Hr', label: 'Active 12 hr < 24 hr', hoverText: 'Total Members Active between 12 and 24 Hours', value: 'group.memberTotals.activeLess24Hr - group.memberTotals.activeLess12Hr', status: 'safe', showOnly: []},
+	{id: 'memberActiveLessWeek', label: 'Active 24 hr < 1 wk', hoverText: 'Total Members Active between 24 Hours and 1 week', value: 'group.memberTotals.activeLessWeek - group.memberTotals.activeLess24Hr', status: 'neutral', showOnly: []},
+	{id: 'memberActiveLessMonth', label: 'Active 1 wk < 1 mth', hoverText: 'Total Members Active between 1 week and 1 month', value: 'group.memberTotals.activeLessMonth - group.memberTotals.activeLessWeek', status: 'neutral', showOnly: []},
+	{id: 'memberActiveOverMonth', label: 'Active > 1 month', hoverText: 'Total Members Active over 1 month', value: 'group.memberTotals.fetchCount - group.memberTotals.activeLessMonth', status: 'danger', showOnly: []}
 ]
 
 
@@ -523,7 +523,7 @@ function sectionHeadingLastActive() {
 	{
 		html += 'guild, '
 	}
-	html += 'or Last Drop. A member may be active in other areas of Habitica, for example be chatting in another guild but will not show here.</p>'
+	html += 'or Last Drop. A member may be active in other areas of Habitica, for example be chatting in another guild but that will not show here.</p>'
 	return html
 }
 
@@ -536,9 +536,9 @@ var exportOptions = [
 	{id: 'papaBear', shortDesc: 'Papa Bear', longDesc: 'Displays & exports max table format'}
 ];
 var exportFormats = [
-	{id: 0, shortDesc: 'Warm Porridge', longDesc: 'Displays & exports with Emoji & Text converted but HTML removed', convertMarkup: true, removeHtml: true},
-	{id: 1, shortDesc: 'Hot Porridge', longDesc: 'Displays & exports in exact Habitica HTML format', convertMarkup: true, removeHtml: false},
-	{id: 2, shortDesc: 'Cold Porridge', longDesc: 'Displays & exports in raw format', convertMarkup: false, removeHtml: false}
+	{id: 0, shortDesc: 'Warm Porridge', longDesc: 'Displays & exports with Emoji & Text converted but HTML removed', convertMarkup: true, removeHtml: true, convertLineBreaks: false},
+	{id: 1, shortDesc: 'Hot Porridge', longDesc: 'Displays & exports in exact Habitica HTML format', convertMarkup: true, removeHtml: false, convertLineBreaks: false},
+	{id: 2, shortDesc: 'Cold Porridge', longDesc: 'Displays & exports in raw format', convertMarkup: false, removeHtml: false, convertLineBreaks: true}
 ];
 
 
@@ -581,10 +581,10 @@ var groupId 					= ''; //holds selected group (drop down)
 var exportOption 			 	= 'babyBear';
 var exportFormat			 	= 1;
 var maxMembersToFetch 			; //hold the max members to fetch input (will be rounded up to nearest 30 due to function)
-var debug						= false;
-var debugShowObject				= false;
+var debug						= true;
+var debugShowObject				= true;
 
-if (debug || debugShowObject) '*** TURN DEBUG OFF! *** - ' + serverName
+if (debug || debugShowObject) serverName = '*** TURN DEBUG OFF! *** - ' + serverName
 if (debug) console.log('debug 1');
 
 var sectionOpen = ''; // holds the ID attribute of a section of the page;
@@ -824,6 +824,11 @@ function fetchData() {
 		$('#loading #statusFetch').text('Fetching User Data');
         user = data.data;
 		
+		userIsAdmin = false;
+		if (user.contributor != undefined) {
+			if (user.contributor.admin) userIsAdmin = true
+		}
+
 		//$$$ Check if group id is listed in guilds?
 		if (groupId  !=  'party') {
 			fetchGuildData();
@@ -1046,7 +1051,7 @@ function fetchData() {
 //////////////////////////////////////////////////////////////////////
 ////  Post functions      //////////////////////////////
 //////////////////////////////////////////////////////////////////////
-// All post functions are implemented serail as they are unreliable when performed in parallel.
+// All post functions are implemented serial as they are unreliable when performed in parallel.
 function postChangeLeader(rowData, uuidIndex, nameIndex) {
 	if (debug) console.log('debug postChangeLeader start');
 	var urlToPost = ''	
@@ -1285,7 +1290,7 @@ function postRemoveUser(rowData, uuidIndex, nameIndex) {
 function postMessageUser(rowData, uuidIndex, nameIndex) {
 	if (debug) console.log('debug postMessageUser start');
 	var urlToPost = ''	
-	var privateMessageList = ''
+	var actionNotificationList = ''
 	var index = 0
 	var privateMessage = ''
 	
@@ -1304,12 +1309,12 @@ function postMessageUser(rowData, uuidIndex, nameIndex) {
 
 		for(var i = 0; i < rowData.length; i++)
 		{
-			privateMessageList += '\n\u2022  ' + rowData[i][nameIndex]
+			actionNotificationList += '\n\u2022  ' + rowData[i][nameIndex]
 		}
 		
 		if (privateMessage != null){
-			if (confirm('Are you sure you wish to send\n\n' + privateMessage + '\n\n to the selected users?' + privateMessageList + '\n\nThere is no undo!')){
-				privateMessageList = ''
+			if (confirm('Are you sure you wish to send\n\n' + privateMessage + '\n\n to the selected users?' + actionNotificationList + '\n\nThere is no undo!')){
+				actionNotificationList = ''
 				postNextMessageUser()
 			} else {
 				alert('Action cancelled')
@@ -1363,7 +1368,7 @@ function postMessageUser(rowData, uuidIndex, nameIndex) {
 		if (debug) console.log('debug postMessageUserSucess start');
 		$('#posting #statusPost').text('Succesfully Messaged ' + obj[nameIndex] );
 		if (debugShowObject) console.log(data);
-		privateMessageList += '\n\u2022  ' + obj[nameIndex]  
+		actionNotificationList += '\n\u2022  ' + obj[nameIndex]  
 		index++
 		
 		postMessageUserCheckCompleted()
@@ -1372,8 +1377,8 @@ function postMessageUser(rowData, uuidIndex, nameIndex) {
 	function postMessageUserCheckCompleted(){
 		if (index === rowData.length){
 			$('#posting .good').hide();
-			if (debugShowObject) console.log(privateMessageList);
-			alert('The following users have been messaged:' + privateMessageList + '\n\nYour data will now be refreshed')
+			if (debugShowObject) console.log(actionNotificationList);
+			alert('The following users have been messaged:' + actionNotificationList + '\n\nYour data will now be refreshed')
 			fetchData() 
 		} else
 		{
@@ -1592,7 +1597,7 @@ function parseData() {
 		var valueToDisplay = ''
 		
 		$.each(dashboardToDisplay, function(index, obj){
-			if (obj.showOnly.length == 0 || (obj.showOnly.includes('party') == true && groupId == 'party') || (obj.showOnly.includes('leader') == true && userId == group.leader.id)) {
+			if (obj.showOnly.length == 0 || (obj.showOnly.includes('party') == true && groupId == 'party') || (obj.showOnly.includes('leader') == true && ((userId == group.leader.id) || (userIsAdmin)))) {
 				var data = obj;
 				
 				var classes = (data.hidden) ? 'hide' : '';
@@ -1631,7 +1636,7 @@ function parseData() {
 		
 		$.each(sectionsToDisplay, function(index, obj){
 			keyToAdd=''
-			if (obj.showOnly.length == 0 || (obj.showOnly.includes('party') == true && groupId == 'party') || (obj.showOnly.includes('leader') == true && userId == group.leader.id)) {
+			if (obj.showOnly.length == 0 || (obj.showOnly.includes('party') == true && groupId == 'party') || (obj.showOnly.includes('leader') == true && ((userId == group.leader.id) || (userIsAdmin)))) {
 				if (obj.type != 'heading'){
 					keyToAdd = obj.id
 				} else {
@@ -1674,7 +1679,7 @@ function parseData() {
 		
 		$.each(sectionsToDisplay, function(index, obj){
 			keyToAdd=''
-			if (obj.showOnly.length == 0 || (obj.showOnly.includes('party') == true && groupId == 'party') || (obj.showOnly.includes('leader') == true && userId == group.leader.id)) {
+			if (obj.showOnly.length == 0 || (obj.showOnly.includes('party') == true && groupId == 'party') || (obj.showOnly.includes('leader') == true && ((userId == group.leader.id) || (userIsAdmin)))) {
 				keyToAdd = obj.id
 				if (obj.type == 'heading') keyToAdd = ''
 				if (keyToAdd != '') keys.push(keyToAdd)
@@ -1726,7 +1731,7 @@ function parseData() {
 		
 		$.each(sectionsToDisplay, function(index, obj){
 			keyToAdd=''
-			if (obj.showOnly.length == 0 || (obj.showOnly.includes('party') == true && groupId == 'party') || (obj.showOnly.includes('leader') == true && userId == group.leader.id)) {
+			if (obj.showOnly.length == 0 || (obj.showOnly.includes('party') == true && groupId == 'party') || (obj.showOnly.includes('leader') == true && ((userId == group.leader.id) || (userIsAdmin)))) {
 				keyToAdd = obj.id
 				if (obj.type == 'heading') keyToAdd = ''
 				if (keyToAdd != '') keys.push(keyToAdd)
@@ -1843,11 +1848,19 @@ function parseData() {
 		return dateStr;
 	}
 
-	function renderFormattedText(text) {
+	function renderFormattedText(text, options) {
 		var md = window.habiticaMarkdown;
 		
 		if (exportFormats[exportFormat].convertMarkup) text = md.render(text);
 		if (exportFormats[exportFormat].removeHtml) text = $(text).text();
+		if (exportFormats[exportFormat].convertLineBreaks) text = text.replace(/(?:\r\n|\r|\n)/g, '<br />');
+		if (options && options.removeParaTags) {
+            text = String(text).replace(/^<p>|<\/p>\n$/g, '');
+        }
+        else if (options && options.setParaClass) {
+            text = String(text).replace(/<p>/g,
+                       '<p class="' + options.setParaClass + '">');
+        }
 		return text;
 	}
 	
@@ -2143,7 +2156,7 @@ function parseData() {
 		//run functions to create for TOC / MAIN 
 		$.each(sectionsToDisplay, function(index, obj){
 			if (obj.type == 'sectionTable') {
-				if (obj.showOnly.length == 0 || (obj.showOnly.includes('party') == true && groupId == 'party') || (obj.showOnly.includes('leader') == true && userId == group.leader.id)) {
+				if (obj.showOnly.length == 0 || (obj.showOnly.includes('party') == true && groupId == 'party') || (obj.showOnly.includes('leader') == true && ((userId == group.leader.id) || (userIsAdmin)))) {
 					formatTableSection(obj.id, obj.title)
 				}
 			} else if (obj.type == 'sectionCustom') {
@@ -2188,7 +2201,7 @@ function parseData() {
 				{id: 'userAmount', struct: 'user', value: 'user.items.special.~id~', calcOnly: 'party'}
 			]
 			
-			var cardArrayToConstruct = ['birthday', 'greeting', 'thankyou'] // Other options  'valentine', 'nye' have to test if available manually.
+			var cardArrayToConstruct = ['birthday', 'greeting', 'thankyou', 'congrats', 'getwell'] // Other options  'valentine', 'nye' have to test if available manually.
 			var utcNowArray = moment().utc().toArray() 
 			if ((utcNowArray[1] == 11 && utcNowArray[2] >= 30) || (utcNowArray[1] == 0 && utcNowArray[2] < 3)) cardArrayToConstruct.push('nye')
 			if (utcNowArray[1] == 1 && utcNowArray[2] >= 11 && utcNowArray[2] < 18) cardArrayToConstruct.push('valentine')
@@ -3468,7 +3481,7 @@ ul#tableOfContents > li {
 </head>
 <body><div id="innerBody">	
 <h1><a href="https://habitica.com/">Habitica</a> Party & Guild Data Tool
-    <span class="showHideToggle" data-target="versionChanges" data-closemainsections="true">(v1.7)</span></h1><!-- VERSION TOGGLE -->
+    <span class="showHideToggle" data-target="versionChanges" data-closemainsections="true">(v2.0)</span></h1><!-- VERSION TOGGLE -->
 <div id="headerExtras"></div>
 <hr class="clear" />
 <div id="headerGroupExtras"></div>
@@ -3490,7 +3503,7 @@ ul#tableOfContents > li {
 			<li>Check your group id is either "party" or Guild Id which is a string of characters similar to your UID. The Guild ID appears at the end of the URL. Eg. 2ff9822b-27f2-4774-98da-db349b57a38e</li>
             <li>Please reload the page and then check that your <a href="https://habitica.com/#/options/settings/api">User ID and API Token</a> are correct.</li>
             <li>If you're using Internet Explorer, try another browser. <a href="https://www.google.com/intl/en/chrome/browser/">Chrome</a> or <a href="https://www.mozilla.org/en-US/firefox/new/">Firefox</a> will be more reliable.</li>
-            <li>If the page's URL starts with "http://" change it to start with "https://" (or just use <a href="https://oldgods.net/habitrpg/habitrpg_user_data_display.html">this correct link</a>).</li>
+            <li>If the page's URL starts with "http://" change it to start with "https://" (or just use <a href="https://oldgods.net/habitica/cTheDragons/group.html">this correct link</a>).</li>
             <li>If neither of those help, contact me! See <strong>"Help and Contact Details"</strong> at the bottom of this page.</li>
         </ul>
     </div>
@@ -3505,6 +3518,27 @@ ul#tableOfContents > li {
 <div id="versionChanges" class="hide"><!-- VERSION SECTION -->
     <h2>Version History</h2>
     <dl>
+		<dt>2.0 - Cards, Likes, Mods <span class="date">2017-06-##</span></dt>
+        <dd><ul>
+            <li>Features:
+                <ul>
+					<li>Added Cards Get Well and Congrats.</li>
+					<li>Mods have access to Leadership Tools.</li>
+					<li>Names now render with markdown based on porridge option.</li>
+				</ul> 
+            </li>
+	        <li>Documentation:
+                <ul>
+                    <li>Minor text change re member activity.</li>
+                </ul>
+            </li>		
+	        <li>Bug Fixes:
+                <ul>
+                    <li>Removed incorrect references to the Data Display Tool. (Thank you @Alys)</li>
+					<li>Cold porridge now shows carriage returns.</li>
+               </ul>
+            </li>
+		</ul></dd>	
 		<dt>1.7 - Lets have cake! Celebrate birthdays & no more need rearrange the furniture when refreshing.<span class="date">2017-03-04</span></dt>
         <dd><ul>
 			<li>Features
