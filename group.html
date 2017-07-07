@@ -104,17 +104,17 @@ var sectionsToDisplay = [
 	{type: 'heading', id: 'headingGroup', title: 'Party & Guild Details', showOnly: [], description: ''},
 		{type: 'sectionCustom', id: 'overview', title: 'Overview', showOnly: [], description: 'Overview of Party & Guild with Guild stats.', functionCreate: 'formatOverviewSection'},
 		{type: 'sectionTable', id: 'transformMembers', title: 'Transformation Items & Cards', showOnly: ['party'], description: 'Give cards to or transform all your party members with your transformational items!'},
-		{type: 'sectionTable', id: 'challengeGroup', title: 'Challenge List', showOnly: [], description: 'Lists all challenges for Guild/Party.'},
+		{type: 'sectionTable', id: 'challengeGroup', title: 'Challenge List', showOnly: [], description: 'Lists all challenges for the Guild/Party.'},
 	{type: 'heading', id: 'headingGroup2', title: 'Communication', showOnly: [], description: ''},
 		{type: 'sectionTable', id: 'chatExport', title: 'Chat Export', showOnly: [], description: 'Exportable table of the chat from the Party & Guild. The easy way to see if your challengers posted new prompts. Or to track team work.'},
 		{type: 'sectionTable', id: 'chatNotSystemExport', title: 'Chat Export without System Msg', showOnly: ['party'], description: 'Will only show if party is selected. Exportable table of the chat from the Party & Guild without system messages.'},
 		{type: 'sectionTable', id: 'chatSystemExport', title: 'Chat Export only System Msg', showOnly: ['party'], description: 'Will only show if party is selected. Exportable table of the chat from the Party & Guild of only the system messages.'},
-		{type: 'sectionTable', id: 'chatLikes', title: 'Chat Likes', showOnly: [], description: 'Shows who has liked what chat message.'},
-		{type: 'sectionTable', id: 'displayInboxSection', title: 'PMs', showOnly: [], description: 'Displays personal messages you have exchanged with participants of this challenge.'},		
+		{type: 'sectionTable', id: 'chatLikes', title: 'Chat Likes', showOnly: [], description: 'Shows who has liked which chat message.'},
+		{type: 'sectionTable', id: 'displayInboxSection', title: 'PMs', showOnly: [], description: 'Displays personal messages you have exchanged with guild members you have fetched.'},		
 	{type: 'heading', id: 'headingMember', title: 'Member Information', showOnly: [], description: ''},
 		{type: 'sectionTable', id: 'memberList', title: 'Member List', showOnly: [], description: 'A table listing profile information of each member of the group.'},
 		{type: 'sectionTable', id: 'memberActivity', title: 'Member Activity', showOnly: [], description: 'A table listing how active each member of the group is (date-hour format).'},
-		{type: 'sectionTable', id: 'memberRelativeActivity', title: 'Member Activity (Relative)', showOnly: [], description: 'A table listing how long it has been since each one of the members has been active. Now, you&#39;ll see how many people achieved this important task of your challenge in the last hours!'},
+		{type: 'sectionTable', id: 'memberRelativeActivity', title: 'Member Activity (Relative)', showOnly: [], description: 'A table listing how long it has been since each one of the members has been active.'},
 	{type: 'heading', id: 'headingMember2', title: '', showOnly: [], description: ''},	
 		{type: 'sectionTable', id: 'memberStats', title: 'Member Stats', showOnly: [], description: 'A table listing health, mana, XP and other stats of each member.'},
 		{type: 'sectionTable', id: 'memberAttributes', title: 'Member Attributes', showOnly: [], description: 'A table listing strength, intelligence, perception and constitution of the members.'},
@@ -333,6 +333,7 @@ sectionTables['displayInboxSection'] = {
 	extraColumnDefs: [{'className': 'dt-center', 'targets': [5,8]}, {'className': 'dt-right', 'targets': [2,6,7]}],
 	subTitle: function (){
 		var html = ''
+		html += 'PMs are filted based on fetched members only. That is those that are listed in <span class="showHideToggle" data-target="memberListSection" data-closemainsections="true">Member List</span>.'
 		html += sectionHeadingLeadership()
 		return html 
 	},
@@ -1038,6 +1039,10 @@ function fetchData() {
 			if (user.contributor.admin) userIsAdmin = true
 		}
 
+		//Check Id given is the party id.
+		if (user.party != undefined) if (user.party._id == groupId) groupId = 'party'
+		
+		
 		//$$$ Check if group id is listed in guilds?
 		if (groupId  !=  'party') {
 			fetchGuildData();
@@ -3316,9 +3321,17 @@ function parseData() {
 			obj.shortNameNotPretty  = renderFormattedText(obj.shortName, {removeParaTags: true});
 			
 			obj.descriptionPretty  = renderFormattedText(obj.description);
-			obj.leader.profile.namePretty = renderFormattedText(obj.leader.profile.name);
-			obj.leader.profile.nameNotPretty = renderFormattedText(obj.leader.profile.name, {removeParaTags: true});
-
+			if (obj.leader != undefined) {
+				obj.leader.profile.namePretty = renderFormattedText(obj.leader.profile.name);
+				obj.leader.profile.nameNotPretty = renderFormattedText(obj.leader.profile.name, {removeParaTags: true});
+			} else {
+				obj.leader = {}
+				obj.leader.profile = {}
+				obj.leader.profile.name = notAvailableMember
+				obj.leader.profile.namePretty = notAvailableMember
+				obj.leader.profile.nameNotPretty = notAvailableMember
+			}
+			
 			obj.creation  = reformatDate(obj.createdAt);
 			obj.lastUpdated  = reformatDate(obj.updatedAt);
 			
@@ -3352,9 +3365,9 @@ function parseData() {
 				obj.profile.nameLink = '<a href="https://habitica.com/static/front#?memberId=' + obj.id +'" target="_blank">' + obj.profile.nameNotPretty + '</a>'
 			}
 			if (obj.stats.class == 'wizard')  {
-				obj.stats.class = 'mage'
+				obj.stats.classPretty = 'mage'
 			} else {
-				obj.stats.class = obj.stats.class
+				obj.stats.classPretty = obj.stats.class
 			}
 			obj.inbox.canPM = !obj.inbox.optOut;
 			obj.creation  = reformatDate(obj.auth.timestamps.created);
@@ -4039,7 +4052,7 @@ ul#tableOfContents > li {
 </head>
 <body><div id="innerBody">	
 <h1><a href="https://habitica.com/">Habitica</a> Party & Guild Data Tool
-    <span class="showHideToggle" data-target="versionChanges" data-closemainsections="true">(v2.0)</span></h1><!-- VERSION TOGGLE -->
+    <span class="showHideToggle" data-target="versionChanges" data-closemainsections="true">(v2.1)</span></h1><!-- VERSION TOGGLE -->
 <div id="headerExtras"></div>
 <hr class="clear" />
 <div id="headerGroupExtras"></div>
@@ -4076,6 +4089,22 @@ ul#tableOfContents > li {
 <div id="versionChanges" class="hide"><!-- VERSION SECTION -->
     <h2>Version History</h2>
     <dl>
+	<dt>2.1 - We Want Our Classes Back!<span class="date">2017-07-07</span></dt>
+        <dd><ul>
+	        <li>Documentation:
+                <ul>
+                    <li>Added message PMs are filtered based on fetched members only.</li>
+					<li>Minor wording changes for the section descriptions.</li>
+                </ul>
+            </li>		
+	        <li>Bug Fixes:
+                <ul>
+					<li>Putting Classes back into tables. No wandering off in future! Thank you @Kingmaker!</li>
+                    <li>Handle no challenge owner.</li>
+					<li>If selecting party from drop down see the party sections too.</li>
+               </ul>
+            </li>
+		</ul></dd>	
 		<dt>2.0 - Mods, Likes, Cards!<span class="date">2017-07-04</span></dt>
         <dd><ul>
             <li>Features:
@@ -4084,7 +4113,7 @@ ul#tableOfContents > li {
 					<li class="subheading">Chat Likes</li>
 					<li class="subheading">PMs</li>
 					<li>Add Likes and Participant Likes Counts to Chat Export.</li>
-					<li>Added Message, Change Leader and Remove User to all tables if challenge leader. Remove Leadership tools as no longer required.</li>				
+					<li>Added Message, Change Leader and Remove User to all tables if guild/party leader. Remove Leadership tools as no longer required.</li>				
 					<li>Added Cards Get Well and Congrats.</li>
 					<li>Allowed user to have a select list of their guilds & party.</li>
 					<li>Mods have access to Leadership Tools.</li>
