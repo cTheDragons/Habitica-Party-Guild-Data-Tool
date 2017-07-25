@@ -1212,7 +1212,8 @@ function fetchData() {
 		
 		
 	function fetchMembers(){
-
+		var timeoutPeriod = 0;
+		
 		if (debug) console.log('debug MEMBER DATA -Yes we are finally here folks (' + lastMemberIndex + ')');
 		
 		if (debugShowObject) console.log(memberListToFetch[lastMemberIndex].id);
@@ -1238,20 +1239,26 @@ function fetchData() {
 		}
 		
 		$.each(memberListToFetch, function(index, obj){
-			$('#loading #statusFetch').text('Asking for Member Data ... (This can take a while)') ;
-			if (debug) console.log('debug MEMBER DATA -Yes we are finally here folks (' + obj.id + ')');
-			$.ajax({
-				url: serverUrl + serverPathMemberProfilePart + '/' + obj.id,
-				type: 'GET',
-				dataType: 'json',
-				cache: false,
-				beforeSend: function(xhr){
-						xhr.setRequestHeader('x-api-user', userId);
-						xhr.setRequestHeader('x-api-key',  apiToken);
-				},
-				success: fetchMemberSuccess,
-				error: fetchMemberFail
-			});
+			
+			timeoutPeriod = Math.floor(index / 1500)  * 120000
+			
+			
+			setTimeout(function () {
+				$('#loading #statusFetch').text('Asking for Member Data ... (This can take a while - ' + Math.ceil(index / 1500) + ' group of 1500)'); 
+				if (debug) console.log('debug MEMBER DATA -Yes we are finally here folks (' + obj.id + ' Index: + ' + index + ')');
+				$.ajax({
+					url: serverUrl + serverPathMemberProfilePart + '/' + obj.id,
+					type: 'GET',
+					dataType: 'json',
+					cache: false,
+					beforeSend: function(xhr){
+							xhr.setRequestHeader('x-api-user', userId);
+							xhr.setRequestHeader('x-api-key',  apiToken);
+					},
+					success: fetchMemberSuccess,
+					error: fetchMemberFail
+				});
+			}, timeoutPeriod);
 		});
 	}
 		
@@ -2545,7 +2552,7 @@ function parseData() {
 				{id: 'userAmount', struct: 'user', value: 'user.items.special.~id~', calcOnly: 'party'}
 			]
 			
-			var cardArrayToConstruct = ['birthday', 'greeting', 'thankyou', 'congrats', 'getwell'] // Other options  'valentine', 'nye' have to test if available manually.
+			var cardArrayToConstruct = ['birthday', 'congrats', 'getwell', 'goodluck', 'greeting', 'thankyou'] // Other options  'valentine', 'nye' have to test if available manually.
 			var utcNowArray = moment().utc().toArray() 
 			if ((utcNowArray[1] == 11 && utcNowArray[2] >= 30) || (utcNowArray[1] == 0 && utcNowArray[2] < 3)) cardArrayToConstruct.push('nye')
 			if (utcNowArray[1] == 1 && utcNowArray[2] >= 11 && utcNowArray[2] < 18) cardArrayToConstruct.push('valentine')
@@ -4052,7 +4059,7 @@ ul#tableOfContents > li {
 </head>
 <body><div id="innerBody">	
 <h1><a href="https://habitica.com/">Habitica</a> Party & Guild Data Tool
-    <span class="showHideToggle" data-target="versionChanges" data-closemainsections="true">(v2.1)</span></h1><!-- VERSION TOGGLE -->
+    <span class="showHideToggle" data-target="versionChanges" data-closemainsections="true">(v2.2)</span></h1><!-- VERSION TOGGLE -->
 <div id="headerExtras"></div>
 <hr class="clear" />
 <div id="headerGroupExtras"></div>
@@ -4089,7 +4096,26 @@ ul#tableOfContents > li {
 <div id="versionChanges" class="hide"><!-- VERSION SECTION -->
     <h2>Version History</h2>
     <dl>
-	<dt>2.1 - We Want Our Classes Back!<span class="date">2017-07-07</span></dt>
+		<dt>2.2 - Throttling the Good Luck<span class="date">2017-07-25</span></dt>
+        <dd><ul>
+            <li>Features:
+                <ul>
+					<li>Adding Good Luck Cards. Putting Cards in alphabetical order.</li>
+					<li>Adding in throttling for every 1500 member requests. Habitica API not handling the overload.</li>
+				</ul> 
+            </li>
+	        <li>Documentation:
+                <ul>
+					<li>Add noted regarding throttling</li>
+                </ul>
+            </li>		
+	        <li>Bug Fixes:
+                <ul>
+					<li>Typo Maximum (Thanks @Accio Books!)</li>
+               </ul>
+            </li>
+		</ul></dd>	
+		<dt>2.1 - We Want Our Classes Back!<span class="date">2017-07-07</span></dt>
         <dd><ul>
 	        <li>Documentation:
                 <ul>
@@ -4355,7 +4381,7 @@ ul#tableOfContents > li {
 			<p class="highlight">Guild ID/Party:</p>
 			<p>Enter either the word <i>party</i>, the Guild ID, or the URL for the Guild. The Guild ID is a string of characters similar to your User ID, e.g. 2ff9822b-27f2-4774-98da-db349b57a38e. The Guild ID appears at the end of the URL or on the left hand panel on the website. It is not the name of the guild. You can always just post the entire URL, which is much easier!</p>
 			<p class="highlight">Max Members to Fetch:</p>
-			<p>Max Members to fetch indicates how many people you want to fetch. The lesser the number the quicker the page will load. 120 users will take approximately 50 seconds; 1200 users approximately 4 minutes. Members fetched will always round up to the nearest 30, with the possible for extra 1 or 2 users for the leader or quest leader.</p>
+			<p>Max Members to fetch indicates how many people you want to fetch. The lesser the number the quicker the page will load. 120 users will take approximately 50 seconds; 1200 users approximately 4 minutes. Members fetched will always round up to the nearest 30, with the possible for extra 1 or 2 users for the leader or quest leader. There is a 120 second pause for every 1500 members requested to ensure Habitica Servers are not overloaded.</p>
 			<div id="exportOptionDesc"></div>
             <p class="highlight">Privacy and security notes:</p>
             <ul>
