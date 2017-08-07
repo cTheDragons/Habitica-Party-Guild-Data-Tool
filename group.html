@@ -1496,7 +1496,7 @@ function postRemoveUser(rowData, uuidIndex, nameIndex) {
 
 	function postRemoveUserSuccess(data){
 		if (debug) console.log('debug postRemoveUserSucess start');
-		$('#posting #statusPost').text('Succesfully Removed ' + obj[nameIndex] );
+		$('#posting #statusPost').text('Successfully Removed ' + obj[nameIndex] );
 		if (debugShowObject) console.log(data);
 		removeUserList += '\n\u2022  ' + obj[nameIndex]  
 		
@@ -1549,7 +1549,7 @@ function postRemoveUser(rowData, uuidIndex, nameIndex) {
 
 	function postRemoveUserSendPMSuccess(data){
 		if (debug) console.log('debug postRemoveUserSendPMSuccess start');
-		$('#posting #statusPost').text('Succesfully Messaged ' + obj[nameIndex] );
+		$('#posting #statusPost').text('Successfully Messaged ' + obj[nameIndex] );
 		if (debugShowObject) console.log(data);
 		index++
 		
@@ -1677,7 +1677,7 @@ function postMessageUser(rowData, uuidIndex, nameIndex) {
 
 	function postMessageUserSuccess(data){
 		if (debug) console.log('debug postMessageUserSucess start');
-		$('#posting #statusPost').text('Succesfully Messaged ' + obj[nameIndex] );
+		$('#posting #statusPost').text('Successfully Messaged ' + obj[nameIndex] );
 		if (debugShowObject) console.log(data);
 		actionNotificationList += '\n\u2022  ' + obj[nameIndex]  
 		index++
@@ -1761,7 +1761,7 @@ function postGiveCard(cardType, rowData, uuidIndex, nameIndex) {
 	function postGiveCardSuccess(data){
 		if (debug) console.log('debug postUseCardSucess start');
 		if (debugShowObject) console.log(data);
-		$('#posting #statusPost').text('Succesfully Gave Card to ' + obj[nameIndex] );
+		$('#posting #statusPost').text('Successfully Gave Card to ' + obj[nameIndex] );
 		cardUserList += '\n\u2022  ' + data.data.partyMembers[0].profile.name  
 		index++
 		
@@ -1842,7 +1842,7 @@ function postTransformMember(transformItem, rowData, uuidIndex, nameIndex) {
 	function postTransformMemberSuccess(data){
 		if (debug) console.log('debug postTransformMemberSucess start');
 		if (debugShowObject) console.log(data);
-		$('#posting #statusPost').text('Succesfully Transformed ' + obj[nameIndex] );
+		$('#posting #statusPost').text('Successfully Transformed ' + obj[nameIndex] );
 		transformedUserList += '\n\u2022  ' + data.data.partyMembers[0].profile.name  
 		index++
 		
@@ -2097,7 +2097,7 @@ function parseData() {
 				'<div id="explanationAndClearLinks">' +
 				'<input id="refetch" type="submit" value="' +
 				'Re-Fetch Data (last fetched ' + fetchtime + ')" />' +
-				'<span id="documentationAndFormToggle" class="showHideToggle" data-target="documentationAndForm" data-linktext="documentation" data-closemainsections="true">show documentation / options</span>' +
+				'<span id="documentationAndFormToggle" class="showHideToggle" data-target="documentationAndForm" data-linktext="documentation / options" data-closemainsections="true">show documentation / options</span>' +
 				'</div>'  				
 				
 		);
@@ -3605,7 +3605,7 @@ function parseData() {
 						} else {
 							var collectionString = ''
 							$.each(group.quest.progress.collect, function(index, obj){
-								collectionString += obj.count + ' ' + obj.text + ' ' //Put totals?
+								collectionString += obj + ' of ' + quests[group.quest.key].collect[index].count + ' ' + quests[group.quest.key].collect[index].text + ' ' //Put totals?
 							});
 							html += '<p>Progress: ' + collectionString
 						}
@@ -4059,7 +4059,7 @@ ul#tableOfContents > li {
 </head>
 <body><div id="innerBody">	
 <h1><a href="https://habitica.com/">Habitica</a> Party & Guild Data Tool
-    <span class="showHideToggle" data-target="versionChanges" data-closemainsections="true">(v2.2)</span></h1><!-- VERSION TOGGLE -->
+    <span class="showHideToggle" data-target="versionChanges" data-closemainsections="true">(v2.3)</span></h1><!-- VERSION TOGGLE -->
 <div id="headerExtras"></div>
 <hr class="clear" />
 <div id="headerGroupExtras"></div>
@@ -4096,6 +4096,16 @@ ul#tableOfContents > li {
 <div id="versionChanges" class="hide"><!-- VERSION SECTION -->
     <h2>Version History</h2>
     <dl>
+		<dt>2.3 - No more undefined collecting<span class="date">2017-08-07</span></dt>
+        <dd><ul>	
+	        <li>Bug Fixes:
+                <ul>
+					<li>Collection quests now show progress correctly in Overview.</li>
+					<li>documentation / options always shows next to the re-fetch button</li>
+					<li>Typo Successfully</li>
+               </ul>
+            </li>
+		</ul></dd>	
 		<dt>2.2 - Throttling the Luck<span class="date">2017-07-25</span></dt>
         <dd><ul>
             <li>Features:
