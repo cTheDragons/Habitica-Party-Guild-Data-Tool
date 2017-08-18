@@ -2161,17 +2161,18 @@ function parseData() {
 
 	function renderFormattedText(text, options) {
 		var md = window.habiticaMarkdown;
-		
-		if (exportFormats[exportFormat].convertMarkup) text = md.render(text);
-		if (exportFormats[exportFormat].removeHtml) text = $(text).text();
-		if (exportFormats[exportFormat].convertLineBreaks) text = text.replace(/(?:\r\n|\r|\n)/g, '<br />');
-		if (options && options.removeParaTags) {
-            text = String(text).replace(/^<p>|<\/p>\n$/g, '');
-        }
-        else if (options && options.setParaClass) {
-            text = String(text).replace(/<p>/g,
-                       '<p class="' + options.setParaClass + '">');
-        }
+		if (text != undefined) {
+			if (exportFormats[exportFormat].convertMarkup) text = md.render(text);
+			if (exportFormats[exportFormat].removeHtml) text = $(text).text();
+			if (exportFormats[exportFormat].convertLineBreaks) text = text.replace(/(?:\r\n|\r|\n)/g, '<br />');
+			if (options && options.removeParaTags) {
+				text = String(text).replace(/^<p>|<\/p>\n$/g, '');
+			}
+			else if (options && options.setParaClass) {
+				text = String(text).replace(/<p>/g,
+						   '<p class="' + options.setParaClass + '">');
+			}
+		}
 		return text;
 	}
 	
@@ -2614,7 +2615,7 @@ function parseData() {
 			}
 			group.memberTotals.class = {}
 			group.memberTotals.class.warrior = 0 //to populate later
-			group.memberTotals.class.mage = 0 //to populate later
+			group.memberTotals.class.wizard = 0 //to populate later
 			group.memberTotals.class.rogue = 0 //to populate later
 			group.memberTotals.class.healer = 0 //to populate later
 			group.memberTotals.underLevel10 = 0 //to populate later
@@ -3504,7 +3505,7 @@ function parseData() {
 			html += '<p>Total Members: ' + group.memberCount + '&nbsp;&nbsp;Members Fetched: ' + group.memberTotals.fetchCount + '</p>'
 			html += '<p><table class=overview_classBreakdown>' + 
 						'<tr><th>Warrior</th><th>Mage</th><th>Rogue</th><th>Healer</th></tr>' + 
-						'<tr><td>' + group.memberTotals.class.warrior + '</td><td>' + group.memberTotals.class.mage + '</td><td>' + group.memberTotals.class.rogue + '</td><td>' + group.memberTotals.class.healer + '</td></tr>' +
+						'<tr><td>' + group.memberTotals.class.warrior + '</td><td>' + group.memberTotals.class.wizard + '</td><td>' + group.memberTotals.class.rogue + '</td><td>' + group.memberTotals.class.healer + '</td></tr>' +
 						'</table> ' + 
 						'There are ' + group.memberTotals.underLevel10 + ' members under level 10 who might not have chosen their class yet.</p>'
 			
@@ -4059,7 +4060,7 @@ ul#tableOfContents > li {
 </head>
 <body><div id="innerBody">	
 <h1><a href="https://habitica.com/">Habitica</a> Party & Guild Data Tool
-    <span class="showHideToggle" data-target="versionChanges" data-closemainsections="true">(v2.3)</span></h1><!-- VERSION TOGGLE -->
+    <span class="showHideToggle" data-target="versionChanges" data-closemainsections="true">(v2.4)</span></h1><!-- VERSION TOGGLE -->
 <div id="headerExtras"></div>
 <hr class="clear" />
 <div id="headerGroupExtras"></div>
@@ -4096,6 +4097,15 @@ ul#tableOfContents > li {
 <div id="versionChanges" class="hide"><!-- VERSION SECTION -->
     <h2>Version History</h2>
     <dl>
+		<dt>2.4 - Really I Can Count!<span class="date">2017-08-19</span></dt>
+        <dd><ul>		
+	        <li>Bug Fixes:
+                <ul>
+					<li>Better handling of null strings with markdown</li>
+					<li>Mage totals now show in overview.</li>
+               </ul>
+            </li>
+		</ul></dd>	
 		<dt>2.3 - No more undefined collecting<span class="date">2017-08-07</span></dt>
         <dd><ul>	
 	        <li>Bug Fixes:
