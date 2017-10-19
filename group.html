@@ -37,7 +37,8 @@ Contributors:
 	<script src="https://code.jquery.com/jquery-1.12.3.js"></script> <!--- jquery -->
 	<script src="https://momentjs.com/downloads/moment-with-locales.min.js"></script> <!--- time functions -->
 	<script src="js/habitica-markdown.min.js"></script> <!--- Markdown -->
-
+	<script src="js/habitica-avatar.js"></script>  <!--- Avatar Generation -->
+	
 	 <!--- https://datatables.net/download/ -->
 	<script type="text/javascript" src="https://cdn.datatables.net/v/dt/jszip-2.5.0/pdfmake-0.1.18/dt-1.10.12/b-1.2.2/b-colvis-1.2.2/b-flash-1.2.2/b-html5-1.2.2/b-print-1.2.2/se-1.2.0/datatables.min.js"></script>
 	<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/dt/jszip-2.5.0/pdfmake-0.1.18/dt-1.10.12/b-1.2.2/b-colvis-1.2.2/b-flash-1.2.2/b-html5-1.2.2/b-print-1.2.2/se-1.2.0/datatables.min.css"/>
@@ -65,6 +66,7 @@ var lastListMemberId = '';  // hold last member id to be used with groups
 var userIsAdmin; 
 var noQuestsInChat = 0;
 var captureTableData = {};
+var avatarGeneration = [];
 
 //////////////////////////////////////////////////////////////////////
 ////   Global Constants                              /////////////////
@@ -220,7 +222,7 @@ sectionTables['transformMembers'] = {
 sectionTables['challengeGroup'] = {
 	type: 'challengeGroup',
 	dataSet: [], 
-	dataSetHeader: ['Challenge Id', 'Title', 'Description', 'Gems', 'Created', 'Last Updated', 'Leader Id', 'Leader', 'Leader Last Active', 'Participants', 'Offical'], 
+	dataSetHeader: ['Challenge Id', 'Title', 'Description', 'Gems', 'Created', 'Last Updated', 'Owner Id', 'Owner', 'Owner Last Active', 'Participants', 'Offical'], 
 	dataTable: ['id', 'nameLink', 'descriptionPretty', 'prize', 'creation.shortDate', 'lastUpdated.shortDate', 'leader.id', 'leader.profile.nameNotPretty', 'leader.lastActive.shortDate', 'memberCount', 'officalPretty'],
 	babyBear: {show: [1,3,7,9], orderBy: [[4, 'desc']]},
 	mamaBear: {show: [1,2,3,4,7,8,9], orderBy: [[4, 'desc']]},
@@ -354,10 +356,10 @@ sectionTables['displayInboxSection'] = {
 sectionTables['memberList'] = {
 	type: 'member',
 	dataSet: [], 
-	dataSetHeader: ['User Id', 'User', 'Profile', 'Class', 'Level', 'Tier', 'Contributor', 'Contributions',  'Admin',  'Born', 'Next Birthday', 'Can PM?', 'User (Plain)'],
-	dataTable: ['id', 'profile.nameLink', 'blurbPretty', 'stats.classPretty', 'stats.lvl', 'contribPretty.level', 'contribPretty.text',  'contribPretty.contributions', 'contribPretty.admin',  'creation.shortDate',  'creation.nextBirthday.shortDate', 'inbox.canPM','profile.nameNotPretty'],
-	babyBear: {show: [1,3,4], orderBy: [[1, 'asc']]},
-	mamaBear: {show: [0,1,2,3,4,5,6,10], orderBy: [[1, 'asc']]},
+	dataSetHeader: ['User Id', 'User', 'Profile', 'Class', 'Level', 'Tier', 'Contributor', 'Contributions',  'Admin',  'Born', 'Next Birthday', 'Can PM?', 'Avatar'],
+	dataTable: ['id', 'profile.nameNotPretty', 'blurbPretty', 'stats.classPretty', 'stats.lvl', 'contribPretty.level', 'contribPretty.text',  'contribPretty.contributions', 'contribPretty.admin',  'creation.shortDate',  'creation.nextBirthday.shortDate', 'inbox.canPM','profile.avatar'],
+	babyBear: {show: [1,3,4,12], orderBy: [[1, 'asc']]},
+	mamaBear: {show: [0,1,2,3,4,5,6,10,12], orderBy: [[1, 'asc']]},
 	papaBear: {show: ['all'], orderBy: [[1, 'asc']]},
 	extraColumnDefs: [{'className': 'dt-center', 'targets': [ 9 ]}],
 	subTitle: function (){
@@ -368,7 +370,7 @@ sectionTables['memberList'] = {
 	leadershipButton: true,
 	chatButton: false,
 	uuidIndex: 0,
-	nameIndex: 12
+	nameIndex: 1
 }
 
 sectionTables['memberActivity'] = {
@@ -729,6 +731,8 @@ var imageQuestPrefix            =  'quest_'
 var imageQuestPrefix            =  'quest_'
 var imageQuestScrollPrefix      =  'inventory_quest_scroll_'
 var imageFileSuffix				= '.png'
+var imageGem					= 'Pet_Currency_Gem1x.png'
+var serverHabiticaGuild			= 'https://habitica.com/groups/guild/'
 var serverCDT					= 'https://oldgods.net/habitica/cTheDragons/challenge.html'
 var hookCDT_uid					= 'uuid'
 var hookCDT_challengeid			= 'challengeId'
@@ -740,8 +744,8 @@ var exportOption 			 	= 'babyBear';
 var exportFormat			 	= 1;
 var groupDropDownShow			= false;
 var maxMembersToFetch 			; //hold the max members to fetch input (will be rounded up to nearest 30 due to function)
-var debug						= false;
-var debugShowObject				= false;
+var debug						= true;
+var debugShowObject				= true;
 
 if (debug || debugShowObject) serverName = '*** TURN DEBUG OFF! *** - ' + serverName
 if (debug) console.log('debug 1');
@@ -1048,6 +1052,7 @@ function fetchData() {
 	lastListMemberId = '' // clear from previous fetches
 	members = []; // clear from previous fetches
 	memberListToFetch = [];  // clear from previous fetches
+
 	
 	var lastMemberIndex = 0 // clear from previous fetches
 	
@@ -1370,6 +1375,8 @@ function fetchData() {
 //////////////////////////////////////////////////////////////////////
 // All post functions are implemented serial as they are unreliable when performed in parallel.
 
+
+
 //////////////////////////////////////////////////////////////////////
 ////  Change Leader					    //////////////////////////////
 //////////////////////////////////////////////////////////////////////
@@ -1438,11 +1445,12 @@ function postChangeLeader(rowData, uuidIndex, nameIndex) {
 		
 
 	
-	function postChangeLeaderFailure(GroupNotFound){
+	function postChangeLeaderFailure(data){
 		if (debug) console.log('debug postChangeLeaderFailure start');
-		if (debugShowObject) console.log(GroupNotFound);
-		alert('Cannot find the user ' + obj[nameIndex]  + '.\n\nYour data will be refreshed. Please try again.');	
-		
+		if (debugShowObject) console.log(data);
+		var errData = data;
+		alert('ERROR WITH  ' +  obj[nameIndex] + '\n\n' + errData.responseJSON.error + '\n' + errData.responseJSON.message  + '\n\nPlease refetch your data and try again.');	
+				
 		fetchData()
 	}
 
@@ -1557,10 +1565,11 @@ function postRemoveUser(rowData, uuidIndex, nameIndex) {
 		
 
 	
-	function postRemoveUserFailure(GroupNotFound){
+	function postRemoveUserFailure(data){
 		if (debug) console.log('debug postRemoveUserFailure start');
-		if (debugShowObject) console.log(GroupNotFound);
-		alert('User not found ' + obj[nameIndex]  + '.\n\nPlease refetch your data and try again.');	
+		if (debugShowObject) console.log(data);
+		var errData = data;
+		alert('ERROR WITH  ' +  obj[nameIndex] + '\n\n' + errData.responseJSON.error + '\n' + errData.responseJSON.message  + '\n\nPlease refetch your data and try again.');	
 		index++
 		
 		postRemoveUserCheckCompleted()
@@ -1610,10 +1619,11 @@ function postRemoveUser(rowData, uuidIndex, nameIndex) {
 		});		
 	}
 	
-	function postRemoveUserSendPMFailure(UserNotFound){
+	function postRemoveUserSendPMFailure(data){
 		if (debug) console.log('debug postRemoveUserSendPMFailure start');
-		if (debugShowObject) console.log(UserNotFound);
-		alert('Unable to message user ' + obj[nameIndex]  + '.\n\nPMs might be blocked.');	
+		if (debugShowObject) console.log(data);
+		var errData = data;
+		alert('ERROR WITH  ' +  obj[nameIndex] + '\n\n' + errData.responseJSON.error + '\n' + errData.responseJSON.message  + '\n\nPlease refetch your data and try again.');	
 		index++
 		
 		postRemoveUserCheckCompleted()
@@ -1740,10 +1750,10 @@ function postMessageUser(rowData, uuidIndex, nameIndex) {
 		
 
 	
-	function postMessageUserFailure(UserNotFound){
+	function postMessageUserFailure(data){
 		if (debug) console.log('debug postMessageUserFailure start');
-		if (debugShowObject) console.log(UserNotFound);
-		var errData = UserNotFound;
+		if (debugShowObject) console.log(data);
+		var errData = data;
 		alert('ERROR WITH  ' +  obj[nameIndex] + '\n\n' + errData.responseJSON.error + '\n' + errData.responseJSON.message  + '\n\nPlease refetch your data and try again.');	
 		index++
 		
@@ -1825,12 +1835,11 @@ function postGiveCard(cardType, rowData, uuidIndex, nameIndex) {
 		});		
 	}
 		
-	function postGiveCardFailure(TaskNotFound, PartyNotFound, UserNotFound){
+	function postGiveCardFailure(data){
 		if (debug) console.log('debug postGiveCardFailure start');
-		if (debugShowObject) console.log(TaskNotFound);
-		if (debugShowObject) console.log(PartyNotFound);
-		if (debugShowObject) console.log(UserNotFound);
-		alert('Cannot buy card.\n\nPlease refetch your data and try again.');	
+		if (debugShowObject) console.log(data);
+		var errData = data;
+		alert('ERROR WITH  ' +  obj[nameIndex] + '\n\n' + errData.responseJSON.error + '\n' + errData.responseJSON.message  + '\n\nPlease refetch your data and try again.');	
 		index = rowData.length; // Don't bother trying anymore
 		
 		postGiveCardCheckCompleted()
@@ -1909,12 +1918,11 @@ function postTransformMember(transformItem, rowData, uuidIndex, nameIndex) {
 		
 
 	
-	function postTransformMemberFailure(TaskNotFound, PartyNotFound, UserNotFound){
+	function postTransformMemberFailure(data){
 		if (debug) console.log('debug postTransformMemberFailure start');
-		if (debugShowObject) console.log(TaskNotFound);
-		if (debugShowObject) console.log(PartyNotFound);
-		if (debugShowObject) console.log(UserNotFound);
-		alert('Cannot find the user ' + UserNotFound + '.\n\nPlease refetch your data and try again.');	
+		if (debugShowObject) console.log(data);
+		var errData = data;
+		alert('ERROR WITH  ' +  obj[nameIndex] + '\n\n' + errData.responseJSON.error + '\n' + errData.responseJSON.message  + '\n\nPlease refetch your data and try again.');	
 		index++
 		
 		postTransformMemberCheckCompleted()
@@ -1991,11 +1999,11 @@ function postChat() {
 		
 
 	
-	function postChatFailure(GroupNotFound){
+	function postChatFailure(data){
 		if (debug) console.log('debug postChatFailure start');
-		if (debugShowObject) console.log(GroupNotFound);
-		var errData = GroupNotFound;
-		alert('ERROR WITH Posting to Chat\n\n' + errData.responseJSON.error + '\n' + errData.responseJSON.message  + '\n\nYour data will now be refreshed.');	
+		if (debugShowObject) console.log(data);
+		var errData = data;
+		alert('ERROR WITH POSTING CHAT MESSAGE\n\n' + errData.responseJSON.error + '\n' + errData.responseJSON.message  + '\n\nPlease refetch your data and try again.');	
 		
 		fetchData()
 	}
@@ -2047,10 +2055,10 @@ function postQuestAccept() {
 		
 
 	
-	function postQuestAcceptFailure(GroupNotFound){
+	function postQuestAcceptFailure(data){
 		if (debug) console.log('debug postQuestAcceptFailure start');
-		if (debugShowObject) console.log(GroupNotFound);
-		var errData = GroupNotFound;
+		if (debugShowObject) console.log(data);
+		var errData = data;
 		alert('ERROR WITH Accepting Quest\n\n' + errData.responseJSON.error + '\n' + errData.responseJSON.message  + '\n\nYour data will now be refreshed.');	
 		
 		fetchData()
@@ -2105,10 +2113,10 @@ function postQuestReject() {
 		
 
 	
-	function postQuestRejectFailure(GroupNotFound){
+	function postQuestRejectFailure(data){
 		if (debug) console.log('debug postQuestRejectFailure start');
-		if (debugShowObject) console.log(GroupNotFound);
-		var errData = GroupNotFound;
+		if (debugShowObject) console.log(data);
+		var errData = data;
 		alert('ERROR WITH Rejecting Quest\n\n' + errData.responseJSON.error + '\n' + errData.responseJSON.message  + '\n\nYour data will now be refreshed.');	
 		
 		fetchData()
@@ -2163,10 +2171,10 @@ function postQuestStart() {
 		
 
 	
-	function postQuestStartFailure(GroupNotFound){
+	function postQuestStartFailure(data){
 		if (debug) console.log('debug postQuestStartFailure start');
-		if (debugShowObject) console.log(GroupNotFound);
-		var errData = GroupNotFound;
+		if (debugShowObject) console.log(data);
+		var errData = data;
 		alert('ERROR WITH Starting Quest\n\n' + errData.responseJSON.error + '\n' + errData.responseJSON.message  + '\n\nYour data will now be refreshed.');	
 		
 		fetchData()
@@ -2221,12 +2229,31 @@ function parseData() {
 	formatAndDisplayDASHBOARD();
     formatAndDisplayTOC();
 	
+
 	
 	if ($('#MAIN')[0].innerHTML.length > 1) {
 		//Keep previous table settings
 		refreshAndDisplayMAIN();
 	} else {
 		formatAndDisplayMAIN();
+	}
+
+	formatAndDisplayAVATAR()
+	
+	
+	function formatAndDisplayAVATAR() {
+		if (debug) console.log('debug avatarGeneration start')
+		if (debugShowObject) console.log(avatarGeneration)
+		
+		//Generates all avatars and display them as required.
+		$.each(avatarGeneration, function(index, obj) {
+			habiticaAvatar.fromUserId(obj.userId, {
+			  container: '#' + obj.divId,
+			  // any other options
+			})
+
+		});
+
 	}
 	
 	function formatAndDisplayDASHBOARD() {
@@ -2436,13 +2463,15 @@ function parseData() {
 	
 	function groupDataInHeader() {
 		var displayName = group.nameNotPretty;
+		var gemAmount = group.balance * 4
+		var displayGemAmount = gemAmount + ' <img src="' + imageURL + imageGem + '" alt="' + 'Gem' + '">'
 		var displayLeaderName = group.leader.profile.nameNotPretty;
 		var privacyGroup = group.privacy.charAt(0).toUpperCase() + group.privacy.slice(1);
 	
 		if (groupId == 'party') {
 			var displayGroupType = 'Party'
 		} else {
-			var displayGroupType =  privacyGroup + ' Guild ' + '(' + groupId + ')';
+			var displayGroupType =  privacyGroup + ' Guild ' + '(Id: <a href="' + serverHabiticaGuild + groupId + '">' + groupId + '</a> &nbsp;&nbsp;Gems: ' + displayGemAmount + ')';
 		}
 			
 		$('#headerGroupExtras').html('<div id="groupNameDisplay">' +
@@ -2853,6 +2882,7 @@ function parseData() {
 			cardItems = {};
 			quests = {};
 			
+			avatarGeneration = []; //List of Avatar to generate
 			
 			var arrayToAdd = []; //Used to create final array to add to dataSet
 			var tempMembersList = []; //For looping through each members and adding missing variables
@@ -3271,6 +3301,12 @@ function parseData() {
 							arrayToAdd = []; //clear array
 							$.each(sectionTables[obj2.id].dataTable, function(index3, obj3){
 								arrayToAdd.push(eval('obj.' + obj3))
+								if (obj3.indexOf('avatar') > 0) {
+									var divString = eval('obj.' + obj3)
+									var divUID = divString.slice(-45,-9) //"></div>
+									var divID = divString.slice(10,-9)
+									avatarGeneration.push({divId: divID, userId: divUID})
+								}
 							});
 							//Don't include system messages if chatNotSystemExport
 							if ((obj.uuid != 'system' && obj2.id == 'chatNotSystemExport') || (obj.uuid == 'system' && obj2.id == 'chatSystemExport') || (obj2.id != 'chatNotSystemExport' && obj2.id != 'chatSystemExport')) sectionTables[obj2.id].dataSet.push(arrayToAdd); 
@@ -3452,6 +3488,12 @@ function parseData() {
 							arrayToAdd = []; //clear array
 							$.each(sectionTables[obj2.id].dataTable, function(index3, obj3){
 								arrayToAdd.push(eval('obj.' + obj3))
+								if (obj3.indexOf('avatar') > 0) {
+									var divString = eval('obj.' + obj3)
+									var divUID = divString.slice(-45,-9) //"></div>
+									var divID = divString.slice(10,-9)
+									avatarGeneration.push({divId: divID, userId: divUID})
+								}
 							});
 							sectionTables[obj2.id].dataSet.push(arrayToAdd);
 						}
@@ -3472,6 +3514,12 @@ function parseData() {
 							arrayToAdd = []; //clear array
 							$.each(sectionTables[obj2.id].dataTable, function(index3, obj3){
 								arrayToAdd.push(eval('obj.' + obj3))
+								if (obj3.indexOf('avatar') > 0) {
+									var divString = eval('obj.' + obj3)
+									var divUID = divString.slice(-45,-9) //"></div>
+									var divID = divString.slice(10,-9)
+									avatarGeneration.push({divId: divID, userId: divUID})
+								}
 							});
 							sectionTables[obj2.id].dataSet.push(arrayToAdd);
 						}
@@ -3496,6 +3544,12 @@ function parseData() {
 								arrayToAdd = []; //clear array
 								$.each(sectionTables[obj2.id].dataTable, function(index3, obj3){
 									arrayToAdd.push(eval('obj.' + obj3))
+									if (obj3.indexOf('avatar') > 0) {
+										var divString = eval('obj.' + obj3)
+										var divUID = divString.slice(-45,-9) //"></div>
+										var divID = divString.slice(10,-9)
+										avatarGeneration.push({divId: divID, userId: divUID})
+									}
 								});
 								if (obj.pet.text != undefined || obj2.id != 'questPetCompleted') sectionTables[obj2.id].dataSet.push(arrayToAdd);
 							}
@@ -3526,6 +3580,12 @@ function parseData() {
 							addToArray = []; //clear array
 							$.each(sectionTables[obj2.id].dataTable, function(index3, obj3){
 								addToArray.push(eval('obj.' + obj3))
+								if (obj3.indexOf('avatar') > 0) {
+									var divString = eval('obj.' + obj3)
+									var divUID = divString.slice(-45,-9) //"></div>
+									var divID = divString.slice(10,-9)
+									avatarGeneration.push({divId: divID, userId: divUID})
+								}
 							});
 							sectionTables[obj2.id].dataSet.push(addToArray);
 						}
@@ -3547,6 +3607,12 @@ function parseData() {
 								addToArray = []; //clear array
 								$.each(sectionTables[obj2.id].dataTable, function(index3, obj3){
 									addToArray.push(eval('obj.' + obj3))
+									if (obj3.indexOf('avatar') > 0) {
+										var divString = eval('obj.' + obj3)
+										var divUID = divString.slice(-45,-9) //"></div>
+										var divID = divString.slice(10,-9)
+										avatarGeneration.push({divId: divID, userId: divUID})
+									}
 								});
 								//Don't include system messages if chatNotSystemExport
 								sectionTables[obj2.id].dataSet.push(addToArray); 
@@ -3622,22 +3688,38 @@ function parseData() {
 			}
 			obj.creation  = reformatDate(obj.timestamp);
 			//if (debugShowObject) console.log(obj);
-			if (obj.contributor.text != undefined ) {
-				obj.contribPretty = [];
-				obj.contribPretty.text = obj.contributor.text;
-				obj.contribPretty.level = obj.contributor.level;
-				obj.contribPretty.contributions = obj.contributor.contributions;
-				if (obj.contributor.admin === true) {
-					obj.contribPretty.admin = 'true'
+			if (obj.contributor  !=  undefined ) {
+				if (obj.contributor.text  !=  undefined ) {
+					obj.contribPretty = [];
+					obj.contribPretty.text = obj.contributor.text;
+					if (obj.contributor.level != undefined)	{
+						obj.contribPretty.level = obj.contributor.level
+					} else {
+						obj.contribPretty.level = '';
+					};
+					if (obj.contributor.contributions  !=  undefined){
+						obj.contribPretty.contributions = obj.contributor.contributions;
+					} else {
+						obj.contribPretty.contributions = '';
+					}
+					if (obj.contributor.admin === true) {
+						obj.contribPretty.admin = true
+					} else {
+						obj.contribPretty.admin  = false
+					}
 				} else {
-					obj.contribPretty.admin  = 'false'
+					obj.contribPretty = [];
+					obj.contribPretty.text = '';
+					obj.contribPretty.level = '';
+					obj.contribPretty.contributions = '';
+					obj.contribPretty.admin = false;
 				}
 			} else {
 				obj.contribPretty = [];
 				obj.contribPretty.text = '';
 				obj.contribPretty.level = '';
 				obj.contribPretty.contributions = '';
-				obj.contribPretty.admin = '';
+				obj.contribPretty.admin = false;
 			}
 			if (obj.sent === true) {
 				obj.sentPretty = 'true'
@@ -3692,10 +3774,12 @@ function parseData() {
 				obj.profile.namePretty = 'System'
 				obj.profile.nameNotPretty = 'System'
 				obj.profile.nameLink = 'System'
+				obj.profile.avatar = ''
 			} else {
 				obj.profile.namePretty = renderFormattedText(obj.profile.name);
 				obj.profile.nameNotPretty = renderFormattedText(obj.profile.name, {removeParaTags: true});
-				obj.profile.nameLink = obj.id //'<a href="https://habitica.com/static/front#?memberId=' + obj.id +'" target="_blank">' + obj.profile.nameNotPretty + '</a>'
+				obj.profile.nameLink = '<a href="https://habitica.com/static/front#?memberId=' + obj.id +'" target="_blank">' + obj.profile.nameNotPretty + '</a>'
+				obj.profile.avatar = '.<div id="avatar_' + obj.id + '"></div>.'
 			}
 			if (obj.stats.class == 'wizard')  {
 				obj.stats.classPretty = 'mage'
@@ -3940,6 +4024,7 @@ function parseData() {
 							$.each(user.party.quest.progress.collect, function(index, obj){
 								collectionStringUser += obj + ' of ' + quests[group.quest.key].collect[index].text + ' ' //Put totals?
 							});
+							if (collectionStringUser == '' && user.party.quest.progress.collectedItems > 0) collectionStringUser = user.party.quest.progress.collectedItems + ' random objects. (Need to get back to your tent to see what is in your bag).'
 							html += '<p>Your Pending Progress: ' + collectionStringUser						}
 					}  else {					
 						html += '<p>Type: '+ toTitleCase(quests[group.quest.key].typeOf) + ' (' +  quests[group.quest.key].defeatBy + ')'
@@ -4324,6 +4409,9 @@ h2 {
     float: left;
     width: 30em;
 }
+#userApiDetailsForm input[type="checkbox"] {
+    width: auto;
+}
 #userApiDetailsForm fieldset p {
     clear: both;
 }
@@ -4414,12 +4502,11 @@ ul#tableOfContents > li {
 </head>
 <body><div id="innerBody">	
 <h1><a href="https://habitica.com/">Habitica</a> Party & Guild Data Tool
-    <span class="showHideToggle" data-target="versionChanges" data-closemainsections="true">(v2.5)</span></h1><!-- VERSION TOGGLE -->
+    <span class="showHideToggle" data-target="versionChanges" data-closemainsections="true">(v2.6)</span></h1><!-- VERSION TOGGLE -->
 <div id="headerExtras"></div>
 <hr class="clear" />
 <div id="headerGroupExtras"></div>
 <hr class="clear" />
-
 
 <div id="loading">
     <div class="error hide">
@@ -4451,6 +4538,28 @@ ul#tableOfContents > li {
 <div id="versionChanges" class="hide"><!-- VERSION SECTION -->
     <h2>Version History</h2>
     <dl>
+		<dt>2.6 - Pretty Pictures<span class="date">2017-10-??</span></dt>
+        <dd><ul>
+	            <li>Features:
+                <ul>
+					<li>Added Avatar Image. Deprecating Avatar link (Not currently available).</li>
+					<li>Updating URL to new website format.</li>
+					<li>Better error with POST functions handling.</li>
+					<li>Direct links to guilds at Habitica</li>
+				</ul> 
+            </li>
+	        <li>Documentation:
+                <ul>
+					<li>Clean up of code.</li>
+					<li>Minor fixes to formatting of check boxes.</li>
+                </ul>
+            </li>		
+	        <li>Bug Fixes:
+                <ul>
+					<li></li>
+               </ul>
+            </li>
+		</ul></dd>
 		<dt>2.5 - Quest of Chat<span class="date">2017-09-30</span></dt>
         <dd><ul>
             <li>Features:
@@ -4765,10 +4874,10 @@ ul#tableOfContents > li {
              -&gt; API page</a>)
             </legend>
             <label for="userId"><span>User ID</span>
-                <input type="text" name="userId" id="userId" />
+                <input type="text" name="userId" id="userId" value="bc10ec41-4213-4482-bbb8-558e3c3ea8d5"/>
             </label>
             <label for="apiToken"><span>API Token</span>
-                <input type="password" name="apiToken" id="apiToken" />
+                <input type="password" name="apiToken" id="apiToken" value="b0b16606-bc5c-4143-a050-32455d38605a"/>
             </label>
 			<div id="groupSelector"></div>
 			<label for="maxMembersToFetch"><span>Max Members Details</span>
@@ -4824,7 +4933,7 @@ ul#tableOfContents > li {
 
 		<p>Internet Explorer will produce odd results if you use the "Re-Fetch Data" button. Reloading the page will fix the problem. Avoid using that button. Avoiding Internet Explorer will also work.</p>
 		<p>This page will not work correctly on old browsers because it uses modern website features and relies on compliance to standards (both can be lacking in old browsers). <a href="http://browsehappy.com/">Updating your browser is important for general safety on the Internet!</a> If you have upgraded your browser to the latest version and are still having problems, please tell me! Contact details are below.</p>
-		<p>Regardless of what bugs there might be, this page cannot damage your account. It does not contain any code that could result in any changes being made on Habitica.</p>
+		<p>Regardless of what bugs there might be, this page cannot damage your account. It does not contain any code that could result in any changes being made on Habitica except actions performed through this tool via the API. The tool does not directly edit your data..</p>
 
 		<h2>Thank You!</h2>
 		<p>Thank you to @Alys & Ryan for their code which this is based. Thank you all in the <a href="https://habitica.com/groups/guild/349a36c3-66f3-4bf8-91b6-475056d9b6bb">Javascript</a> and <a href="https://habitica.com/groups/guild/2ff9822b-27f2-4774-98da-db349b57a38e">Aspiring Comrades</a> in answering my newbie questions. Shout to Blade who help this newbie with her arrays. Thank you to the Pirates (and conscripted socialites) who were keelhauled, walked the plank and thrown overboard in testing this product. Thank you to all the parties I joined that help me test this product; hopefully you dried out from all the snow.<p> 
