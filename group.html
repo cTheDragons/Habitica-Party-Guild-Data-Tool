@@ -2238,24 +2238,6 @@ function parseData() {
 		formatAndDisplayMAIN();
 	}
 
-	formatAndDisplayAVATAR()
-	
-	
-	function formatAndDisplayAVATAR() {
-		if (debug) console.log('debug avatarGeneration start')
-		if (debugShowObject) console.log(avatarGeneration)
-		
-		//Generates all avatars and display them as required.
-		$.each(avatarGeneration, function(index, obj) {
-			habiticaAvatar.fromUserId(obj.userId, {
-			  container: '#' + obj.divId,
-			  // any other options
-			})
-
-		});
-
-	}
-	
 	function formatAndDisplayDASHBOARD() {
 		// Not required to be changed. Section controlled by Sections defined above.
 		var html = '<ul>';
@@ -3301,12 +3283,6 @@ function parseData() {
 							arrayToAdd = []; //clear array
 							$.each(sectionTables[obj2.id].dataTable, function(index3, obj3){
 								arrayToAdd.push(eval('obj.' + obj3))
-								if (obj3.indexOf('avatar') > 0) {
-									var divString = eval('obj.' + obj3)
-									var divUID = divString.slice(-45,-9) //"></div>
-									var divID = divString.slice(10,-9)
-									avatarGeneration.push({divId: divID, userId: divUID})
-								}
 							});
 							//Don't include system messages if chatNotSystemExport
 							if ((obj.uuid != 'system' && obj2.id == 'chatNotSystemExport') || (obj.uuid == 'system' && obj2.id == 'chatSystemExport') || (obj2.id != 'chatNotSystemExport' && obj2.id != 'chatSystemExport')) sectionTables[obj2.id].dataSet.push(arrayToAdd); 
@@ -3488,12 +3464,6 @@ function parseData() {
 							arrayToAdd = []; //clear array
 							$.each(sectionTables[obj2.id].dataTable, function(index3, obj3){
 								arrayToAdd.push(eval('obj.' + obj3))
-								if (obj3.indexOf('avatar') > 0) {
-									var divString = eval('obj.' + obj3)
-									var divUID = divString.slice(-45,-9) //"></div>
-									var divID = divString.slice(10,-9)
-									avatarGeneration.push({divId: divID, userId: divUID})
-								}
 							});
 							sectionTables[obj2.id].dataSet.push(arrayToAdd);
 						}
@@ -3514,12 +3484,6 @@ function parseData() {
 							arrayToAdd = []; //clear array
 							$.each(sectionTables[obj2.id].dataTable, function(index3, obj3){
 								arrayToAdd.push(eval('obj.' + obj3))
-								if (obj3.indexOf('avatar') > 0) {
-									var divString = eval('obj.' + obj3)
-									var divUID = divString.slice(-45,-9) //"></div>
-									var divID = divString.slice(10,-9)
-									avatarGeneration.push({divId: divID, userId: divUID})
-								}
 							});
 							sectionTables[obj2.id].dataSet.push(arrayToAdd);
 						}
@@ -3544,12 +3508,6 @@ function parseData() {
 								arrayToAdd = []; //clear array
 								$.each(sectionTables[obj2.id].dataTable, function(index3, obj3){
 									arrayToAdd.push(eval('obj.' + obj3))
-									if (obj3.indexOf('avatar') > 0) {
-										var divString = eval('obj.' + obj3)
-										var divUID = divString.slice(-45,-9) //"></div>
-										var divID = divString.slice(10,-9)
-										avatarGeneration.push({divId: divID, userId: divUID})
-									}
 								});
 								if (obj.pet.text != undefined || obj2.id != 'questPetCompleted') sectionTables[obj2.id].dataSet.push(arrayToAdd);
 							}
@@ -3580,12 +3538,6 @@ function parseData() {
 							addToArray = []; //clear array
 							$.each(sectionTables[obj2.id].dataTable, function(index3, obj3){
 								addToArray.push(eval('obj.' + obj3))
-								if (obj3.indexOf('avatar') > 0) {
-									var divString = eval('obj.' + obj3)
-									var divUID = divString.slice(-45,-9) //"></div>
-									var divID = divString.slice(10,-9)
-									avatarGeneration.push({divId: divID, userId: divUID})
-								}
 							});
 							sectionTables[obj2.id].dataSet.push(addToArray);
 						}
@@ -3607,12 +3559,6 @@ function parseData() {
 								addToArray = []; //clear array
 								$.each(sectionTables[obj2.id].dataTable, function(index3, obj3){
 									addToArray.push(eval('obj.' + obj3))
-									if (obj3.indexOf('avatar') > 0) {
-										var divString = eval('obj.' + obj3)
-										var divUID = divString.slice(-45,-9) //"></div>
-										var divID = divString.slice(10,-9)
-										avatarGeneration.push({divId: divID, userId: divUID})
-									}
 								});
 								//Don't include system messages if chatNotSystemExport
 								sectionTables[obj2.id].dataSet.push(addToArray); 
@@ -3757,7 +3703,15 @@ function parseData() {
 			}
 
 		}
-		
+
+		function createAvatar (user) {
+			var wrapper = document.createElement('div');
+			
+			wrapper.appendChild(window.habiticaAvatar({user: user}));
+			
+			return wrapper.innerHTML;
+		}
+
 		function modifyUserProperties(obj) {
 			if (obj.profile !=  undefined ){
 				if (obj.profile.blurb  !=  undefined ) {
@@ -3779,7 +3733,7 @@ function parseData() {
 				obj.profile.namePretty = renderFormattedText(obj.profile.name);
 				obj.profile.nameNotPretty = renderFormattedText(obj.profile.name, {removeParaTags: true});
 				obj.profile.nameLink = '<a href="https://habitica.com/static/front#?memberId=' + obj.id +'" target="_blank">' + obj.profile.nameNotPretty + '</a>'
-				obj.profile.avatar = '.<div id="avatar_' + obj.id + '"></div>.'
+				obj.profile.avatar = createAvatar(obj);
 			}
 			if (obj.stats.class == 'wizard')  {
 				obj.stats.classPretty = 'mage'
