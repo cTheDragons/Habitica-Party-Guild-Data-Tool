@@ -514,41 +514,44 @@ sectionTables['memberQuest'] = {
 	extraButton: function(){
 		var returnButton = []
 		
-		if (group.quest.key != undefined) {
-			if (group.quest.active != true) {
-				var acceptButton = {
-					text: 'Accept Quest',
-					className: 'questAcceptButton',
-					action: function ( e, dt, node, config ) {
-						postQuestAccept()	
-					}
-				}	
-				returnButton.push(acceptButton)
-				
-				var rejectButton = {
-					text: 'Reject Quest', 
-					className: 'questRejectButton',
-					action: function ( e, dt, node, config ) {
-						postQuestReject()	
-					}
-				}	
-				returnButton.push(rejectButton)
-				
-				if ((userId == group.leader.id) || (userIsAdmin) || (group.quest.leader  == userId) ) {
-					var startButton = {
-						text: 'Start Quest Now', 
-						className: 'questStartButton',
-						action: function ( e, dt, node, config ) {
-							postQuestStart()	
-						}
-					}	
-					returnButton.push(startButton)
-				}
+		
+		//always create button just hide them when not needed.
+		var acceptButton = {
+			text: 'Accept Quest',
+			className: 'questAcceptButton',
+			name: 'questAcceptButton',
+			action: function ( e, dt, node, config ) {
+				postQuestAccept()	
 			}
+		}	
+		returnButton.push(acceptButton)
+		
+		var rejectButton = {
+			text: 'Reject Quest', 
+			className: 'questRejectButton',
+			name: 'questRejectButton',
+			action: function ( e, dt, node, config ) {
+				postQuestReject()	
+			}
+		}	
+		returnButton.push(rejectButton)
+		
+		if ((userId == group.leader.id) || (userIsAdmin) || (group.quest.leader  == userId) ) {
+			var startButton = {
+				text: 'Start Quest Now', 
+				className: 'questStartButton',
+				name: 'questStartButton',
+				action: function ( e, dt, node, config ) {
+					postQuestStart()	
+				}
+			}	
+			returnButton.push(startButton)
+
 		}
 		
 		return returnButton
-	}
+	},
+	dynamicButtons: true
 }
 
 
@@ -740,12 +743,14 @@ var hookCDT_challengeid			= 'challengeId'
 var userId						= '';
 var apiToken					= '';
 var groupId 					= ''; //holds selected group (drop down)
+var hideAvatar					= false;
+var clearNotification			= false;
 var exportOption 			 	= 'babyBear';
 var exportFormat			 	= 1;
 var groupDropDownShow			= false;
 var maxMembersToFetch 			; //hold the max members to fetch input (will be rounded up to nearest 30 due to function)
-var debug						= true;
-var debugShowObject				= true;
+var debug						= false;
+var debugShowObject				= false;
 
 if (debug || debugShowObject) serverName = '*** TURN DEBUG OFF! *** - ' + serverName
 if (debug) console.log('debug 1');
@@ -909,9 +914,24 @@ if (debug) console.log('debug enableShowHideToggling');
 ////   Get UUID from URL      ////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
 var url_vars = getUrlVars();
-if (url_vars.uuid) {
-    $("#userId").val(url_vars.uuid);
+if (url_vars.uuid || url_vars.userId) {
+	if (url_vars.userId) {
+		$("#userId").val(url_vars.userId);
+	} else {
+		$("#userId").val(url_vars.uuid);
+	}
 	$("#groupId").val(url_vars.groupId);
+	$("#maxMembersToFetch").val(url_vars.max);
+	if (url_vars.hide_avatar) {
+		$("#hideAvatar").prop("checked", true);
+	} else {
+		$("#hideAvatar").prop("checked", false);
+	}
+	if (url_vars.clear_chat) {
+		$("#clearNotification").prop("checked", true);
+	} else {
+		$("#clearNotification").prop("checked", false);
+	}
 }
 function getUrlVars() {
     // Function found at http://stackoverflow.com/questions/4656843/jquery-get-querystring-from-url#answer-4656873
@@ -938,6 +958,8 @@ if (debug) console.log('debug #userApiDetailsForm (Fetch Data)');
     apiToken = $('#apiToken').val();
 	groupId = $('#groupId').val();
 	maxMembersToFetch = $('#maxMembersToFetch').val();
+	hideAvatar = $('#hideAvatar')[0].checked;
+	clearNotification = $('#clearNotification')[0].checked;
 	exportOption = $('#exportOption').val()
     exportFormat = $('#exportFormat').val()
 	if (debugShowObject) console.log('exportFormat: ' + exportFormat );
@@ -1375,6 +1397,65 @@ function fetchData() {
 //////////////////////////////////////////////////////////////////////
 // All post functions are implemented serial as they are unreliable when performed in parallel.
 
+//////////////////////////////////////////////////////////////////////
+////  Toggle Leader	Only Challenge	    //////////////////////////////
+//////////////////////////////////////////////////////////////////////
+function postToggleLeaderOnlyChallenge(newValue) {
+	if (debug) console.log('debug postToggleLeaderOnlyChallenge start');
+	var displayValue = String(newValue)
+	if (confirm('Are you sure you wish to change the setting Leader can Only Create Challenges to : ' + displayValue + '?')){
+		postNextToggleLeaderOnlyChallenge()
+	} else {
+		alert('Action cancelled')
+		return;
+	}
+	
+	
+	
+	//This is done like this as receive ERR_INCOMPLETE_CHUNKED_ENCODING
+	function postNextToggleLeaderOnlyChallenge(){
+		var newData = {leaderOnly: {challenges: newValue}}
+		if (debugShowObject) console.log(newData);
+		urlToPost = serverUrl + serverPathGroup + '/' + groupId //+ '?leader.id=' + obj[uuidIndex] 
+		if (debugShowObject) console.log(urlToPost);
+		$.ajax({
+			url: urlToPost,
+			type: 'PUT',
+			contentType: 'application/json',
+			data: JSON.stringify(newData),
+			dataType: 'json',
+			cache: false,
+			beforeSend: function(xhr){
+					xhr.setRequestHeader('x-api-user', userId);
+					xhr.setRequestHeader('x-api-key',  apiToken);
+				},
+			success: postToggleLeaderOnlyChallengeSuccess,
+			error: postToggleLeaderOnlyChallengeFailure
+		});		
+	}
+		
+
+	
+	function postToggleLeaderOnlyChallengeFailure(data){
+		if (debug) console.log('debug postToggleLeaderOnlyChallengeFailure start');
+		if (debugShowObject) console.log(data);
+		var errData = data;
+		alert('ERROR WITH Toggle Leader Only Challenges \n\n' + errData.responseJSON.error + '\n' + errData.responseJSON.message  + '\n\nPlease refetch your data and try again.');	
+				
+		fetchData()
+	}
+
+
+	function postToggleLeaderOnlyChallengeSuccess(data){
+		if (debug) console.log('debug postToggleLeaderOnlyChallengeSuccess start');
+		if (debugShowObject) console.log(data);
+		alert('Toggle Leader Only Challenge has changed.\n\nYour data will now be refreshed')
+		
+		fetchData() 
+	}
+	
+
+}
 
 
 //////////////////////////////////////////////////////////////////////
@@ -2189,7 +2270,84 @@ function postQuestStart() {
 		fetchData() 
 	}
 	
+}
 
+///////////////////////////////////////////////////////////////
+////   Clear Notifications                         ////////////
+//////////////////////////////////////////////////////////////
+function postClearNotification(notifcationList) {
+	if (debug) console.log('debug Clear Notifications  Start');
+	var urlToPost = ''	
+	var index = 0
+	var loopList = []
+	
+	//create an array
+	$.each(notifcationList, function(index, obj){
+		loopList.push(index)
+	});
+
+	if (loopList.length > 0) {
+		postNextClearNotification()
+	} else {
+		checkClearNotification()
+	}
+	
+	function postNextClearNotification(){
+	
+		obj = loopList[index]
+		$('#loading #statusFetch').text('Clear Notifications for ' + notifcationList[obj].name ) ;
+		if (debug) console.log('debug Clear Message for  (' + notifcationList[obj].name + ')');
+		urlToPost = serverUrl + serverPathGroup + '/' + obj + '/chat/seen' 
+		$.ajax({
+			url: urlToPost,
+			type: 'POST',
+			contentType: 'application/json',
+			cache: false,
+			beforeSend: function(xhr){
+					xhr.setRequestHeader('x-api-user', userId);
+					xhr.setRequestHeader('x-api-key',  apiToken);
+				},
+			success: postClearNotificationSuccess,
+			error: postClearNotificationFail
+		});
+			
+	}
+	
+	
+	function postClearNotificationFail(data) {
+	
+		if (debug) console.log('debug Clear Notification Failed for ' + obj)
+		if (debugShowObject) console.log(data);
+		alert('ERROR WITH  ' +  obj + '\n\n' + errData.responseJSON.error + '\n' + errData.responseJSON.message  + '\n\nPlease refetch your data and try again.');	
+		index++
+		checkClearNotification()
+	}
+			
+			
+	function postClearNotificationSuccess(data) {
+//		if (debug) console.log('debug Clear Notification Success Start for ' +  lastGuildIndex + '  id: ' + data.data._id);
+		if (debugShowObject) console.log(data);
+		$('#loading #statusFetch').text('Clear  Notification for  '  +  notifcationList[obj].name);
+		
+		index++
+
+		checkClearNotification()
+	}	
+	
+	
+	function checkClearNotification() {
+		if (index === loopList.length){
+			$('#loading #statusFetch').text('') //All Done
+			$('#loading .good').hide();
+			$('#posting .good').hide(); // just to be sure
+			$('#documentationAndFormClose').show();
+			$('#documentationAndForm').hide();
+		} else
+		{
+			postNextClearNotification()
+		}		
+
+	}
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -2201,8 +2359,7 @@ function postQuestStart() {
 //////////////////////////////////////////////////////////////////////
 function parseData() {
 	if (debug) console.log('debug parseData start');
-
-	
+ 
     // variables for storing the content:
     var MAIN = {}; // each element defines the HTML for one section on the page
     var TOC  = {}; // each element defines one Table of Contents entry
@@ -2217,6 +2374,7 @@ function parseData() {
 	groupDataInHeader();
 
 	
+	
 	//////////////////////////////////////////////////////////////////////
     ////   Display the HTML that the functions have created   ////////////
     //////////////////////////////////////////////////////////////////////
@@ -2229,7 +2387,7 @@ function parseData() {
 	formatAndDisplayDASHBOARD();
     formatAndDisplayTOC();
 	
-
+	
 	
 	if ($('#MAIN')[0].innerHTML.length > 1) {
 		//Keep previous table settings
@@ -2238,6 +2396,11 @@ function parseData() {
 		formatAndDisplayMAIN();
 	}
 
+	var newData = {}
+	newData[group._id] = {name: group.name, value: true}
+	if (clearNotification) postClearNotification(newData)
+	
+	
 	function formatAndDisplayDASHBOARD() {
 		// Not required to be changed. Section controlled by Sections defined above.
 		var html = '<ul>';
@@ -2587,6 +2750,21 @@ function parseData() {
 					
 				} );
 			} );
+		}
+		
+		//This is hard coded at the moment... need a better way
+		if (sectionTables[dataSetSectionId].dynamicButtons === true) {
+			var table = $('#'+ dataSetTableSection).DataTable();
+
+			if ((group.quest.key == undefined) || (group.quest.active == true)) {
+				table.button( 'questAcceptButton:name' ).nodes().hide();
+				table.button( 'questRejectButton:name' ).nodes().hide();
+				if ((userId == group.leader.id) || (userIsAdmin) || (group.quest.leader  == userId) ) table.button( 'questStartButton:name' ).nodes().hide();
+			} else {
+				table.button( 'questAcceptButton:name' ).nodes().show();
+				table.button( 'questRejectButton:name' ).nodes().show();
+				if ((userId == group.leader.id) || (userIsAdmin) || (group.quest.leader  == userId) ) table.button( 'questStartButton:name' ).nodes().show();
+			}
 		}
 		
 		function formatShowButton() {
@@ -3704,14 +3882,6 @@ function parseData() {
 
 		}
 
-		function createAvatar (user) {
-			var wrapper = document.createElement('div');
-			
-			wrapper.appendChild(window.habiticaAvatar({user: user}));
-			
-			return wrapper.innerHTML;
-		}
-
 		function modifyUserProperties(obj) {
 			if (obj.profile !=  undefined ){
 				if (obj.profile.blurb  !=  undefined ) {
@@ -3821,6 +3991,16 @@ function parseData() {
 				};
 		}
 		
+		function createAvatar (user) {
+			if (hideAvatar == false) {
+				var wrapper = document.createElement('div');
+				
+				wrapper.appendChild(window.habiticaAvatar({user: user}));
+				
+				return wrapper.innerHTML;
+			}
+		}
+
 		
 		//////////////////////////////////////////////////////////////////////
 		////   Sections 										   ////////////
@@ -3834,8 +4014,25 @@ function parseData() {
 			var subSectionTitle = ''
 			var subSectionId = ''
 			
+
+			if (groupId != 'party') {
+				subSectionId = 'SummaryAndCategories'
+				subSectionTitle = 'Summary and Categories'
+				htmlTOCDetail += '<li><a href="#' + 'toc_' + subSectionId + '_' + sectionId  + '" target="_self">' + subSectionTitle + '</a></li>'
+				html += '<h3 id="' + 'toc_' + subSectionId + '_' + sectionId +'">' + subSectionTitle + '</h3>'		
+				html += '<p><span class="highlight">Categories:</span> '
+				if (group.categories.length > 0 ) {
+					$.each(group.categories, function(index, obj){
+						html += toTitleCase((obj.name.replace(/_/g, ' '))) + '&nbsp;&nbsp;&nbsp;&nbsp;' 
+					})
+				} else {
+					html += 'None'
+				}
+				if (group.summary != undefined) html += '<p><span class="highlight">Summary:</span> ' + renderFormattedText(group.summary) + '</p>'				
+				html += htmlReturnTOC
+			}
+
 			//Description
-			if (group.logo != undefined && group.logo != '') html += '<img src="' + group.logo + '" align=right></img>'
 			if (group.description != undefined) {
 				subSectionId = 'Description'
 				subSectionTitle = 'Description'
@@ -3845,20 +4042,16 @@ function parseData() {
 				html += htmlReturnTOC
 			}
 			
-			if (group.leaderMessage != undefined) {
-				subSectionId = 'LeaderNote'
-				subSectionTitle = 'Leader&#39;s Note'
-				htmlTOCDetail += '<li><a href="#' + 'toc_' + subSectionId + '_' + sectionId  + '" target="_self">' + subSectionTitle + '</a></li>'
-				html += '<h3 id="' + 'toc_' + subSectionId + '_' + sectionId +'">' + subSectionTitle + '</h3>'		
-				html += '<p>' + renderFormattedText(group.leaderMessage) + '</p>'
-				html += htmlReturnTOC
-			}
+
 			
 			subSectionId = 'OtherDetail'
 			subSectionTitle = 'Other Details'
 			htmlTOCDetail += '<li><a href="#' + 'toc_' + subSectionId + '_' + sectionId  + '" target="_self">' + subSectionTitle + '</a></li>'
 			html += '<h3 id="' + 'toc_' + subSectionId + '_' + sectionId +'">' + subSectionTitle + '</h3>'		
 			html += '<p>Leader: ' + group.leader.profile.nameNotPretty + ' (Last Active: ' + members[group.leader.id].lastActive.relativeTime + ') </p>'
+			html += '<p>Leader can only create challenges: ' + toTitleCase(String(group.leaderOnly.challenges))
+			if ((userId == group.leader.id) || (userIsAdmin)) html += '&nbsp;&nbsp;&nbsp;&nbsp;<input class="div-perMemberStats_toggleLeaderOnlyChallenge" id="perMemberStats_toggleLeaderOnlyChallenge" type="submit" value="Toggle" />' 
+			html += '</p>'
 			html += htmlReturnTOC
 
 			subSectionId = 'MemberBreakdown'
@@ -3967,6 +4160,7 @@ function parseData() {
 					if (group.quest.active) {
 						if (quests[group.quest.key].boss) {
 							html += '<p>Progress: ' + Math.round(group.quest.progress.hp * 100) / 100 + ' / ' + quests[group.quest.key].boss.hp
+							if (quests[group.quest.key].boss.rage != undefined) html += '<p>Rage: ' + Math.round(group.quest.progress.rage * 100) / 100 + ' / ' + quests[group.quest.key].boss.rage.value
 							html += '<p>Your Pending Damage: ' +  Math.floor(user.party.quest.progress.up * 10) / 10
 						} else {
 							var collectionString = ''
@@ -4020,7 +4214,20 @@ function parseData() {
 			MAIN[orderId] = {'id': id, 'title': title, 'refreshHtml': html, 'refreshId': refreshId, 'longContent': true,
 				'html': html};
 		}
+		
+		///////////////////////////////////////////////////////////////////////
+		////   Custom events  for custom Sections above             //////////
+		/////////////////////////////////////////////////////////////////////
+		$(document).unbind('click'); //remove random elements listeners
 
+		if ((userId == group.leader.id) || (userIsAdmin)) {
+			$(document).on('click', '.div-perMemberStats_toggleLeaderOnlyChallenge', function(event){
+				if (debug) console.log('debug #perMemberStats_toggleLeaderOnlyChallenge');
+				var newValue = !group.leaderOnly.challenges
+				postToggleLeaderOnlyChallenge(newValue);
+			});
+		}
+		
 		//////////////////////////////////////////////////////////////////////
 		//sectionTable Functions
 		//////////////////////////////////////////////////////////////////////
@@ -4456,7 +4663,7 @@ ul#tableOfContents > li {
 </head>
 <body><div id="innerBody">	
 <h1><a href="https://habitica.com/">Habitica</a> Party & Guild Data Tool
-    <span class="showHideToggle" data-target="versionChanges" data-closemainsections="true">(v2.6)</span></h1><!-- VERSION TOGGLE -->
+    <span class="showHideToggle" data-target="versionChanges" data-closemainsections="true">(v2.7)</span></h1><!-- VERSION TOGGLE -->
 <div id="headerExtras"></div>
 <hr class="clear" />
 <div id="headerGroupExtras"></div>
@@ -4492,7 +4699,28 @@ ul#tableOfContents > li {
 <div id="versionChanges" class="hide"><!-- VERSION SECTION -->
     <h2>Version History</h2>
     <dl>
-		<dt>2.6 - Pretty Pictures<span class="date">2017-10-??</span></dt>
+		<dt>2.7 - Notifications, Summary & Categories<span class="date">2017-11-10</span></dt>
+        <dd><ul>
+	            <li>Features:
+                <ul>
+					<li>Allow the option to clear chat notification (default on)</li>
+					<li>Added ability to hide Avatar Image for Faster Loading</li>
+					<li>Show in Overview Leader Can Only Create Challenges.</li>
+					<li>Added button to toggle Leader Can Only Create Challenges if leader.</li>
+					<li>Added Summary and Category information for Guild</li>
+					<li>Remove deprecated Leader Message.</li>
+					<li>Now shows rage bar information if quest contains one.</li>
+					<li>Added hide_avatar and max and clear_chat as url options.</li>
+				</ul> 
+            </li>	
+	        <li>Bug Fixes:
+                <ul>
+					<li>Avatar image always displays even if column is hidden (Thank you @Blade)</li>
+					<li>Quest Buttons now show and hide correctly.</li>
+               </ul>
+            </li>
+		</ul></dd>
+		<dt>2.6 - Pretty Pictures<span class="date">2017-10-31</span></dt>
         <dd><ul>
 	            <li>Features:
                 <ul>
@@ -4508,11 +4736,6 @@ ul#tableOfContents > li {
 					<li>Minor fixes to formatting of check boxes.</li>
                 </ul>
             </li>		
-	        <li>Bug Fixes:
-                <ul>
-					<li></li>
-               </ul>
-            </li>
 		</ul></dd>
 		<dt>2.5 - Quest of Chat<span class="date">2017-09-30</span></dt>
         <dd><ul>
@@ -4828,14 +5051,20 @@ ul#tableOfContents > li {
              -&gt; API page</a>)
             </legend>
             <label for="userId"><span>User ID</span>
-                <input type="text" name="userId" id="userId" value="bc10ec41-4213-4482-bbb8-558e3c3ea8d5"/>
+                <input type="text" name="userId" id="userId"/>
             </label>
             <label for="apiToken"><span>API Token</span>
-                <input type="password" name="apiToken" id="apiToken" value="b0b16606-bc5c-4143-a050-32455d38605a"/>
+                <input type="password" name="apiToken" id="apiToken"/>
             </label>
 			<div id="groupSelector"></div>
 			<label for="maxMembersToFetch"><span>Max Members Details</span>
                 <input type="number" name="maxMembersToFetch" id="maxMembersToFetch" value="120" />
+            </label>
+			<label for="hideAvatar"><span>Hide Avatar Images? (for faster load)</span>
+                <input type="checkbox" name="hideAvatar" id="hideAvatar"/>
+            </label>
+			<label for="clearNotification"><span>Clear chat notification?</span>
+                <input type="checkbox" name="clearNotification" id="clearNotification" checked/>
             </label>
 			<div id="exportOptionSelector"></div>
             <input class="div-fetchData" type="submit" value="Fetch Group Data" />
@@ -4890,7 +5119,7 @@ ul#tableOfContents > li {
 		<p>Regardless of what bugs there might be, this page cannot damage your account. It does not contain any code that could result in any changes being made on Habitica except actions performed through this tool via the API. The tool does not directly edit your data..</p>
 
 		<h2>Thank You!</h2>
-		<p>Thank you to @Alys & Ryan for their code which this is based. Thank you all in the <a href="https://habitica.com/groups/guild/349a36c3-66f3-4bf8-91b6-475056d9b6bb">Javascript</a> and <a href="https://habitica.com/groups/guild/2ff9822b-27f2-4774-98da-db349b57a38e">Aspiring Comrades</a> in answering my newbie questions. Shout to Blade who help this newbie with her arrays. Thank you to the Pirates (and conscripted socialites) who were keelhauled, walked the plank and thrown overboard in testing this product. Thank you to all the parties I joined that help me test this product; hopefully you dried out from all the snow.<p> 
+		<p>Thank you to @Alys & Ryan for their code which this is based. Thank you all in the <a href="https://habitica.com/groups/guild/349a36c3-66f3-4bf8-91b6-475056d9b6bb">Javascript</a> and <a href="https://habitica.com/groups/guild/2ff9822b-27f2-4774-98da-db349b57a38e">Aspiring Comrades</a> in answering my newbie questions. Shout out to Blade who help this newbie with her arrays as well as developing code to display the Avatars in the tool. Thank you to the Pirates (and conscripted socialites) who were keelhauled, walked the plank and thrown overboard in testing this product. Thank you to all the parties I joined that help me test this product; hopefully you dried out from all the snow.<p> 
 
 		<h2>Help and Contact Details</h2>
 		<p>This page has been created by <a href="http://habitica.wikia.com/wiki/User:CTheDragons">cTheDragons</a>. If you have questions, problems, or suggestions, you're welcome to contact me, although I cannot guarantee that I'll always be able to spend a lot of time on this. You can contact me at <a href="https://habitica.com/groups/guild/d9a0ec1e-352b-4697-a5d5-fb45c98fb4a3">Testing & Bug Squashing for Dragon Tools</a>. I tend to ignore emails & PMs.</p>
