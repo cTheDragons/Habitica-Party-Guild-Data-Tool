@@ -914,25 +914,24 @@ if (debug) console.log('debug enableShowHideToggling');
 ////   Get UUID from URL      ////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
 var url_vars = getUrlVars();
-if (url_vars.uuid || url_vars.userId) {
-	if (url_vars.userId) {
-		$("#userId").val(url_vars.userId);
-	} else {
-		$("#userId").val(url_vars.uuid);
-	}
-	$("#groupId").val(url_vars.groupId);
-	$("#maxMembersToFetch").val(url_vars.max);
-	if (url_vars.hide_avatar) {
-		$("#hideAvatar").prop("checked", true);
-	} else {
-		$("#hideAvatar").prop("checked", false);
-	}
-	if (url_vars.clear_chat) {
-		$("#clearNotification").prop("checked", true);
-	} else {
-		$("#clearNotification").prop("checked", false);
-	}
+if (url_vars.hasOwnProperty("userId")) {
+	$("#userId").val(url_vars.userId);
+else if (url_vars.hasOwnProperty("uuid")) {
+	$("#userId").val(url_vars.uuid);
 }
+if (url_vars.hasOwnProperty("groupId")) {
+	$("#groupId").val(url_vars.groupId);
+}
+if (url_vars.hasOwnProperty("max")) {
+	$("#maxMembersToFetch").val(url_vars.max);
+}
+if (url_vars.hasOwnProperty("hide_avatar")) {
+	$("#hideAvatar").prop("checked", !!url_vars.hide_avatar);
+}
+if (url_vars.hasOwnProperty("clear_chat")) {
+    	$("#clearNotification").prop("checked", !!url_vars.clear_chat);
+}
+
 function getUrlVars() {
     // Function found at http://stackoverflow.com/questions/4656843/jquery-get-querystring-from-url#answer-4656873
     var vars = [], hash;
