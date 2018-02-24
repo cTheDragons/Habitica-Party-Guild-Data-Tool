@@ -947,11 +947,58 @@ if (url_vars.hasOwnProperty("max")) {
 	$("#maxMembersToFetch").val(url_vars.max);
 }
 if (url_vars.hasOwnProperty("hide_avatar")) {
-	$("#hideAvatar").prop("checked", !!url_vars.hide_avatar);
+	if ((url_vars.hide_avatar == "checked") || (url_vars.hide_avatar == "true"))
+		$("#hideAvatar").prop("checked", true);
+	else {
+		$("#hideAvatar").prop("checked", false);
+	}
 }
+if (url_vars.hasOwnProperty("hide_avatars")) {
+	if ((url_vars.hide_avatars == "checked") || (url_vars.hide_avatars == "true"))
+		$("#hideAvatar").prop("checked", true);
+	else {
+		$("#hideAvatar").prop("checked", false);
+	}
+}
+if (url_vars.hasOwnProperty("hideavatar")) {
+	if ((url_vars.hideavatar == "checked") || (url_vars.hideavatar == "true"))
+		$("#hideAvatar").prop("checked", true);
+	else {
+		$("#hideAvatar").prop("checked", false);
+	}
+}
+if (url_vars.hasOwnProperty("hideAvatar")) {
+	if ((url_vars.hideAvatar == "checked") || (url_vars.hideAvatar == "true"))
+		$("#hideAvatar").prop("checked", true);
+	else {
+		$("#hideAvatar").prop("checked", false);
+	}
+}
+
 if (url_vars.hasOwnProperty("clear_chat")) {
-    	$("#clearNotification").prop("checked", !!url_vars.clear_chat);
+	if ((url_vars.clear_chat == "checked") || (url_vars.clear_chat == "true"))
+		$("#clearNotification").prop("checked", true);
+	else {
+		$("#clearNotification").prop("checked", false);
+	} 
 }
+
+if (url_vars.hasOwnProperty("clearchat")) {
+	if ((url_vars.clearchat == "checked") || (url_vars.clearchat == "true"))
+		$("#clearNotification").prop("checked", true);
+	else {
+		$("#clearNotification").prop("checked", false);
+	} 
+}
+
+if (url_vars.hasOwnProperty("clearChat")) {
+	if ((url_vars.clearChat == "checked") || (url_vars.clearChat == "true"))
+		$("#clearNotification").prop("checked", true);
+	else {
+		$("#clearNotification").prop("checked", false);
+	} 
+}
+
 if (url_vars.hasOwnProperty("bear")) {
 		$("#exportOption").val(url_vars.bear + "Bear");
 }
