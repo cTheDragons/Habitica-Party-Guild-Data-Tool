@@ -3848,7 +3848,11 @@ function parseData() {
 			} else {
 				obj.userPretty = renderFormattedText(obj.user);
 				obj.userNotPretty = renderFormattedText(obj.user, {removeParaTags: true});
-				obj.userStylesPretty = JSON.stringify(obj.userStyles, null, ' ').replace(/: \{\n\s+/g, ': {').replace(/",\n\s+/g, ', ').replace(/"\n\s+\}/g, '}').replace(/(\r\n|\n|\r)/g,"<br />").replace(/"  "/g, '&nbsp;&nbsp');;
+				if (obj.userStyles != undefined) {
+					obj.userStylesPretty = JSON.stringify(obj.userStyles, null, ' ').replace(/: \{\n\s+/g, ': {').replace(/",\n\s+/g, ', ').replace(/"\n\s+\}/g, '}').replace(/(\r\n|\n|\r)/g,"<br />").replace(/"  "/g, '&nbsp;&nbsp');;
+				} else {
+					obj.userStylesPretty = ''
+				}
 			}
 
 			obj.creation  = reformatDate(obj.timestamp);
@@ -4751,7 +4755,7 @@ ul#tableOfContents > li {
 </head>
 <body><div id="innerBody">	
 <h1><a href="https://habitica.com/">Habitica</a> Party & Guild Data Tool
-    <span class="showHideToggle" data-target="versionChanges" data-closemainsections="true">(v2.8)</span></h1><!-- VERSION TOGGLE -->
+    <span class="showHideToggle" data-target="versionChanges" data-closemainsections="true">(v2.9)</span></h1><!-- VERSION TOGGLE -->
 <div id="headerExtras"></div>
 <hr class="clear" />
 <div id="headerGroupExtras"></div>
@@ -4787,6 +4791,15 @@ ul#tableOfContents > li {
 <div id="versionChanges" class="hide"><!-- VERSION SECTION -->
     <h2>Version History</h2>
     <dl>
+		<dt>2.9 - Emperor's New Clothes<span class="date">2017-02-24</span></dt>
+        <dd><ul>
+	
+	        <li>Bug Fixes:
+                <ul>
+					<li>Handled if appearance is not populated in chat message. (Further work to be done in the area).</li>
+               </ul>
+            </li>
+		</ul></dd>
 		<dt>2.8 - Refactor URL Parameter code<span class="date">2017-02-24</span></dt>
         <dd><ul>
 	            <li>Features:
