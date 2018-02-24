@@ -37,7 +37,7 @@ Contributors:
 	<script src="https://code.jquery.com/jquery-1.12.3.js"></script> <!--- jquery -->
 	<script src="https://momentjs.com/downloads/moment-with-locales.min.js"></script> <!--- time functions -->
 	<script src="js/habitica-markdown.min.js"></script> <!--- Markdown -->
-	<script src="js/habitica-avatar.js"></script>  <!--- Avatar Generation -->
+	<script src="js/habitica-avatar.js"></script>  <!--- Avatar Generation https://github.com/crookedneighbor/habitica-avatar -->
 	
 	 <!--- https://datatables.net/download/ -->
 	<script type="text/javascript" src="https://cdn.datatables.net/v/dt/jszip-2.5.0/pdfmake-0.1.18/dt-1.10.12/b-1.2.2/b-colvis-1.2.2/b-flash-1.2.2/b-html5-1.2.2/b-print-1.2.2/se-1.2.0/datatables.min.js"></script>
@@ -66,7 +66,6 @@ var lastListMemberId = '';  // hold last member id to be used with groups
 var userIsAdmin; 
 var noQuestsInChat = 0;
 var captureTableData = {};
-var avatarGeneration = [];
 
 //////////////////////////////////////////////////////////////////////
 ////   Global Constants                              /////////////////
@@ -244,8 +243,8 @@ sectionTables['challengeGroup'] = {
 sectionTables['chatExport'] = {
 	type: 'chat',
 	dataSet: [], 
-	dataSetHeader: ['Message Id', 'User Id', 'User', 'Tier', 'Contributor', 'Contributions', 'Mod', 'Posted', 'Epoch', 'Likes', 'Member Likes', 'Text'], 
-	dataTable: ['id', 'uuid', 'userNotPretty', 'contribPretty.level', 'contribPretty.text', 'contribPretty.contributions', 'contribPretty.admin', 'creation.shortDate', 'timestamp', 'likeCount.total', 'likeCount.totalInGroup', 'textPretty'],
+	dataSetHeader: ['Message Id', 'User Id', 'User', 'Tier', 'Contributor', 'Contributions', 'Mod', 'Posted', 'Epoch', 'Likes', 'Member Likes', 'Text', 'Appearance'], 
+	dataTable: ['id', 'uuid', 'userNotPretty', 'contribPretty.level', 'contribPretty.text', 'contribPretty.contributions', 'contribPretty.admin', 'creation.shortDate', 'timestamp', 'likeCount.total', 'likeCount.totalInGroup', 'textPretty', 'userStylesPretty'],
 	babyBear: {show: [2,7,9,11], orderBy: [[7, 'desc']]},
 	mamaBear: {show: [2,3,4,7,9,10,11], orderBy: [[7, 'desc']]},
 	papaBear: {show: ['all'], orderBy: [[7, 'desc']]},
@@ -266,8 +265,8 @@ sectionTables['chatExport'] = {
 sectionTables['chatNotSystemExport'] = {
 	type: 'chat',
 	dataSet: [], 
-	dataSetHeader: ['Message Id', 'User Id', 'User', 'Tier', 'Contributor', 'Contributions', 'Mod', 'Posted', 'Epoch', 'Likes', 'Member Likes', 'Text'], 
-	dataTable: ['id', 'uuid', 'userNotPretty', 'contribPretty.level', 'contribPretty.text', 'contribPretty.contributions', 'contribPretty.admin', 'creation.shortDate', 'timestamp', 'likeCount.total', 'likeCount.totalInGroup', 'textPretty'],
+	dataSetHeader: ['Message Id', 'User Id', 'User', 'Tier', 'Contributor', 'Contributions', 'Mod', 'Posted', 'Epoch', 'Likes', 'Member Likes', 'Text', 'Appearance'], 
+	dataTable: ['id', 'uuid', 'userNotPretty', 'contribPretty.level', 'contribPretty.text', 'contribPretty.contributions', 'contribPretty.admin', 'creation.shortDate', 'timestamp', 'likeCount.total', 'likeCount.totalInGroup', 'textPretty', 'userStylesPretty'],
 	babyBear: {show: [2,7,9,11], orderBy: [[7, 'desc']]},
 	mamaBear: {show: [2,3,4,7,9,10,11], orderBy: [[7, 'desc']]},
 	papaBear: {show: ['all'], orderBy: [[7, 'desc']]},
@@ -624,6 +623,7 @@ sectionTables['questCompleted'] = {
 	extraColumnDefs: [],
 	subTitle: function (){
 		var html = ''
+		html += '<p>Want to see which scrolls each party member has? Check out the <a href="' + sectionPPTLink() + '">Party Progress Tool</a></p>'
 		return html 
 	},
 	leadershipButton: false,
@@ -641,7 +641,8 @@ sectionTables['questPetCompleted'] = {
 	extraColumnDefs: [],
 	subTitle: function (){
 		var html = ''
-		html += 'All quests are required to be completed 7 times each to have the maximum mounts and pets for each (3 eggs reward). However the Egg Hunt quest is only required to be completed twice as it rewards 10 eggs. The Dinosaur Unearthed and King of the Dinosaurs Quest need to be completed 7 times in total as both reward Tyrannosaurs.'
+		html += '<p>All quests are required to be completed 7 times each to have the maximum mounts and pets for each (3 eggs reward). However the Egg Hunt quest is only required to be completed twice as it rewards 10 eggs. The Dinosaur Unearthed and King of the Dinosaurs Quest need to be completed 7 times in total as both reward Tyrannosaurs.</p>'
+		html += '<p>Want to see which quest pets and pet scrolls each party member has? Check out the <a href="' + sectionPPTLink() + '">Party Progress Tool</a></p>'
 		return html 
 	},
 	leadershipButton: false,
@@ -681,6 +682,20 @@ function sectionHeadingLeadership() {
 }
 
 				
+function sectionPPTLink(){
+	link = ''
+
+	link += serverPPT
+	
+	$.each(memberListToFetch, function(index, obj){	
+		link += obj.id + hookPPT
+	})
+	
+	//remove the extra hook
+	link = link.slice(0, -1)
+	
+	return link
+}		
 
 //export options	
 var exportOptions = [
@@ -739,6 +754,8 @@ var serverHabiticaGuild			= 'https://habitica.com/groups/guild/'
 var serverCDT					= 'https://oldgods.net/habitica/cTheDragons/challenge.html'
 var hookCDT_uid					= 'uuid'
 var hookCDT_challengeid			= 'challengeId'
+var serverPPT					= 'https://habiticapartytools.surge.sh/?users='
+var hookPPT						= '|'
 
 var userId						= '';
 var apiToken					= '';
@@ -916,10 +933,14 @@ if (debug) console.log('debug enableShowHideToggling');
 var url_vars = getUrlVars();
 if (url_vars.hasOwnProperty("userId")) {
 	$("#userId").val(url_vars.userId);
+} else if (url_vars.hasOwnProperty("userid")) {
+	$("#userId").val(url_vars.uuid);
 } else if (url_vars.hasOwnProperty("uuid")) {
 	$("#userId").val(url_vars.uuid);
 }
 if (url_vars.hasOwnProperty("groupId")) {
+	$("#groupId").val(url_vars.groupId);
+} else if (url_vars.hasOwnProperty("groupid")) {
 	$("#groupId").val(url_vars.groupId);
 }
 if (url_vars.hasOwnProperty("max")) {
@@ -931,6 +952,21 @@ if (url_vars.hasOwnProperty("hide_avatar")) {
 if (url_vars.hasOwnProperty("clear_chat")) {
     	$("#clearNotification").prop("checked", !!url_vars.clear_chat);
 }
+if (url_vars.hasOwnProperty("bear")) {
+		$("#exportOption").val(url_vars.bear + "Bear");
+}
+if (url_vars.hasOwnProperty("porridge")) {
+	var selectedPorridge = exportFormat
+
+	$.each(exportFormats, function(index, obj){
+		if (url_vars.porridge == obj.shortDesc.replace(' Porridge', '').toLowerCase()) {
+			selectedPorridge = obj.id;
+		}
+	});	
+	
+	$("#exportFormat").val(selectedPorridge);
+}
+
 
 function getUrlVars() {
     // Function found at http://stackoverflow.com/questions/4656843/jquery-get-querystring-from-url#answer-4656873
@@ -2048,9 +2084,13 @@ function postChat() {
 		
 	chatMessage = prompt('Please enter your chat message to be posted.\n\n' + warningMessage, optionalMessage)
 
-	
-	if (confirm('Are you sure you wish to post\n\n' + chatMessage + '\n\nto chat?')){
-		postNextPostChat()
+	if (chatMessage != null){
+		if (confirm('Are you sure you wish to post\n\n' + chatMessage + '\n\nto chat?')){
+			postNextPostChat()
+		} else {
+			alert('Action cancelled')
+			return;
+		}
 	} else {
 		alert('Action cancelled')
 		return;
@@ -2601,6 +2641,7 @@ function parseData() {
 		);
 		$('#refetch').click(function(event){
 			/* The user clicked on the Re-Fetch My Data button. */
+			$(document).unbind('click'); //remove random elements listeners
 			fetchData();
 		});
 	}
@@ -3040,9 +3081,7 @@ function parseData() {
 			transformItems = {};
 			cardItems = {};
 			quests = {};
-			
-			avatarGeneration = []; //List of Avatar to generate
-			
+		
 			var arrayToAdd = []; //Used to create final array to add to dataSet
 			var tempMembersList = []; //For looping through each members and adding missing variables
 			var tempQuestsList = []; //For looping through each quests and adding missing variables
@@ -3758,9 +3797,11 @@ function parseData() {
 			if (obj.uuid == 'system') {
 				obj.userPretty = 'System'
 				obj.userNotPretty = 'System'
+				obj.userStylesPretty = ''
 			} else {
 				obj.userPretty = renderFormattedText(obj.user);
 				obj.userNotPretty = renderFormattedText(obj.user, {removeParaTags: true});
+				obj.userStylesPretty = JSON.stringify(obj.userStyles, null, ' ').replace(/: \{\n\s+/g, ': {').replace(/",\n\s+/g, ', ').replace(/"\n\s+\}/g, '}').replace(/(\r\n|\n|\r)/g,"<br />").replace(/"  "/g, '&nbsp;&nbsp');;
 			}
 
 			obj.creation  = reformatDate(obj.timestamp);
@@ -3798,6 +3839,7 @@ function parseData() {
 				obj.contribPretty.contributions = '';
 				obj.contribPretty.admin = false;
 			}
+			
 		}
 
 		function modifyInboxProperties(obj) {
@@ -4662,7 +4704,7 @@ ul#tableOfContents > li {
 </head>
 <body><div id="innerBody">	
 <h1><a href="https://habitica.com/">Habitica</a> Party & Guild Data Tool
-    <span class="showHideToggle" data-target="versionChanges" data-closemainsections="true">(v2.7)</span></h1><!-- VERSION TOGGLE -->
+    <span class="showHideToggle" data-target="versionChanges" data-closemainsections="true">(v2.8)</span></h1><!-- VERSION TOGGLE -->
 <div id="headerExtras"></div>
 <hr class="clear" />
 <div id="headerGroupExtras"></div>
@@ -4698,6 +4740,27 @@ ul#tableOfContents > li {
 <div id="versionChanges" class="hide"><!-- VERSION SECTION -->
     <h2>Version History</h2>
     <dl>
+		<dt>2.8 - Refactor URL Parameter code<span class="date">2017-02-24</span></dt>
+        <dd><ul>
+	            <li>Features:
+                <ul>
+					<li>Added other url parameters, bear and porridge.</li>
+					<li>Added json of appearance to chat.</li>
+				</ul> 
+            </li>	
+			<li>Documentation:
+                <ul>
+					<li>Fix thanks for Blade</li>
+                </ul>
+            </li>				
+	        <li>Bug Fixes:
+                <ul>
+					<li>Url parameters apply independent of whether or not the user id parameter is supplied. (Thank you @Accio Books!)</li>
+					<li>Added some unbinding of code to avoid multi-events</li>
+					<li>No longer tries to post a null to chat.</li>
+               </ul>
+            </li>
+		</ul></dd>
 		<dt>2.7 - Notifications, Summary & Categories<span class="date">2017-11-10</span></dt>
         <dd><ul>
 	            <li>Features:
@@ -5107,6 +5170,7 @@ ul#tableOfContents > li {
 		<ul>
 			<li>Better dialogue boxes particular with PMs (Yes they are ugly with very little help)</li>
 			<li>Cards with PMs</li>
+			<li>Chat Avatar</li>
 			<li><span class="subheading">Other Stuff?</span>: Send me ideas! Contact details are below.</li>
 		</ul>
 
@@ -5118,7 +5182,7 @@ ul#tableOfContents > li {
 		<p>Regardless of what bugs there might be, this page cannot damage your account. It does not contain any code that could result in any changes being made on Habitica except actions performed through this tool via the API. The tool does not directly edit your data..</p>
 
 		<h2>Thank You!</h2>
-		<p>Thank you to @Alys & Ryan for their code which this is based. Thank you all in the <a href="https://habitica.com/groups/guild/349a36c3-66f3-4bf8-91b6-475056d9b6bb">Javascript</a> and <a href="https://habitica.com/groups/guild/2ff9822b-27f2-4774-98da-db349b57a38e">Aspiring Comrades</a> in answering my newbie questions. Shout out to Blade who help this newbie with her arrays as well as developing code to display the Avatars in the tool. Thank you to the Pirates (and conscripted socialites) who were keelhauled, walked the plank and thrown overboard in testing this product. Thank you to all the parties I joined that help me test this product; hopefully you dried out from all the snow.<p> 
+		<p>Thank you to @Alys & Ryan for their code which this is based. Thank you to Blade who provided me the code for the <a href="https://github.com/crookedneighbor/habitica-avatar">Avatars<a> both the js and implementation here. Thank you all in the <a href="https://habitica.com/groups/guild/349a36c3-66f3-4bf8-91b6-475056d9b6bb">Javascript</a> and <a href="https://habitica.com/groups/guild/2ff9822b-27f2-4774-98da-db349b57a38e">Aspiring Comrades</a> in answering my newbie questions. Shout out to Blade who help this newbie with her arrays as well as developing code to display the Avatars in the tool. Thank you to the Pirates (and conscripted socialites) who were keelhauled, walked the plank and thrown overboard in testing this product. Thank you to all the parties I joined that help me test this product; hopefully you dried out from all the snow.<p> 
 
 		<h2>Help and Contact Details</h2>
 		<p>This page has been created by <a href="http://habitica.wikia.com/wiki/User:CTheDragons">cTheDragons</a>. If you have questions, problems, or suggestions, you're welcome to contact me, although I cannot guarantee that I'll always be able to spend a lot of time on this. You can contact me at <a href="https://habitica.com/groups/guild/d9a0ec1e-352b-4697-a5d5-fb45c98fb4a3">Testing & Bug Squashing for Dragon Tools</a>. I tend to ignore emails & PMs.</p>
