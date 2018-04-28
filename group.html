@@ -1410,7 +1410,7 @@ function fetchData() {
 			var ajaxTryAgainList = []
 			
 			$.each(memberListToFetch, function(index, obj){
-				if (members[obj] == undefined) {
+				if (members[obj.id] == undefined) {
 					ajaxTryAgainList.push(obj)
 				}
 			});
