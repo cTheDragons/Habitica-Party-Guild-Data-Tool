@@ -768,8 +768,8 @@ var exportFormat			 	= 1;
 var groupDropDownShow			= false;
 var maxMembersToFetch 			; //hold the max members to fetch input (will be rounded up to nearest 30 due to function)
 var ajaxTryAgainMax				= 3;
-var debug						= true;
-var debugShowObject				= true;
+var debug						= false;
+var debugShowObject				= false;
 
 if (debug || debugShowObject) serverName = '*** TURN DEBUG OFF! *** - ' + serverName
 if (debug) console.log('debug 1');
@@ -4845,26 +4845,15 @@ ul#tableOfContents > li {
     <dl>
 		<dt>3.0 - So your having a bad day...<span class="date">2017-04-28</span></dt>
         <dd><ul>
-	            <li>Features:
+	        <li>Features:
                 <ul>
 					<li>Added the ability to handle timeouts when fetching members and list of members.</li>
 					<li>Hide Avatar images now on as default.</li>
 				</ul> 
             </li>	
-			<li>Documentation:
-                <ul>
-					<li>....</li>
-                </ul>
-            </li>				
-	        <li>Bug Fixes:
-                <ul>
-					<li>....</li>
-               </ul>
-            </li>
 		</ul></dd>
 		<dt>2.9 - Emperor's New Clothes<span class="date">2017-02-24</span></dt>
         <dd><ul>
-	
 	        <li>Bug Fixes:
                 <ul>
 					<li>Handled if appearance is not populated in chat message. (Further work to be done in the area).</li>
