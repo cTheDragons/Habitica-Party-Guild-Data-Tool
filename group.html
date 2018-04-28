@@ -58,6 +58,7 @@ var challengeGroup;// holds party data
 var groupForUser; //holds list of groups for the user.
 var memberListToFetch = []; //holds memberList that is fetchng (30 limit)
 var memberListToFetch_idOnly = []; //holds memberList that is fetchng (30 limit)
+
 var members;  // hold members of groups
 var quests; //holds quest information
 var transformItems;  //hold information about transformation items
@@ -766,8 +767,9 @@ var exportOption 			 	= 'babyBear';
 var exportFormat			 	= 1;
 var groupDropDownShow			= false;
 var maxMembersToFetch 			; //hold the max members to fetch input (will be rounded up to nearest 30 due to function)
-var debug						= false;
-var debugShowObject				= false;
+var ajaxTryAgainMax				= 3;
+var debug						= true;
+var debugShowObject				= true;
 
 if (debug || debugShowObject) serverName = '*** TURN DEBUG OFF! *** - ' + serverName
 if (debug) console.log('debug 1');
@@ -1101,6 +1103,7 @@ function fetchGroupForUser() {
 	groupForUser = []; // clear from previous fetches
 
     var ajaxRunningCount = 1; // drops to 0 when all calls have succeeded
+
 	$('#loading #statusFetch').text('Getting Joined Guilds/Party List');
 	var newData = { "type": "guilds,party" }
     $.ajax({
@@ -1156,10 +1159,12 @@ function fetchData() {
 	lastListMemberId = '' // clear from previous fetches
 	members = []; // clear from previous fetches
 	memberListToFetch = [];  // clear from previous fetches
-
 	
+	var listToFetch = [];
 	var lastMemberIndex = 0 // clear from previous fetches
-	
+	var ajaxTryAgain = 0;
+	var ajaxTryAgainNeed = 0;
+		
     var ajaxRunningCount = 3; // drops to 0 when all calls have succeeded
 	var ajaxRunningCount_Group = 1;
 
@@ -1352,7 +1357,7 @@ function fetchData() {
 						xhr.setRequestHeader('x-api-key',  apiToken);
 				},
 				success: fetchMemberListSuccess,
-				error: fetchFailure
+				error: fetchMemberListFailure
 			});
 		}
 	}
@@ -1372,6 +1377,7 @@ function fetchData() {
 					$('#loading .error' ).show();
 				}
 				if (debugShowObject) console.log(memberListToFetch);
+				ajaxTryAgain = 0; //Clear out previous count.
 				fetchMembers()		 
 			} else {
 				//Still more members to get
@@ -1384,33 +1390,67 @@ function fetchData() {
 		}
 	}	
 		
+	function fetchMemberListFailure() {
+		if (debug) console.log('debug Member List Fail Start');
+		ajaxTryAgain++
+		if (ajaxTryAgain > ajaxTryAgainMax) {
+			fetchMemberList()
+		} else {
+			fetchMemberFail()
+		}
+	}
 		
 	function fetchMembers(){
 		var timeoutPeriod = 0;
 		
-		if (debug) console.log('debug MEMBER DATA -Yes we are finally here folks (' + lastMemberIndex + ')');
-		
-		
-		//Do a quick loop so we can check if leader is needed $$$I'm sure there is a better way but it is late
-		memberListToFetch_idOnly = []
-		$.each(memberListToFetch, function(index, obj){
-			memberListToFetch_idOnly.push(obj.id)
-		});
-		//Add Group owner and Quest owner if not in list
-		if (memberListToFetch_idOnly.indexOf(group.leader.id) < 0){
-			memberListToFetch.push({_id: group.leader.id, id: group.leader.id, profile: {name: 'unknownLeaderName'}})
-			memberListToFetch_idOnly.push(group.leader.id)
-		}
-		if (groupId == 'party'){
-			if (group.quest.leader != undefined){
-				if (memberListToFetch_idOnly.indexOf(group.quest.leader) < 0) {
-					memberListToFetch.push({_id: group.quest.leader, id: group.quest.leader, profile: {name: 'unknownQuestOwner'}})
-					memberListToFetch_idOnly.push(group.quest.leader)
+		if (ajaxTryAgainNeed > 0)  { 
+			if (debug) console.log('debug MEMBER DATA - Looks like we missed some stray ducks (' + ajaxTryAgainNeed + ')');
+	
+			//need to find the missing members
+			var ajaxTryAgainList = []
+			
+			$.each(memberListToFetch, function(index, obj){
+				if (members[obj] == undefined) {
+					ajaxTryAgainList.push(obj)
+				}
+			});
+			
+			ajaxTryAgainNeed = 0 
+			
+			ajaxTryAgain++ 
+			
+			listToFetch = ajaxTryAgainList
+			
+		} else {
+			if (debug) console.log('debug MEMBER DATA - oK getting ready the first list (' + lastMemberIndex + ')');
+	
+			//Do a quick loop so we can check if leader is needed $$$I'm sure there is a better way but it is late
+			memberListToFetch_idOnly = []
+			$.each(memberListToFetch, function(index, obj){
+				memberListToFetch_idOnly.push(obj.id)
+			});
+			//Add Group owner and Quest owner if not in list
+			if (memberListToFetch_idOnly.indexOf(group.leader.id) < 0){
+				memberListToFetch.push({_id: group.leader.id, id: group.leader.id, profile: {name: 'unknownLeaderName'}})
+				memberListToFetch_idOnly.push(group.leader.id)
+			}
+			if (groupId == 'party'){
+				if (group.quest.leader != undefined){
+					if (memberListToFetch_idOnly.indexOf(group.quest.leader) < 0) {
+						memberListToFetch.push({_id: group.quest.leader, id: group.quest.leader, profile: {name: 'unknownQuestOwner'}})
+						memberListToFetch_idOnly.push(group.quest.leader)
+					}
 				}
 			}
+			
+			listToFetch = memberListToFetch
 		}
 		
-		$.each(memberListToFetch, function(index, obj){
+		if (debugShowObject) console.log(listToFetch.length)
+		lastMemberIndex = 0
+		
+		
+		$.each(listToFetch, function(index, obj){
 			
 			timeoutPeriod = Math.floor(index / 1500)  * 120000
 			
@@ -1436,16 +1476,23 @@ function fetchData() {
 		
 		
 	function fetchMemberFail() {
-	
+
 		if (debug) console.log('debug Member Fail Fetch for ' + (lastMemberIndex+1))
-		lastMemberIndex++				
 		
-		if (lastMemberIndex == memberListToFetch.length-1) { // all ajax calls have finished
-			$('#loading #statusFetch').text('Preparing to Display the Data');
-			if (debugShowObject) console.log(members);
-			parseData();
+		if (lastMemberIndex == listToFetch.length-1) { // all ajax calls have finished
+			if (debug) console.log('debug Lost ducks ' + (ajaxTryAgainNeed))
+			if (ajaxTryAgainNeed > 0) {
+				fetchMembers()
+			} else {
+				$('#loading #statusFetch').text('Preparing to Display the Data');
+				if (debugShowObject) console.log(members);
+				parseData();
+			}
 		} else {
 			lastMemberIndex++
+			if (ajaxTryAgain != ajaxTryAgainMax) {
+				ajaxTryAgainNeed++
+			}
 		}
 
 	}
@@ -1455,13 +1502,18 @@ function fetchData() {
 		if (debug) console.log('debug Member Sucess data start ' +  lastMemberIndex + '  id: ' + data.data._id);
 		var friendlyMemberIndex = lastMemberIndex + 1
 		$('#loading #statusFetch').text('Fetching Member '  +  friendlyMemberIndex);
-
+		ajaxTryAgain = 0 //Success clear variable
 		
 		members[data.data._id] = data.data;
-		if (lastMemberIndex == memberListToFetch.length-1) { // all ajax calls have finished
-			$('#loading #statusFetch').text('Preparing to Display the Data');
-			if (debugShowObject) console.log(members);
-			parseData();
+		if (lastMemberIndex == listToFetch.length-1) { // all ajax calls have finished
+			if (debug) console.log('debug Lost ducks ' + (ajaxTryAgainNeed))
+			if (ajaxTryAgainNeed > 0) {
+				fetchMembers()
+			} else {
+				$('#loading #statusFetch').text('Preparing to Display the Data');
+				if (debugShowObject) console.log(members);
+				parseData();
+			}
 		} else {
 			lastMemberIndex++
 		}
@@ -4739,7 +4791,7 @@ ul#tableOfContents > li {
 ****   Specific Sections   *******************************************
 *********************************************************************/
 #MAIN > * {
-    display: none; // all sections hidden by default
+    display: none; /* all sections hidden by default */
 }
 
 #overviewSection h1 {
@@ -4755,7 +4807,7 @@ ul#tableOfContents > li {
 </head>
 <body><div id="innerBody">	
 <h1><a href="https://habitica.com/">Habitica</a> Party & Guild Data Tool
-    <span class="showHideToggle" data-target="versionChanges" data-closemainsections="true">(v2.9)</span></h1><!-- VERSION TOGGLE -->
+    <span class="showHideToggle" data-target="versionChanges" data-closemainsections="true">(v3.0)</span></h1><!-- VERSION TOGGLE -->
 <div id="headerExtras"></div>
 <hr class="clear" />
 <div id="headerGroupExtras"></div>
@@ -4791,6 +4843,25 @@ ul#tableOfContents > li {
 <div id="versionChanges" class="hide"><!-- VERSION SECTION -->
     <h2>Version History</h2>
     <dl>
+		<dt>3.0 - So your having a bad day...<span class="date">2017-04-28</span></dt>
+        <dd><ul>
+	            <li>Features:
+                <ul>
+					<li>Added the ability to handle timeouts when fetching members and list of members.</li>
+					<li>Hide Avatar images now on as default.</li>
+				</ul> 
+            </li>	
+			<li>Documentation:
+                <ul>
+					<li>....</li>
+                </ul>
+            </li>				
+	        <li>Bug Fixes:
+                <ul>
+					<li>....</li>
+               </ul>
+            </li>
+		</ul></dd>
 		<dt>2.9 - Emperor's New Clothes<span class="date">2017-02-24</span></dt>
         <dd><ul>
 	
@@ -5184,7 +5255,7 @@ ul#tableOfContents > li {
                 <input type="number" name="maxMembersToFetch" id="maxMembersToFetch" value="120" />
             </label>
 			<label for="hideAvatar"><span>Hide Avatar Images? (for faster load)</span>
-                <input type="checkbox" name="hideAvatar" id="hideAvatar"/>
+                <input type="checkbox" name="hideAvatar" id="hideAvatar" checked/>
             </label>
 			<label for="clearNotification"><span>Clear chat notification?</span>
                 <input type="checkbox" name="clearNotification" id="clearNotification" checked/>
