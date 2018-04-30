@@ -1393,10 +1393,10 @@ function fetchData() {
 	function fetchMemberListFailure() {
 		if (debug) console.log('debug Member List Fail Start');
 		ajaxTryAgain++
-		if (ajaxTryAgain > ajaxTryAgainMax) {
+		if (ajaxTryAgain < ajaxTryAgainMax) {
 			fetchMemberList()
 		} else {
-			fetchMemberFail()
+			fetchFailure()
 		}
 	}
 		
@@ -4843,16 +4843,16 @@ ul#tableOfContents > li {
 <div id="versionChanges" class="hide"><!-- VERSION SECTION -->
     <h2>Version History</h2>
     <dl>
-		<dt>3.0 - So your having a bad day...<span class="date">2017-04-28</span></dt>
+		<dt>3.0 - Don't let the server get you down<span class="date">2018-04-30</span></dt>
         <dd><ul>
 	        <li>Features:
                 <ul>
 					<li>Added the ability to handle timeouts when fetching members and list of members.</li>
-					<li>Hide Avatar images now on as default.</li>
+					<li>Hide Avatar images now on as default to avoid memory issues.</li>
 				</ul> 
             </li>	
 		</ul></dd>
-		<dt>2.9 - Emperor's New Clothes<span class="date">2017-02-24</span></dt>
+		<dt>2.9 - Emperor's New Clothes<span class="date">2018-02-24</span></dt>
         <dd><ul>
 	        <li>Bug Fixes:
                 <ul>
@@ -4860,7 +4860,7 @@ ul#tableOfContents > li {
                </ul>
             </li>
 		</ul></dd>
-		<dt>2.8 - Refactor URL Parameter code<span class="date">2017-02-24</span></dt>
+		<dt>2.8 - Refactor URL Parameter code<span class="date">2018-02-24</span></dt>
         <dd><ul>
 	            <li>Features:
                 <ul>
