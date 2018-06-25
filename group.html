@@ -559,12 +559,12 @@ sectionTables['memberQuest'] = {
 sectionTables['memberDamage'] = {
 	type: 'member',
 	dataSet: [], 
-	dataSetHeader: ['User Id', 'User', 'Class', 'Level', 'Last Active', 'Last Cron', 'In Quest', 'Previous Quest Collection', 'Current Quest Collection', 'Total Collection',  'Previous Quest Damage', 'Current Quest Damage', 'Total Damage', 'Previous Boss Damage', 'Current Boss Damage', 'Total Boss Damage'], 
-	dataTable: ['id', 'profile.nameNotPretty', 'stats.classPretty', 'stats.lvl', 'lastActive.shortDate', 'lastLoggedIn.shortDate', 'quest.inQuest', 'quest.collectionTotalPrevious', 'quest.collectionTotalCurrent', 'quest.collectionTotal', 'quest.damageTotalPrevious', 'quest.damageTotalCurrent', 'quest.damageTotal', 'quest.damageBossPrevious', 'quest.damageBossCurrent', 'quest.damageBoss'],
-	babyBear: {show: [1,2,3,6,8,11,14], orderBy: [[1, 'asc']]},
-	mamaBear: {show: [1,2,3,5,6,8,9,11,12,14,15], orderBy: [[1, 'asc']]},
+	dataSetHeader: ['User Id', 'User', 'Class', 'Level', 'Last Active', 'Last Cron', 'In Quest', 'Previous Quest Collection', 'Current Quest Collection', 'Total Collection',  'Previous Quest Damage', 'Current Quest Damage', 'Total Damage', 'Previous Boss Damage', 'Current Boss Damage', 'Total Boss Damage', 'Pending Damage'], 
+	dataTable: ['id', 'profile.nameNotPretty', 'stats.classPretty', 'stats.lvl', 'lastActive.shortDate', 'lastLoggedIn.shortDate', 'quest.inQuest', 'quest.collectionTotalPrevious', 'quest.collectionTotalCurrent', 'quest.collectionTotal', 'quest.damageTotalPrevious', 'quest.damageTotalCurrent', 'quest.damageTotal', 'quest.damageBossPrevious', 'quest.damageBossCurrent', 'quest.damageBoss', 'quest.pending'],
+	babyBear: {show: [1,2,3,6,8,11,14,16], orderBy: [[1, 'asc']]},
+	mamaBear: {show: [1,2,3,5,6,8,9,11,12,14,15,16], orderBy: [[1, 'asc']]},
 	papaBear: {show: ['all'], orderBy: [[1, 'asc']]},
-	extraColumnDefs: [{'className': 'dt-right', 'targets': [7,8,9,10,11,12,13,14,15]}],
+	extraColumnDefs: [{'className': 'dt-right', 'targets': [7,8,9,10,11,12,13,14,15,16]}],
 	subTitle: function (){
 		var html = '' 
 		html += '<p>Quest Progress Totals are only counted for chat period showing.</p>'
@@ -3408,6 +3408,7 @@ function parseData() {
 					members[obj.id].quest.collectionTotalCurrent = 0
 					members[obj.id].quest.collectionTotalPrevious = 0
 					
+					members[obj.id].quest.pending = ''
 			});
 			
 			
@@ -3630,14 +3631,21 @@ function parseData() {
 				members[obj.id].quest.damageBoss =  Math.round(Number(members[obj.id].quest.damageBoss)* 10000) / 10000
 				members[obj.id].quest.damageBossCurrent =  Math.round(Number(members[obj.id].quest.damageBossCurrent)* 10000) / 10000
 				members[obj.id].quest.damageBossPrevious =  Math.round(Number(members[obj.id].quest.damageBossPrevious)* 10000) / 10000
-
+				
+				if (quests[group.quest.key].boss) {
+					members[obj.id].quest.pending = Math.floor(members[obj.id].party.quest.progress.up * 10) / 10
+				else if (quests[group.quest.key].collect) {
+					members[obj.id].quest.pending = members[obj.id].party.quest.progress.collectedItems
+				} else {
+					members[obj.id].quest.pending = Math.floor(members[obj.id].party.quest.progress.up * 10) / 10 + ' dmg or '  + members[obj.id].party.quest.progress.collectedItems + ' collected items'
+				}
 			
 				//Attribute Calculates
 				members[obj.id].attributeTotals = {}
 				$.each(attributeArrayToConstruct, function (index2, obj2){
 					members[obj.id].attributeTotals[obj2] = {};
 					if (members[obj.id].stats.lvl < 100) {
-						members[obj.id].attributeTotals[obj2].lvl = Math.floor(members[obj.id].stats.lvl / 2)
+						members[obj.id].[obj2].lvl = Math.floor(members[obj.id].stats.lvl / 2)
 					} else {
 						members[obj.id].attributeTotals[obj2].lvl = Math.floor(100 / 2)
 					};
