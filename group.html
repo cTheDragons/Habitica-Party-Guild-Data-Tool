@@ -38,7 +38,9 @@ Contributors:
 	<script src="https://momentjs.com/downloads/moment-with-locales.min.js"></script> <!--- time functions -->
 	<script src="js/habitica-markdown.min.js"></script> <!--- Markdown -->
 	<script src="js/habitica-avatar.js"></script>  <!--- Avatar Generation https://github.com/crookedneighbor/habitica-avatar -->
+	<script src="js/lodash.js"></script> <!--lodash / copy objects -->
 	
+
 	 <!--- https://datatables.net/download/ -->
 	<script type="text/javascript" src="https://cdn.datatables.net/v/dt/jszip-2.5.0/pdfmake-0.1.18/dt-1.10.12/b-1.2.2/b-colvis-1.2.2/b-flash-1.2.2/b-html5-1.2.2/b-print-1.2.2/se-1.2.0/datatables.min.js"></script>
 	<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/dt/jszip-2.5.0/pdfmake-0.1.18/dt-1.10.12/b-1.2.2/b-colvis-1.2.2/b-flash-1.2.2/b-html5-1.2.2/b-print-1.2.2/se-1.2.0/datatables.min.css"/>
@@ -62,6 +64,7 @@ var memberListToFetch_idOnly = []; //holds memberList that is fetchng (30 limit)
 var members;  // hold members of groups
 var quests; //holds quest information
 var transformItems;  //hold information about transformation items
+var completedStats = {by: '', pending: 0, outstanding: 0, percentage: 0, time: '', overdue: ''};
 var cardItems;  //hold information about card items
 var lastListMemberId = '';  // hold last member id to be used with groups
 var userIsAdmin; 
@@ -601,6 +604,42 @@ sectionTables['memberDamage'] = {
 				html += 'Current quest totals in table is for quest prior to pending quest, ' + quests[group.quest.key].text + '.'
 			}
 		}
+		
+		html += '</p>'
+		if (group.quest.key != undefined) {
+			html += '<p><span class="highlight">Est of Completion: </span>' 
+			
+			if (completedStats == '') {
+				html += 'Not enough work done to complete the quest in next 24 hours. '
+			} else {
+				if (moment().isBefore(completedStats.by.time.utcTime)) {
+					html += completedStats.by.time.relativeTime
+				} else {
+					html += 'Any moment now ' 
+				}
+				
+				html += ' by ' + completedStats.by + '. '
+			}			
+			
+			if (quests[group.quest.key].boss) {	
+				html += completedStats.pending + ' HP party pending damage to kill the boss with ' + completedStats.outstanding + ' HP currently '	
+			} else {
+				html += completedStats.pending + ' items collected by the party with a ' + completedStats.percentage + '% chance of finding all ' + completedStats.outstanding + ' outsnding items to be collected '
+			}
+			
+			html += 'in the quest ' + quests[group.quest.key].name
+			
+			if (group.quest.active) {
+				html += '. A'
+			} else {
+				html += '(Pending). Assuming quest will start before next cron and a'
+			}
+			html += 'ssuming everyone crons remain the same as yesterday. '
+			
+			if (completedStats.overdue.length > 0) html += 'The following users were ignored as they were either in the inn or have not checked in more than 24 hours: ' + completedStats.overdue + '. '
+		}
+		
+		
 		html += '</p>'
 		html += '<p>Quest progress stats are based off the players name. If the player has changed their name recently their stats may not show correctly.</p>'		
 		html += sectionHeadingLeadership()
@@ -3180,7 +3219,8 @@ function parseData() {
 			transformItems = {};
 			cardItems = {};
 			quests = {};
-		
+			completedStats = {by: '', pending: 0, outstanding: 0, percentage: 0, time: '', overdue: ''};
+			
 			var arrayToAdd = []; //Used to create final array to add to dataSet
 			var tempMembersList = []; //For looping through each members and adding missing variables
 			var tempQuestsList = []; //For looping through each quests and adding missing variables
@@ -3634,7 +3674,7 @@ function parseData() {
 				
 				if (quests[group.quest.key].boss) {
 					members[obj.id].quest.pending = Math.floor(members[obj.id].party.quest.progress.up * 10) / 10
-				else if (quests[group.quest.key].collect) {
+				} else if (quests[group.quest.key].collect) {
 					members[obj.id].quest.pending = members[obj.id].party.quest.progress.collectedItems
 				} else {
 					members[obj.id].quest.pending = Math.floor(members[obj.id].party.quest.progress.up * 10) / 10 + ' dmg or '  + members[obj.id].party.quest.progress.collectedItems + ' collected items'
@@ -3645,7 +3685,7 @@ function parseData() {
 				$.each(attributeArrayToConstruct, function (index2, obj2){
 					members[obj.id].attributeTotals[obj2] = {};
 					if (members[obj.id].stats.lvl < 100) {
-						members[obj.id].[obj2].lvl = Math.floor(members[obj.id].stats.lvl / 2)
+						members[obj.id].attributeTotals[obj2].lvl = Math.floor(members[obj.id].stats.lvl / 2)
 					} else {
 						members[obj.id].attributeTotals[obj2].lvl = Math.floor(100 / 2)
 					};
@@ -3892,6 +3932,76 @@ function parseData() {
 				}
 			}); 
 			if (debug) console.log('Finish collating PMs');
+			
+			///////////////////////////////////////////////////////////////
+			////   Determine who will finish the quest        ////////////
+			//////////////////////////////////////////////////////////////
+
+			//cloned to avoid issues.
+			if ((groupId == 'party') && (group.quest.key != undefined)) {
+				//clone to avoid issues
+				console.log(members)
+				
+				var tempMemberQuestDamage = _.clonedeep(members)
+				
+				tempMemberQuestDamage.sort(function(a,b){
+					  // Subtract them to get a value that is either negative, positive, or zero to sort on.
+					  return new Date(b.lastLoggedIn.utcTime) - new Date(a.lastLoggedIn.utcTime);
+				});
+				
+				if (quests[group.quest.key].boss) {
+					completedStats.outstanding = quests[group.quest.key].boss.hp - Math.round(group.quest.progress.hp * 100) / 100 
+				} else {
+					var collectTarget = 0 
+					var collectDone = 0 
+					var collectType = 0 
+					
+					$.each(quests[group.quest.key].collect, function(index, obj){
+						collectTarget += obj.count 
+						collectDone += user.party.quest.progress.collect[index].count
+						collectType += 1						
+					});
+										
+					completedStats.outstanding = collectTarget - collectDone
+				}
+				
+				//Go through each one subtracting each damage till enough.
+				for (i = 0; i < members.length; i++) { 
+					if ((members[i].preferences.sleep != true) || (moment().subtract(24, 'hours').isBefore(members[obj.id].lastActive.utcTime))) {
+						completedStats.pending += members[i].quest.pending
+					} else {
+						completedStats.overdue += ', ' + members[i].profile.namePretty
+					}
+					
+					if (completedStats.outstanding <= completedStats.pending) {
+						completedStats.by = members[i].profile.namePretty
+						var tempDate = moment(members[i].lastLoggedIn.utcTime).add(1, 'd')
+						completedStats.time = reformatDate(tempDate)
+						break
+					}
+				}
+				if (collectType <= 1) {
+					completedStats.percentage = 100
+				} else {
+					completedStats.percentage = 12 //$$$ FORMULA TO BE PUT HERE 
+/*I want to roll x amounts of specific number on y sided dice on z amount of throws.
+
+For example I have 6 sided dice (y=6) and have to throw at least 3 6 sixes (x=3) and have 10 turns to try (z=10)
+
+What is the formula to calculate this?
+
+y = collectType
+x = Oustanding Items
+z = Pending 
+*/
+				}
+				tempMemberQuestDamage = {}
+				
+				if (completedStats.overdue.length > 0) completedStats.overdue = completedStats.overdue.substring(3)
+			}
+			
+			
+			
 			if (debugShowObject) console.log(sectionTables);
 			
 		};
