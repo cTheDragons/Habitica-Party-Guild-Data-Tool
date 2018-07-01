@@ -729,10 +729,11 @@ function sectionQuestEstComplete() {
 		if (quests[group.quest.key].boss) {	
 			html += completedStats.pending + ' HP party pending damage to kill the boss with ' + completedStats.outstanding + ' HP remaining '	
 		} else {
-			html += completedStats.pending + ' items collected by the party with a ' + completedStats.percentage + '% chance of finding all ' + completedStats.outstanding + ' outstanding items to be collected '
+			html += completedStats.pending + ' items collected by the party with a ' + completedStats.percentage + '% even distribution chance of finding all ' + completedStats.outstanding + ' outstanding items to be collected '
 		}
 		
 		html += 'in the quest ' + quests[group.quest.key].text
+		
 		
 		if (group.quest.active) {
 			html += '. A'
@@ -4453,7 +4454,23 @@ z = Pending
 						html += ' if the quest starts before you next cron.</p>'
 					}
 					
-					html += sectionQuestEstComplete()
+					if (group.quest.key != undefined) {
+						html += '<p><span class="highlight">Est of Completion: </span>' 
+						
+						if (completedStats.by == '') {
+							html += 'Not enough work yet to complete the quest in next 24 hours. (Keep Battling those tasks!) '
+						} else {
+							if (moment().isBefore(completedStats.time.utcTime)) {
+								html += completedStats.time.relativeTime
+							} else {
+								html += 'Any moment now ' 
+							}
+							
+							html += ' by ' + completedStats.by + '. '
+						}	
+						
+						html += 'See <span class="showHideToggle" data-target="memberDamageSection" data-closemainsections="true">Member Quest Progress</span> for more details. ' 
+					}
 					
 					html += '<p><span class="highlight">Quest Owner: </span>' + group.quest.leaderProfile.nameNotPretty + ' (Last Active: ' + group.quest.leaderProfile.lastActive.relativeTime + ') </p>'
 				}
