@@ -606,39 +606,8 @@ sectionTables['memberDamage'] = {
 		}
 		
 		html += '</p>'
-		if (group.quest.key != undefined) {
-			html += '<p><span class="highlight">Est of Completion: </span>' 
-			
-			if (completedStats.by == '') {
-				html += 'Not enough work yet to complete the quest in next 24 hours. (Keep Battling those tasks!) Currently '
-			} else {
-				if (moment().isBefore(completedStats.time.utcTime)) {
-					html += completedStats.time.relativeTime
-				} else {
-					html += 'Any moment now ' 
-				}
-				
-				html += ' by ' + completedStats.by + '. '
-			}			
-			
-			if (quests[group.quest.key].boss) {	
-				html += completedStats.pending + ' HP party pending damage to kill the boss with ' + completedStats.outstanding + ' HP currently '	
-			} else {
-				html += completedStats.pending + ' items collected by the party with a ' + completedStats.percentage + '% chance of finding all ' + completedStats.outstanding + ' outsnding items to be collected '
-			}
-			
-			html += 'in the quest ' + quests[group.quest.key].text
-			
-			if (group.quest.active) {
-				html += '. A'
-			} else {
-				html += '(Pending). Assuming quest will start before next cron and a'
-			}
-			html += 'ssuming everyone crons remain the same as yesterday. '
-			
-			if (completedStats.overdue.length > 0) html += 'The following users were ignored as they were either in the inn or have not checked in more than 24 hours: ' + completedStats.overdue + '. '
-		}
 		
+		html += sectionQuestEstComplete()
 		
 		html += '</p>'
 		html += '<p>Quest progress stats are based off the players name. If the player has changed their name recently their stats may not show correctly.</p>'		
@@ -736,6 +705,47 @@ function sectionPPTLink(){
 	
 	return link
 }		
+
+function sectionQuestEstComplete() {
+	html = ''
+	
+	if (group.quest.key != undefined) {
+		html += '<p><span class="highlight">Est of Completion: </span>' 
+		
+		if (completedStats.by == '') {
+			html += 'Not enough work yet to complete the quest in next 24 hours. (Keep Battling those tasks!) '
+		} else {
+			if (moment().isBefore(completedStats.time.utcTime)) {
+				html += completedStats.time.relativeTime
+			} else {
+				html += 'Any moment now ' 
+			}
+			
+			html += ' by ' + completedStats.by + '. '
+		}		
+
+		html += 'Currently ' 
+		
+		if (quests[group.quest.key].boss) {	
+			html += completedStats.pending + ' HP party pending damage to kill the boss with ' + completedStats.outstanding + ' HP remaining '	
+		} else {
+			html += completedStats.pending + ' items collected by the party with a ' + completedStats.percentage + '% chance of finding all ' + completedStats.outstanding + ' outstanding items to be collected '
+		}
+		
+		html += 'in the quest ' + quests[group.quest.key].text
+		
+		if (group.quest.active) {
+			html += '. A'
+		} else {
+			html += '(Pending). Assuming quest will start before next cron and a'
+		}
+		html += 'ssuming everyone crons remain the same as yesterday. '
+		
+		if (completedStats.overdue.length > 0) html += 'The following users were ignored as they were either in the inn or have not checked in more than 24 hours: ' + completedStats.overdue + '. '
+	}
+	return html
+}
+
 
 //export options	
 var exportOptions = [
@@ -3964,7 +3974,7 @@ function parseData() {
 				
 				//Go through each one subtracting each damage till enough.
 				for (i = 0; i < tempMembersList.length; i++) { 
-					if ((tempMembersList[i].preferences.sleep != true) || (moment().subtract(24, 'hours').isBefore(tempMembersList[i].lastActive.utcTime))) {
+					if ((tempMembersList[i].preferences.sleep != true) && (moment().subtract(24, 'hours').isBefore(tempMembersList[i].lastActive.utcTime))) {
 						completedStats.pending += tempMembersList[i].quest.pending
 					} else {
 						completedStats.overdue += ', ' + tempMembersList[i].profile.nameNotPretty
@@ -3994,7 +4004,7 @@ z = Pending
 				}
 				
 				if (debugShowObject) completedStats.overdue
-				if (completedStats.overdue.length > 0) completedStats.overdue = completedStats.overdue.substring(3)
+				if (completedStats.overdue.length > 0) completedStats.overdue = completedStats.overdue.substring(2)
 			}
 			
 			completedStats.pending = Math.floor(completedStats.pending * 100) / 100 //round down.
@@ -4412,38 +4422,40 @@ z = Pending
 					html += '<p><span class="highlight">' + quests[group.quest.key].text + '</span> ( ' + questStatus + ' )</p>'
 					html += quests[group.quest.key].imgTag
 					html += '<p>' + quests[group.quest.key].notes + '</p>'
-					html += '<p>Rewards: ' + quests[group.quest.key].drop.exp + ' XP, ' + quests[group.quest.key].drop.gp + ' Gold, ' + quests[group.quest.key].drop.rewardItemString
-					html += '<p>Total Participation: ' + group.quest.memberCount + '</p>'
-					html += '<p>Quest Participants in Inn: ' + group.quest.inInn_memberCount + '</p>'
+					html += '<p><span class="highlight">Rewards: </span>' + quests[group.quest.key].drop.exp + ' XP, ' + quests[group.quest.key].drop.gp + ' Gold, ' + quests[group.quest.key].drop.rewardItemString
+					html += '<p><span class="highlight">Total Participation: </span>' + group.quest.memberCount + '</p>'
+					html += '<p><span class="highlight">Quest Participants in Inn: </span>' + group.quest.inInn_memberCount + '</p>'
 					if (group.quest.active) {
 						if (quests[group.quest.key].boss) {
-							html += '<p>Progress: ' + Math.round(group.quest.progress.hp * 100) / 100 + ' / ' + quests[group.quest.key].boss.hp
+							html += '<p><span class="highlight">Progress: </span>' + Math.round(group.quest.progress.hp * 100) / 100 + ' / ' + quests[group.quest.key].boss.hp
 							if (quests[group.quest.key].boss.rage != undefined) html += '<p>Rage: ' + Math.round(group.quest.progress.rage * 100) / 100 + ' / ' + quests[group.quest.key].boss.rage.value
-							html += '<p>Your Pending Damage: ' +  Math.floor(user.party.quest.progress.up * 10) / 10
+							html += '<p><span class="highlight">Your Pending Damage: </span>' +  Math.floor(user.party.quest.progress.up * 10) / 10
 						} else {
 							var collectionString = ''
 							$.each(group.quest.progress.collect, function(index, obj){
 								collectionString += obj + ' of ' + quests[group.quest.key].collect[index].count + ' ' + quests[group.quest.key].collect[index].text + ' ' //Put totals?
 							});
-							html += '<p>Progress: ' + collectionString					
+							html += '<p><span class="highlight">Progress: </span>' + collectionString					
 							var collectionStringUser = ''
 							$.each(user.party.quest.progress.collect, function(index, obj){
 								collectionStringUser += obj + ' of ' + quests[group.quest.key].collect[index].text + ' ' //Put totals?
 							});
 							if (collectionStringUser == '' && user.party.quest.progress.collectedItems > 0) collectionStringUser = user.party.quest.progress.collectedItems + ' random objects. (Need to get back to your tent to see what is in your bag).'
-							html += '<p>Your Pending Progress: ' + collectionStringUser						}
+							html += '<p><span class="highlight">Your Pending Progress: </span>' + collectionStringUser						}
 					}  else {					
-						html += '<p>Type: '+ toTitleCase(quests[group.quest.key].typeOf) + ' (' +  quests[group.quest.key].defeatBy + ')'
+						html += '<p><span class="highlight">Type: </span>'+ toTitleCase(quests[group.quest.key].typeOf) + ' (' +  quests[group.quest.key].defeatBy + ')'
 						if (quests[group.quest.key].boss) {
-							html += '<p>Your Pending Damage: ' +  Math.floor(user.party.quest.progress.up * 10) / 10 
+							html += '<p><span class="highlight">Your Pending Damage: </span>' +  Math.floor(user.party.quest.progress.up * 10) / 10 
 						} else {
-							html += '<p>Your Pending Progress: ' +  Math.floor(user.party.quest.progress.collectedItems * 10) / 10 
+							html += '<p><span class="highlight">Your Pending Progress: </span>' +  Math.floor(user.party.quest.progress.collectedItems * 10) / 10 
 							
 						}
 						html += ' if the quest starts before you next cron.</p>'
 					}
 					
-					html += '<p>Quest Owner: ' + group.quest.leaderProfile.nameNotPretty + ' (Last Active: ' + group.quest.leaderProfile.lastActive.relativeTime + ') </p>'
+					html += sectionQuestEstComplete()
+					
+					html += '<p><span class="highlight">Quest Owner: </span>' + group.quest.leaderProfile.nameNotPretty + ' (Last Active: ' + group.quest.leaderProfile.lastActive.relativeTime + ') </p>'
 				}
 				html += htmlReturnTOC
 			}
