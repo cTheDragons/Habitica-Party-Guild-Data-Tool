@@ -3353,6 +3353,7 @@ function parseData() {
 					quests[obj.key].imgTag = '<img src="' + imageURL + imageQuestPrefix + obj.key + imageFileSuffix + '" alt="' + obj.text + '">'
 					quests[obj.key].imgTagQuestScroll = '<img src="' + imageURL + imageQuestScrollPrefix + obj.key + imageFileSuffix + '" alt="' + obj.text + '">'
 					quests[obj.key].id = quests[obj.key].key //This is so I can just copy code without worrying
+					quests[obj.key].ownScroll = 0
 					quests[obj.key].memberCompleted = {};
 					quests[obj.key].memberCompleted.memberCount = 0
 					quests[obj.key].memberCompleted.only1 = 0
@@ -3762,7 +3763,7 @@ function parseData() {
 					
 					//Collate Quest Stats
 					$.each(quests, function(index2, obj2){
-						//quests[obj2.key].scrolls += members[obj.id].items.
+						if (members[obj.id].items.quest[ob2.key] != undefined) quests[obj2.key].ownScroll += members[obj.id].items.quest[ob2.key]
 
 						if (members[obj.id].achievements.quests != undefined ) {
 							if (members[obj.id].achievements.quests[obj2.key] != undefined ) {
@@ -3941,12 +3942,12 @@ function parseData() {
 				//Sort. No need to clone as it temp var and this is at the end.
 				tempMembersList.sort(function(a,b){
 					  // Subtract them to get a value that is either negative, positive, or zero to sort on.
-					  return new Date(b.lastLoggedIn.utcTime) - new Date(a.lastLoggedIn.utcTime);
+					  return new Date(a.lastLoggedIn.utcTime) - new Date(b.lastLoggedIn.utcTime);
 				});
 				if (debugShowObject) console.log(tempMembersList)
 				
 				if (quests[group.quest.key].boss) {
-					completedStats.outstanding = quests[group.quest.key].boss.hp - Math.round(group.quest.progress.hp * 100) / 100 
+					completedStats.outstanding = Math.round(group.quest.progress.hp * 100) / 100 
 				} else {
 					var collectTarget = 0 
 					var collectDone = 0 
