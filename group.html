@@ -3762,6 +3762,8 @@ function parseData() {
 					
 					//Collate Quest Stats
 					$.each(quests, function(index2, obj2){
+						//quests[obj2.key].scrolls += members[obj.id].items.
+
 						if (members[obj.id].achievements.quests != undefined ) {
 							if (members[obj.id].achievements.quests[obj2.key] != undefined ) {
 								quests[obj2.key].memberCompleted.memberCount++
@@ -3790,9 +3792,8 @@ function parseData() {
 									default:
 										quests[obj2.key].memberCompleted.only7OrMore++										
 								}
-							}
-							
-							
+								
+							}							
 						}
 					});
 						
