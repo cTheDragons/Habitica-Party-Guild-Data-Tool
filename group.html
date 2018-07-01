@@ -609,11 +609,11 @@ sectionTables['memberDamage'] = {
 		if (group.quest.key != undefined) {
 			html += '<p><span class="highlight">Est of Completion: </span>' 
 			
-			if (completedStats == '') {
+			if (completedStats.by == '') {
 				html += 'Not enough work done to complete the quest in next 24 hours. '
 			} else {
-				if (moment().isBefore(completedStats.by.time.utcTime)) {
-					html += completedStats.by.time.relativeTime
+				if (moment().isBefore(completedStats.time.utcTime)) {
+					html += completedStats.time.relativeTime
 				} else {
 					html += 'Any moment now ' 
 				}
@@ -627,7 +627,7 @@ sectionTables['memberDamage'] = {
 				html += completedStats.pending + ' items collected by the party with a ' + completedStats.percentage + '% chance of finding all ' + completedStats.outstanding + ' outsnding items to be collected '
 			}
 			
-			html += 'in the quest ' + quests[group.quest.key].name
+			html += 'in the quest ' + quests[group.quest.key].text
 			
 			if (group.quest.active) {
 				html += '. A'
@@ -3936,18 +3936,13 @@ function parseData() {
 			///////////////////////////////////////////////////////////////
 			////   Determine who will finish the quest        ////////////
 			//////////////////////////////////////////////////////////////
-
-			//cloned to avoid issues.
 			if ((groupId == 'party') && (group.quest.key != undefined)) {
-				//clone to avoid issues
-				console.log(members)
-				
-				var tempMemberQuestDamage = _.clonedeep(members)
-				
-				tempMemberQuestDamage.sort(function(a,b){
+				//Sort. No need to clone as it temp var and this is at the end.
+				tempMembersList.sort(function(a,b){
 					  // Subtract them to get a value that is either negative, positive, or zero to sort on.
 					  return new Date(b.lastLoggedIn.utcTime) - new Date(a.lastLoggedIn.utcTime);
 				});
+				if (debugShowObject) console.log(tempMembersList)
 				
 				if (quests[group.quest.key].boss) {
 					completedStats.outstanding = quests[group.quest.key].boss.hp - Math.round(group.quest.progress.hp * 100) / 100 
@@ -3966,16 +3961,16 @@ function parseData() {
 				}
 				
 				//Go through each one subtracting each damage till enough.
-				for (i = 0; i < members.length; i++) { 
-					if ((members[i].preferences.sleep != true) || (moment().subtract(24, 'hours').isBefore(members[obj.id].lastActive.utcTime))) {
-						completedStats.pending += members[i].quest.pending
+				for (i = 0; i < tempMembersList.length; i++) { 
+					if ((tempMembersList[i].preferences.sleep != true) || (moment().subtract(24, 'hours').isBefore(tempMembersList[obj.id].lastActive.utcTime))) {
+						completedStats.pending += tempMembersList[i].quest.pending
 					} else {
-						completedStats.overdue += ', ' + members[i].profile.namePretty
+						completedStats.overdue += ', ' + tempMembersList[i].profile.nameNotPretty
 					}
 					
 					if (completedStats.outstanding <= completedStats.pending) {
-						completedStats.by = members[i].profile.namePretty
-						var tempDate = moment(members[i].lastLoggedIn.utcTime).add(1, 'd')
+						completedStats.by = tempMembersList[i].profile.nameNotPretty
+						var tempDate = moment(tempMembersList[i].lastLoggedIn.utcTime).add(1, 'd')
 						completedStats.time = reformatDate(tempDate)
 						break
 					}
@@ -3983,7 +3978,7 @@ function parseData() {
 				if (collectType <= 1) {
 					completedStats.percentage = 100
 				} else {
-					completedStats.percentage = 12 //$$$ FORMULA TO BE PUT HERE 
+					completedStats.percentage = -9999999999 //$$$ FORMULA TO BE PUT HERE 
 /*I want to roll x amounts of specific number on y sided dice on z amount of throws.
 
 For example I have 6 sided dice (y=6) and have to throw at least 3 6 sixes (x=3) and have 10 turns to try (z=10)
@@ -3995,11 +3990,9 @@ x = Oustanding Items
 z = Pending 
 */
 				}
-				tempMemberQuestDamage = {}
-				
+			
 				if (completedStats.overdue.length > 0) completedStats.overdue = completedStats.overdue.substring(3)
 			}
-			
 			
 			
 			if (debugShowObject) console.log(sectionTables);
@@ -4925,7 +4918,7 @@ ul#tableOfContents > li {
 </head>
 <body><div id="innerBody">	
 <h1><a href="https://habitica.com/">Habitica</a> Party & Guild Data Tool
-    <span class="showHideToggle" data-target="versionChanges" data-closemainsections="true">(v3.0)</span></h1><!-- VERSION TOGGLE -->
+    <span class="showHideToggle" data-target="versionChanges" data-closemainsections="true">(v3.1)</span></h1><!-- VERSION TOGGLE -->
 <div id="headerExtras"></div>
 <hr class="clear" />
 <div id="headerGroupExtras"></div>
@@ -4961,6 +4954,16 @@ ul#tableOfContents > li {
 <div id="versionChanges" class="hide"><!-- VERSION SECTION -->
     <h2>Version History</h2>
     <dl>
+		<dt>3.1 - Are we there yet? (Pending Quest Progress)<span class="date">2018-07-01</span></dt>
+        <dd><ul>
+	        <li>Features:
+                <ul>
+					<li>Created column to show pending damage in quest progress.</li>
+					<li>Determining and show who is likely to end the quest and when with party total of damage.</li>
+					<li>Adding totals of party own scrolls in quests.</li>
+				</ul> 
+            </li>	
+		</ul></dd>
 		<dt>3.0 - Don't let the server get you down<span class="date">2018-04-30</span></dt>
         <dd><ul>
 	        <li>Features:
