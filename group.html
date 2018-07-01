@@ -610,7 +610,7 @@ sectionTables['memberDamage'] = {
 			html += '<p><span class="highlight">Est of Completion: </span>' 
 			
 			if (completedStats.by == '') {
-				html += 'Not enough work done to complete the quest in next 24 hours. '
+				html += 'Not enough work yet to complete the quest in next 24 hours. (Keep Battling those tasks!) Currently '
 			} else {
 				if (moment().isBefore(completedStats.time.utcTime)) {
 					html += completedStats.time.relativeTime
@@ -674,7 +674,7 @@ sectionTables['questPetCompleted'] = {
 	type: 'quest',
 	dataSet: [], 
 	dataSetHeader: ['Scroll', 'Name', 'Pet', 'Type', 'Defeat By', 'XP', 'GP', 'Other Reward', 'Total Completed', 'Not At All', '1 Times', '2 Times', '3 Times', '4 Times', '5 Times', '6 Times', '7 Or More', 'Scrolls Owned'], 
-	dataTable: ['imgTagQuestScroll', 'text', 'pet.text', 'typeOf', 'defeatBy', 'drop.exp', 'drop.gp', 'drop.rewardItemString', 'memberCompleted.memberCount', 'memberCompleted.missingCount',  'memberCompleted.only1',  'memberCompleted.only2',  'memberCompleted.only3',  'memberCompleted.only4',  'memberCompleted.only5',  'memberCompleted.only6',  'memberCompleted.only7OrMore', 'Scrolls Owned'],
+	dataTable: ['imgTagQuestScroll', 'text', 'pet.text', 'typeOf', 'defeatBy', 'drop.exp', 'drop.gp', 'drop.rewardItemString', 'memberCompleted.memberCount', 'memberCompleted.missingCount',  'memberCompleted.only1',  'memberCompleted.only2',  'memberCompleted.only3',  'memberCompleted.only4',  'memberCompleted.only5',  'memberCompleted.only6',  'memberCompleted.only7OrMore', 'ownScroll'],
 	babyBear: {show: [2,3,4,7,9,16,17], orderBy: [[9, 'desc'],[16, 'asc'],[15, 'asc'],[14, 'asc'],[13, 'asc'],[12, 'asc'],[11, 'asc'],[10, 'asc']]},
 	mamaBear: {show: [0,2,3,4,5,6,7,9,16,17], orderBy: [[9, 'desc'],[16, 'asc'],[15, 'asc'],[14, 'asc'],[13, 'asc'],[12, 'asc'],[11, 'asc'],[10, 'asc']]},
 	papaBear: {show: ['all'], orderBy: [[9, 'desc'],[16, 'asc'],[15, 'asc'],[14, 'asc'],[13, 'asc'],[12, 'asc'],[11, 'asc'],[10, 'asc']]},
@@ -3763,7 +3763,7 @@ function parseData() {
 					
 					//Collate Quest Stats
 					$.each(quests, function(index2, obj2){
-						if (members[obj.id].items.quests[obj2.key] != undefined) quests[obj2.key].ownScroll += members[obj.id].items.quests[obj2.key]
+						if ((members[obj.id].items.quests[obj2.key] != undefined) && (members[obj.id].items.quests[obj2.key] > 0))quests[obj2.key].ownScroll += members[obj.id].items.quests[obj2.key]
 
 						if (members[obj.id].achievements.quests != undefined ) {
 							if (members[obj.id].achievements.quests[obj2.key] != undefined ) {
@@ -3964,7 +3964,7 @@ function parseData() {
 				
 				//Go through each one subtracting each damage till enough.
 				for (i = 0; i < tempMembersList.length; i++) { 
-					if ((tempMembersList[i].preferences.sleep != true) || (moment().subtract(24, 'hours').isBefore(tempMembersList[obj.id].lastActive.utcTime))) {
+					if ((tempMembersList[i].preferences.sleep != true) || (moment().subtract(24, 'hours').isBefore(tempMembersList[i].lastActive.utcTime))) {
 						completedStats.pending += tempMembersList[i].quest.pending
 					} else {
 						completedStats.overdue += ', ' + tempMembersList[i].profile.nameNotPretty
@@ -3992,11 +3992,12 @@ x = Oustanding Items
 z = Pending 
 */
 				}
-			
+				
+				if (debugShowObject) completedStats.overdue
 				if (completedStats.overdue.length > 0) completedStats.overdue = completedStats.overdue.substring(3)
 			}
 			
-			
+			completedStats.pending = Math.floor(completedStats.pending * 100) / 100 //round down.
 			if (debugShowObject) console.log(sectionTables);
 			
 		};
