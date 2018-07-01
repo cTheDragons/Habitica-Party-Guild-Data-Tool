@@ -655,10 +655,10 @@ sectionTables['memberDamage'] = {
 sectionTables['questCompleted'] = {
 	type: 'quest',
 	dataSet: [], 
-	dataSetHeader: ['Scroll', 'Name', 'Category', 'Type', 'Defeat By', 'XP', 'GP', 'Other Reward', 'Total Completed', 'Total Not Completed' ], 
-	dataTable: ['imgTagQuestScroll', 'text', 'category', 'typeOf', 'defeatBy', 'drop.exp', 'drop.gp', 'drop.rewardItemString', 'memberCompleted.memberCount',  'memberCompleted.missingCount'],
-	babyBear: {show: [1,3,4,8,9], orderBy: [[1, 'asc']]},
-	mamaBear: {show: [0,1,2,3,4,8,9], orderBy: [[1, 'asc']]},
+	dataSetHeader: ['Scroll', 'Name', 'Category', 'Type', 'Defeat By', 'XP', 'GP', 'Other Reward', 'Total Completed', 'Total Not Completed', 'Scrolls Owned' ], 
+	dataTable: ['imgTagQuestScroll', 'text', 'category', 'typeOf', 'defeatBy', 'drop.exp', 'drop.gp', 'drop.rewardItemString', 'memberCompleted.memberCount',  'memberCompleted.missingCount', 'ownScroll'],
+	babyBear: {show: [1,3,4,8,9,10], orderBy: [[1, 'asc']]},
+	mamaBear: {show: [0,1,2,3,4,8,9,10], orderBy: [[1, 'asc']]},
 	papaBear: {show: ['all'], orderBy: [[1, 'asc']]},
 	extraColumnDefs: [],
 	subTitle: function (){
@@ -673,10 +673,10 @@ sectionTables['questCompleted'] = {
 sectionTables['questPetCompleted'] = {
 	type: 'quest',
 	dataSet: [], 
-	dataSetHeader: ['Scroll', 'Name', 'Pet', 'Type', 'Defeat By', 'XP', 'GP', 'Other Reward', 'Total Completed', 'Not At All', '1 Times', '2 Times', '3 Times', '4 Times', '5 Times', '6 Times', '7 Or More'], 
-	dataTable: ['imgTagQuestScroll', 'text', 'pet.text', 'typeOf', 'defeatBy', 'drop.exp', 'drop.gp', 'drop.rewardItemString', 'memberCompleted.memberCount', 'memberCompleted.missingCount',  'memberCompleted.only1',  'memberCompleted.only2',  'memberCompleted.only3',  'memberCompleted.only4',  'memberCompleted.only5',  'memberCompleted.only6',  'memberCompleted.only7OrMore'],
-	babyBear: {show: [2,3,4,7,9,16], orderBy: [[9, 'desc'],[16, 'asc'],[15, 'asc'],[14, 'asc'],[13, 'asc'],[12, 'asc'],[11, 'asc'],[10, 'asc']]},
-	mamaBear: {show: [0,2,3,4,5,6,7,9,16], orderBy: [[9, 'desc'],[16, 'asc'],[15, 'asc'],[14, 'asc'],[13, 'asc'],[12, 'asc'],[11, 'asc'],[10, 'asc']]},
+	dataSetHeader: ['Scroll', 'Name', 'Pet', 'Type', 'Defeat By', 'XP', 'GP', 'Other Reward', 'Total Completed', 'Not At All', '1 Times', '2 Times', '3 Times', '4 Times', '5 Times', '6 Times', '7 Or More', 'Scrolls Owned'], 
+	dataTable: ['imgTagQuestScroll', 'text', 'pet.text', 'typeOf', 'defeatBy', 'drop.exp', 'drop.gp', 'drop.rewardItemString', 'memberCompleted.memberCount', 'memberCompleted.missingCount',  'memberCompleted.only1',  'memberCompleted.only2',  'memberCompleted.only3',  'memberCompleted.only4',  'memberCompleted.only5',  'memberCompleted.only6',  'memberCompleted.only7OrMore', 'Scrolls Owned'],
+	babyBear: {show: [2,3,4,7,9,16,17], orderBy: [[9, 'desc'],[16, 'asc'],[15, 'asc'],[14, 'asc'],[13, 'asc'],[12, 'asc'],[11, 'asc'],[10, 'asc']]},
+	mamaBear: {show: [0,2,3,4,5,6,7,9,16,17], orderBy: [[9, 'desc'],[16, 'asc'],[15, 'asc'],[14, 'asc'],[13, 'asc'],[12, 'asc'],[11, 'asc'],[10, 'asc']]},
 	papaBear: {show: ['all'], orderBy: [[9, 'desc'],[16, 'asc'],[15, 'asc'],[14, 'asc'],[13, 'asc'],[12, 'asc'],[11, 'asc'],[10, 'asc']]},
 	extraColumnDefs: [],
 	subTitle: function (){
@@ -3763,7 +3763,7 @@ function parseData() {
 					
 					//Collate Quest Stats
 					$.each(quests, function(index2, obj2){
-						if (members[obj.id].items.quest[ob2.key] != undefined) quests[obj2.key].ownScroll += members[obj.id].items.quest[ob2.key]
+						if (members[obj.id].items.quests[obj2.key] != undefined) quests[obj2.key].ownScroll += members[obj.id].items.quests[obj2.key]
 
 						if (members[obj.id].achievements.quests != undefined ) {
 							if (members[obj.id].achievements.quests[obj2.key] != undefined ) {
