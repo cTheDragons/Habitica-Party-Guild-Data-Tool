@@ -564,9 +564,9 @@ sectionTables['memberDamage'] = {
 	dataSet: [], 
 	dataSetHeader: ['User Id', 'User', 'Class', 'Level', 'Last Active', 'Last Cron', 'In Quest', 'Previous Quest Collection', 'Current Quest Collection', 'Total Collection',  'Previous Quest Damage', 'Current Quest Damage', 'Total Damage', 'Previous Boss Damage', 'Current Boss Damage', 'Total Boss Damage', 'Pending Damage'], 
 	dataTable: ['id', 'profile.nameNotPretty', 'stats.classPretty', 'stats.lvl', 'lastActive.shortDate', 'lastLoggedIn.shortDate', 'quest.inQuest', 'quest.collectionTotalPrevious', 'quest.collectionTotalCurrent', 'quest.collectionTotal', 'quest.damageTotalPrevious', 'quest.damageTotalCurrent', 'quest.damageTotal', 'quest.damageBossPrevious', 'quest.damageBossCurrent', 'quest.damageBoss', 'quest.pending'],
-	babyBear: {show: [1,2,3,6,8,11,14,16], orderBy: [[1, 'asc']]},
+	babyBear: {show: [1,2,3,5,6,8,11,14,16], orderBy: [[1, 'asc']]},
 	mamaBear: {show: [1,2,3,5,6,8,9,11,12,14,15,16], orderBy: [[1, 'asc']]},
-	papaBear: {show: ['all'], orderBy: [[1, 'asc']]},
+	papaBear: {show: ['all'], orderBy: [[5, 'asc']]},
 	extraColumnDefs: [{'className': 'dt-right', 'targets': [7,8,9,10,11,12,13,14,15,16]}],
 	subTitle: function (){
 		var html = '' 
@@ -3196,7 +3196,12 @@ function parseData() {
 		numbers.sort(function(a, b){return a - b});
 		return (numbers[numbers.length - 1])
 	}
-
+	function factorial(number) {
+	    var result=1;
+		for (var i = 2; i <= number; i++)
+			result = result * i;
+		return result;
+	}
 	
 	
 	//////////////////////////////////////////////////////////////////////
@@ -3977,7 +3982,7 @@ function parseData() {
 									
 					$.each(quests[group.quest.key].collect, function(index, obj){
 						collectTarget += obj.count
-						if (group.quest.progress.collect[index] != undefined) collectDone += group.quest.progress.collect[index].count
+						if ((group.quest.progress.collect[index] != undefined) && (group.quest.progress.collect[index].count != undefined)) collectDone += group.quest.progress.collect[index].count
 						collectType += 1						
 					});
 											
@@ -4002,20 +4007,40 @@ function parseData() {
 				if (collectType <= 1) {
 					completedStats.percentage = 100
 				} else {
-					completedStats.percentage = -9999999999 //$$$ FORMULA TO BE PUT HERE 
-/*I want to roll x amounts of specific number on y sided dice on z amount of throws.
+				/***************************************************************************************
+					Formula to calculate probability. 
+					
+					x - Outstanding Items
+					k - x-1
+					n - pending items found (or number of attempts of finding item)
+					s - number of collection types
+					
+					Probability = 1 - F(k,n,s)
+					
+					F(k,n,s) = SIGMA Summation of (k to 0 as i)
+								n!/(i!(n-i!))  (1/s)^i  (1-1/s)^(n-i)
 
-For example I have 6 sided dice (y=6) and have to throw at least 3 6 sixes (x=3) and have 10 turns to try (z=10)
-
-What is the formula to calculate this?
-
-y = collectType
-x = Oustanding Items
-z = Pending 
-*/
+					Yeah this is a little complicated.
+					
+					Thanks to anonymous Mathematician I found in a dark room playing Stellaris.
+				***************************************************************************************/
+					var tempProb = 0
+					
+					for (var i = completedStats.outstanding - 1; i >= 0; i--) {
+						tempProb += (factorial(completedStats.pending) / (factorial(i) * factorial(completedStats.pending - i))) *
+									Math.pow(1/collectType, i) *
+									Math.pow(1/collectType, (completedStats.pending - i)); 
+					}
+					
+					completedStats.percentage = 1 - tempProb
+					
+					if (debugShowObject) console.log(completedStats.percentage)
+					
+					completedStats.percentage = Math.round(completedStats.percentage*100)/100 
 				}
 				
-				if (debugShowObject) completedStats.overdue
+				if (debugShowObject) console.log(completedStats)
+				
 				if (completedStats.overdue.length > 0) completedStats.overdue = completedStats.overdue.substring(2)
 			}
 			
