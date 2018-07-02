@@ -728,7 +728,12 @@ function sectionQuestEstComplete() {
 		if (quests[group.quest.key].boss) {	
 			html += completedStats.pending + ' HP party pending damage to kill the boss with ' + completedStats.outstanding + ' HP remaining '	
 		} else {
-			html += completedStats.pending + ' items collected by the party with a ' + completedStats.percentage + '% even distribution chance of finding all ' + completedStats.outstanding + ' outstanding items to be collected '
+			if (completedStats.by != '') {
+				html += completedStats.pending + ' items collected by the party with a ' + completedStats.percentage + '% even distribution chance of finding all ' 
+			} else {
+				html += completedStats.pending + ' items collected by the party, ' 
+			}
+			html += completedStats.outstanding + ' outstanding items to be collected '
 		}
 		
 		html += 'in the quest ' + quests[group.quest.key].text
@@ -3971,8 +3976,8 @@ function parseData() {
 					var collectType = 0 
 									
 					$.each(quests[group.quest.key].collect, function(index, obj){
-						collectTarget += obj.count 
-						if ((group.quest.progress.collect[index] != undefined)) collectDone += user.party.quest.progress.collect[index].count
+						collectTarget += obj.count
+						if (group.quest.progress.collect[index] != undefined) collectDone += group.quest.progress.collect[index].count
 						collectType += 1						
 					});
 											
