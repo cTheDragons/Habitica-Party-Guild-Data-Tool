@@ -570,7 +570,7 @@ sectionTables['memberDamage'] = {
 	extraColumnDefs: [{'className': 'dt-right', 'targets': [7,8,9,10,11,12,13,14,15,16]}],
 	subTitle: function (){
 		var html = '' 
-		html += '<p>Quest Progress Totals are only counted for chat period showing.</p>'
+		html += '<p>Quest Progress Totals are only counted for chat period showing. Quest progress stats are based off the players name. If the player has changed their name recently their stats may not show correctly.</p>'
 		html += sectionHeadingChat()
 		html += '<p><span class="highlight">Number Of Quests: </span>'
 		if (noQuestsInChat < 0) {
@@ -610,7 +610,6 @@ sectionTables['memberDamage'] = {
 		html += sectionQuestEstComplete()
 		
 		html += '</p>'
-		html += '<p>Quest progress stats are based off the players name. If the player has changed their name recently their stats may not show correctly.</p>'		
 		html += sectionHeadingLeadership()
 		return html 
 	},
@@ -716,12 +715,12 @@ function sectionQuestEstComplete() {
 			html += 'Not enough work yet to complete the quest in next 24 hours. (Keep Battling those tasks!) '
 		} else {
 			if (moment().isBefore(completedStats.time.utcTime)) {
-				html += completedStats.time.relativeTime
+				html += completedStats.time.relativeTime + ' by ' 
 			} else {
-				html += 'Any moment now ' 
+				html += 'Any moment now with ' 
 			}
 			
-			html += ' by ' + completedStats.by + '. '
+			html += completedStats.by + '. '
 		}		
 
 		html += 'Currently ' 
@@ -3684,12 +3683,14 @@ function parseData() {
 				members[obj.id].quest.damageBossCurrent =  Math.round(Number(members[obj.id].quest.damageBossCurrent)* 10000) / 10000
 				members[obj.id].quest.damageBossPrevious =  Math.round(Number(members[obj.id].quest.damageBossPrevious)* 10000) / 10000
 				
-				if (quests[group.quest.key].boss) {
-					members[obj.id].quest.pending = Math.floor(members[obj.id].party.quest.progress.up * 10) / 10
-				} else if (quests[group.quest.key].collect) {
-					members[obj.id].quest.pending = members[obj.id].party.quest.progress.collectedItems
-				} else {
-					members[obj.id].quest.pending = Math.floor(members[obj.id].party.quest.progress.up * 10) / 10 + ' dmg or '  + members[obj.id].party.quest.progress.collectedItems + ' collected items'
+				if (quests[group.quest.key] != undefined) {
+					if (quests[group.quest.key].boss) {
+						members[obj.id].quest.pending = Math.floor(members[obj.id].party.quest.progress.up * 10) / 10
+					} else if (quests[group.quest.key].collect) {
+						members[obj.id].quest.pending = members[obj.id].party.quest.progress.collectedItems
+					} else {
+						members[obj.id].quest.pending = Math.floor(members[obj.id].party.quest.progress.up * 10) / 10 + ' dmg or '  + members[obj.id].party.quest.progress.collectedItems + ' collected items'
+					}
 				}
 			
 				//Attribute Calculates
@@ -3958,18 +3959,23 @@ function parseData() {
 				if (debugShowObject) console.log(tempMembersList)
 				
 				if (quests[group.quest.key].boss) {
-					completedStats.outstanding = Math.round(group.quest.progress.hp * 100) / 100 
+					if (group.quest.progress.hp == undefined) 
+					{
+						completedStats.outstanding = quests[group.quest.key].boss.hp
+					} else {
+						completedStats.outstanding = Math.round(group.quest.progress.hp * 100) / 100 
+					}
 				} else {
 					var collectTarget = 0 
 					var collectDone = 0 
 					var collectType = 0 
-					
+									
 					$.each(quests[group.quest.key].collect, function(index, obj){
 						collectTarget += obj.count 
-						collectDone += user.party.quest.progress.collect[index].count
+						if ((group.quest.progress.collect[index] != undefined)) collectDone += user.party.quest.progress.collect[index].count
 						collectType += 1						
 					});
-										
+											
 					completedStats.outstanding = collectTarget - collectDone
 				}
 				
@@ -4461,12 +4467,12 @@ z = Pending
 							html += 'Not enough work yet to complete the quest in next 24 hours. (Keep Battling those tasks!) '
 						} else {
 							if (moment().isBefore(completedStats.time.utcTime)) {
-								html += completedStats.time.relativeTime
+								html += completedStats.time.relativeTime + ' by ' 
 							} else {
-								html += 'Any moment now ' 
+								html += 'Any moment now with ' 
 							}
 							
-							html += ' by ' + completedStats.by + '. '
+							html += completedStats.by + '. '
 						}	
 						
 						html += 'See <span class="showHideToggle" data-target="memberDamageSection" data-closemainsections="true">Member Quest Progress</span> for more details. ' 
