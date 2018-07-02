@@ -3996,48 +3996,50 @@ function parseData() {
 					} else {
 						completedStats.overdue += ', ' + tempMembersList[i].profile.nameNotPretty
 					}
-					
-					if (completedStats.outstanding <= completedStats.pending) {
+
+					if (collectType <= 1) {
+						completedStats.percentage = 100
+					} else {
+					/***************************************************************************************
+						Formula to calculate probability. 
+						
+						x - Outstanding Items
+						k - x-1
+						n - pending items found (or number of attempts of finding item)
+						s - number of collection types
+						
+						Probability = 1 - F(k,n,s)
+						
+						F(k,n,s) = SIGMA Summation of (k to 0 as j)
+									n!/(j!(n-j!))  (1/s)^j  (1-1/s)^(n-j)
+
+						Yeah this is a little complicated.
+						
+						Thanks to anonymous Mathematician I found in a dark room playing Stellaris.
+					***************************************************************************************/
+						var tempProb = 0
+						
+						for (var j = completedStats.outstanding - 1; j >= 0; j--) {
+							tempProb += (factorial(completedStats.pending) / (factorial(j) * factorial(completedStats.pending - j))) *
+										Math.pow(1/collectType, j) *
+										Math.pow(1/collectType, (completedStats.pending - j)); 
+						}
+						
+						completedStats.percentage = 1 - tempProb
+						
+						if (debugShowObject) console.log(completedStats.percentage)
+						
+						completedStats.percentage = Math.round(completedStats.percentage*10000)/100 
+					}
+
+					if ((completedStats.outstanding <= completedStats.pending) && (completedStats.percentage > 5)) {
 						completedStats.by = tempMembersList[i].profile.nameNotPretty
 						var tempDate = moment(tempMembersList[i].lastLoggedIn.utcTime).add(1, 'd')
 						completedStats.time = reformatDate(tempDate)
 						break
 					}
 				}
-				if (collectType <= 1) {
-					completedStats.percentage = 100
-				} else {
-				/***************************************************************************************
-					Formula to calculate probability. 
-					
-					x - Outstanding Items
-					k - x-1
-					n - pending items found (or number of attempts of finding item)
-					s - number of collection types
-					
-					Probability = 1 - F(k,n,s)
-					
-					F(k,n,s) = SIGMA Summation of (k to 0 as i)
-								n!/(i!(n-i!))  (1/s)^i  (1-1/s)^(n-i)
 
-					Yeah this is a little complicated.
-					
-					Thanks to anonymous Mathematician I found in a dark room playing Stellaris.
-				***************************************************************************************/
-					var tempProb = 0
-					
-					for (var i = completedStats.outstanding - 1; i >= 0; i--) {
-						tempProb += (factorial(completedStats.pending) / (factorial(i) * factorial(completedStats.pending - i))) *
-									Math.pow(1/collectType, i) *
-									Math.pow(1/collectType, (completedStats.pending - i)); 
-					}
-					
-					completedStats.percentage = 1 - tempProb
-					
-					if (debugShowObject) console.log(completedStats.percentage)
-					
-					completedStats.percentage = Math.round(completedStats.percentage*10000)/100 
-				}
 				
 				if (debugShowObject) console.log(completedStats)
 				
@@ -5028,6 +5030,8 @@ ul#tableOfContents > li {
                 <ul>
 					<li>Created column to show pending damage in quest progress.</li>
 					<li>Determining and show who is likely to end the quest and when with party total of damage.</li>
+					<li>Determining and show the probability of when a collection quest is likely to end.</li>
+					<li>Moidfying sort on Member Quest Progress by Cron to allow easy scan of Pending damage.</li>
 					<li>Adding totals of party own scrolls in quests.</li>
 				</ul> 
             </li>	
