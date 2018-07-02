@@ -3982,7 +3982,7 @@ function parseData() {
 									
 					$.each(quests[group.quest.key].collect, function(index, obj){
 						collectTarget += obj.count
-						if ((group.quest.progress.collect[index] != undefined) && (group.quest.progress.collect[index].count != undefined)) collectDone += group.quest.progress.collect[index].count
+						if (group.quest.progress.collect[index] != undefined) collectDone += group.quest.progress.collect[index]
 						collectType += 1						
 					});
 											
@@ -4036,7 +4036,7 @@ function parseData() {
 					
 					if (debugShowObject) console.log(completedStats.percentage)
 					
-					completedStats.percentage = Math.round(completedStats.percentage*100)/100 
+					completedStats.percentage = Math.round(completedStats.percentage*10000)/100 
 				}
 				
 				if (debugShowObject) console.log(completedStats)
