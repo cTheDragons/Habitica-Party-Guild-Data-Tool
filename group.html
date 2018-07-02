@@ -126,9 +126,9 @@ var sectionsToDisplay = [
 		{type: 'sectionTable', id: 'memberBuff', title: 'Member Buffs & Transformation', showOnly: ['party'], description: 'A table listing the number of buff and transformations completed by members.'},
 	{type: 'heading', id: 'headingQuest', title: 'Quests!', showOnly: ['party'], description: ''},
 		{type: 'sectionTable', id: 'memberQuest', title: 'Quests Participation', showOnly: ['party'], description: 'Only available for a party (and not a guild). A table showing if any members are in a quest.'},
-		{type: 'sectionTable', id: 'memberDamage', title: 'Member Quest Progress', showOnly: ['party'], description: 'A table listing the quest progress completed by members.'},
-		{type: 'sectionTable', id: 'questCompleted', title: 'All Quests Completed', showOnly: ['party'], description: 'A table showing which quests have and have not been completed by the party.'},
-		{type: 'sectionTable', id: 'questPetCompleted', title: 'Pet Quests Completed', showOnly: ['party'], description: 'Focus on the Pet Quests and shows which ones have been completed by the party, or left unfinished.'}
+		{type: 'sectionTable', id: 'memberDamage', title: 'Member Quest Progress', showOnly: ['party'], description: 'A table listing the quest progress pending and completed by members.'},
+		{type: 'sectionTable', id: 'questCompleted', title: 'All Quests Completed', showOnly: ['party'], description: 'A table showing which quests have and have not been completed by the party. Also shows the scrolls owned by all party members.'},
+		{type: 'sectionTable', id: 'questPetCompleted', title: 'Pet Quests Completed', showOnly: ['party'], description: 'Focus on the Pet Quests and shows which ones have been completed by the party, or left unfinished. Also shows the pet scrolls owned by all party members.'}
 ]
 
 //named for searching
@@ -5038,7 +5038,7 @@ ul#tableOfContents > li {
 					<li>Created column to show pending damage in quest progress.</li>
 					<li>Determining and show who is likely to end the quest and when with party total of damage.</li>
 					<li>Determining and show the probability of when a collection quest is likely to end.</li>
-					<li>Moidfying sort on Member Quest Progress by Cron to allow easy scan of Pending damage.</li>
+					<li>+ Modifying sort on Member Quest Progress by cron to allow easy scan of pending damage.</li>
 					<li>Adding totals of party own scrolls in quests.</li>
 				</ul> 
             </li>	
