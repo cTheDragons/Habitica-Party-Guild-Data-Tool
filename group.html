@@ -822,8 +822,8 @@ var exportFormat			 	= 1;
 var groupDropDownShow			= false;
 var maxMembersToFetch 			; //hold the max members to fetch input (will be rounded up to nearest 30 due to function)
 var ajaxTryAgainMax				= 3;
-var debug						= true;
-var debugShowObject				= true;
+var debug						= false;
+var debugShowObject				= false;
 
 if (debug || debugShowObject) serverName = '*** TURN DEBUG OFF! *** - ' + serverName
 if (debug) console.log('debug 1');
@@ -4000,23 +4000,23 @@ function parseData() {
 					if (collectType <= 1) {
 						completedStats.percentage = 100
 					} else {
-					/***************************************************************************************
-						Formula to calculate probability. 
-						
-						x - Outstanding Items
-						k - x-1
-						n - pending items found (or number of attempts of finding item)
-						s - number of collection types
-						
-						Probability = 1 - F(k,n,s)
-						
-						F(k,n,s) = SIGMA Summation of (k to 0 as j)
-									n!/(j!(n-j!))  (1/s)^j  (1-1/s)^(n-j)
+						/***************************************************************************************
+							Formula to calculate probability. 
+							
+							x - Outstanding Items
+							k - x-1
+							n - pending items found (or number of attempts of finding item)
+							s - number of collection types
+							
+							Probability = 1 - F(k,n,s)
+							
+							F(k,n,s) = SIGMA Summation of (k to 0 as j)
+										n!/(j!(n-j!))  (1/s)^j  (1-1/s)^(n-j)
 
-						Yeah this is a little complicated.
-						
-						Thanks to anonymous Mathematician I found in a dark room playing Stellaris.
-					***************************************************************************************/
+							Yeah this is a little complicated.
+							
+							Thanks to anonymous Mathematician I found in a dark room playing Stellaris.
+						***************************************************************************************/
 						var tempProb = 0
 						
 						for (var j = completedStats.outstanding - 1; j >= 0; j--) {
@@ -4040,6 +4040,13 @@ function parseData() {
 					}
 				}
 
+				//if the percentage probability was so low but it was the last item 
+				if ((completedStats.by == '') && (completedStats.outstanding <= completedStats.pending)) {
+						completedStats.by = tempMembersList[tempMembersList.length - 1].profile.nameNotPretty
+						var tempDate = moment(tempMembersList[tempMembersList.length - 1].lastLoggedIn.utcTime).add(1, 'd')
+						completedStats.time = reformatDate(tempDate)				
+				}
+				
 				
 				if (debugShowObject) console.log(completedStats)
 				
@@ -5024,7 +5031,7 @@ ul#tableOfContents > li {
 <div id="versionChanges" class="hide"><!-- VERSION SECTION -->
     <h2>Version History</h2>
     <dl>
-		<dt>3.1 - Are we there yet? (Pending Quest Progress)<span class="date">2018-07-01</span></dt>
+		<dt>3.1 - Are we there yet? (Pending Quest Progress)<span class="date">2018-07-03</span></dt>
         <dd><ul>
 	        <li>Features:
                 <ul>
