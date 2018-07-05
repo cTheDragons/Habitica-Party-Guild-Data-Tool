@@ -822,8 +822,8 @@ var exportFormat			 	= 1;
 var groupDropDownShow			= false;
 var maxMembersToFetch 			; //hold the max members to fetch input (will be rounded up to nearest 30 due to function)
 var ajaxTryAgainMax				= 3;
-var debug						= true;
-var debugShowObject				= true;
+var debug						= false;
+var debugShowObject				= false;
 
 if (debug || debugShowObject) serverName = '*** TURN DEBUG OFF! *** - ' + serverName
 if (debug) console.log('debug 1');
@@ -3967,6 +3967,8 @@ function parseData() {
 					  return new Date(a.lastLoggedIn.utcTime) - new Date(b.lastLoggedIn.utcTime);
 				});
 				if (debugShowObject) console.log(tempMembersList)
+
+				var collectType = 0 
 				
 				if (quests[group.quest.key].boss) {
 					if (group.quest.progress.hp == undefined) 
@@ -3978,7 +3980,6 @@ function parseData() {
 				} else {
 					var collectTarget = 0 
 					var collectDone = 0 
-					var collectType = 0 
 									
 					$.each(quests[group.quest.key].collect, function(index, obj){
 						collectTarget += obj.count
@@ -3991,7 +3992,7 @@ function parseData() {
 				
 				//Go through each one subtracting each damage till enough.
 				for (i = 0; i < tempMembersList.length; i++) { 
-					if (debug) tempMembersList[i].profile.name + '    ' + tempMembersList[i].quest.pending
+					if (debug) tempMembersList[i].profile.nameNotPretty + '    ' + tempMembersList[i].quest.pending
 					if ((tempMembersList[i].preferences.sleep != true) && (moment().subtract(24, 'hours').isBefore(tempMembersList[i].lastActive.utcTime))) {
 						completedStats.pending += tempMembersList[i].quest.pending
 					} else {
@@ -4996,7 +4997,7 @@ ul#tableOfContents > li {
 </head>
 <body><div id="innerBody">	
 <h1><a href="https://habitica.com/">Habitica</a> Party & Guild Data Tool
-    <span class="showHideToggle" data-target="versionChanges" data-closemainsections="true">(v3.1)</span></h1><!-- VERSION TOGGLE -->
+    <span class="showHideToggle" data-target="versionChanges" data-closemainsections="true">(v3.2)</span></h1><!-- VERSION TOGGLE -->
 <div id="headerExtras"></div>
 <hr class="clear" />
 <div id="headerGroupExtras"></div>
@@ -5032,6 +5033,14 @@ ul#tableOfContents > li {
 <div id="versionChanges" class="hide"><!-- VERSION SECTION -->
     <h2>Version History</h2>
     <dl>
+		<dt>3.2 - Are we nearly there yet?<span class="date">2018-07-05</span></dt>
+        <dd><ul>
+	        <li>Bug:
+                <ul>
+					<li>Fix issue with pending damage for boss quests on who can complete. It does now stop.</li>
+				</ul> 
+            </li>	
+		</ul></dd>
 		<dt>3.1 - Are we there yet? (Pending Quest Progress)<span class="date">2018-07-03</span></dt>
         <dd><ul>
 	        <li>Features:
