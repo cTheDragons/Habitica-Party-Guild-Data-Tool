@@ -822,8 +822,8 @@ var exportFormat			 	= 1;
 var groupDropDownShow			= false;
 var maxMembersToFetch 			; //hold the max members to fetch input (will be rounded up to nearest 30 due to function)
 var ajaxTryAgainMax				= 3;
-var debug						= false;
-var debugShowObject				= false;
+var debug						= true;
+var debugShowObject				= true;
 
 if (debug || debugShowObject) serverName = '*** TURN DEBUG OFF! *** - ' + serverName
 if (debug) console.log('debug 1');
@@ -3991,6 +3991,7 @@ function parseData() {
 				
 				//Go through each one subtracting each damage till enough.
 				for (i = 0; i < tempMembersList.length; i++) { 
+					if (debug) tempMembersList[i].profile.name + '    ' + tempMembersList[i].quest.pending
 					if ((tempMembersList[i].preferences.sleep != true) && (moment().subtract(24, 'hours').isBefore(tempMembersList[i].lastActive.utcTime))) {
 						completedStats.pending += tempMembersList[i].quest.pending
 					} else {
@@ -5038,8 +5039,8 @@ ul#tableOfContents > li {
 					<li>Created column to show pending damage in quest progress.</li>
 					<li>Determining and show who is likely to end the quest and when with party total of damage.</li>
 					<li>Determining and show the probability of when a collection quest is likely to end.</li>
-					<li>+ Modifying sort on Member Quest Progress by cron to allow easy scan of pending damage.</li>
-					<li>Adding totals of party own scrolls in quests.</li>
+					<li>Modifying sort on Member Quest Progress by cron to allow easy scan of pending damage.</li>
+					<li>Adding totals of party own scrolls in quests sections.</li>
 				</ul> 
             </li>	
 		</ul></dd>
