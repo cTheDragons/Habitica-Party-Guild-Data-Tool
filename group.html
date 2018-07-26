@@ -562,12 +562,12 @@ sectionTables['memberQuest'] = {
 sectionTables['memberDamage'] = {
 	type: 'member',
 	dataSet: [], 
-	dataSetHeader: ['User Id', 'User', 'Class', 'Level', 'Last Active', 'Last Cron', 'In Quest', 'Previous Quest Collection', 'Current Quest Collection', 'Total Collection',  'Previous Quest Damage', 'Current Quest Damage', 'Total Damage', 'Previous Boss Damage', 'Current Boss Damage', 'Total Boss Damage', 'Pending Damage'], 
-	dataTable: ['id', 'profile.nameNotPretty', 'stats.classPretty', 'stats.lvl', 'lastActive.shortDate', 'lastLoggedIn.shortDate', 'quest.inQuest', 'quest.collectionTotalPrevious', 'quest.collectionTotalCurrent', 'quest.collectionTotal', 'quest.damageTotalPrevious', 'quest.damageTotalCurrent', 'quest.damageTotal', 'quest.damageBossPrevious', 'quest.damageBossCurrent', 'quest.damageBoss', 'quest.pending'],
-	babyBear: {show: [1,2,3,5,6,8,11,14,16], orderBy: [[5, 'asc']]},
-	mamaBear: {show: [1,2,3,5,6,8,9,11,12,14,15,16], orderBy: [[5, 'asc']]},
+	dataSetHeader: ['User Id', 'User', 'Class', 'Level', 'Last Active', 'Last Cron', 'In Quest', 'Previous Quest Collection', 'Current Quest Collection', 'Total Collection',  'Previous Quest Damage', 'Current Quest Damage', 'Total Damage', 'Previous Boss Damage', 'Current Boss Damage', 'Total Boss Damage', 'Pending Damage', 'Req To Finish'], 
+	dataTable: ['id', 'profile.nameNotPretty', 'stats.classPretty', 'stats.lvl', 'lastActive.shortDate', 'lastLoggedIn.shortDate', 'quest.inQuest', 'quest.collectionTotalPrevious', 'quest.collectionTotalCurrent', 'quest.collectionTotal', 'quest.damageTotalPrevious', 'quest.damageTotalCurrent', 'quest.damageTotal', 'quest.damageBossPrevious', 'quest.damageBossCurrent', 'quest.damageBoss', 'quest.pending', 'quest.reqFinish'],
+	babyBear: {show: [1,2,3,5,6,8,11,14,16,17], orderBy: [[5, 'asc']]},
+	mamaBear: {show: [1,2,3,5,6,8,9,11,12,14,15,16,17], orderBy: [[5, 'asc']]},
 	papaBear: {show: ['all'], orderBy: [[5, 'asc']]},
-	extraColumnDefs: [{'className': 'dt-right', 'targets': [7,8,9,10,11,12,13,14,15,16]}],
+	extraColumnDefs: [{'className': 'dt-right', 'targets': [7,8,9,10,11,12,13,14,15,16,17]}],
 	subTitle: function (){
 		var html = '' 
 		html += '<p>Quest Progress Totals are only counted for chat period showing. Quest progress stats are based off the players name. If the player has changed their name recently their stats may not show correctly.</p>'
@@ -723,17 +723,17 @@ function sectionQuestEstComplete() {
 			html += completedStats.by + '. '
 		}		
 
-		html += 'Currently ' 
+		html += 'Currently <span class="highlight">' 
 		
 		if (quests[group.quest.key].boss) {	
-			html += completedStats.pending + ' HP party pending damage to kill the boss with ' + completedStats.outstanding + ' HP remaining '	
+			html += completedStats.pending + '</span> HP party pending damage to kill the boss with <span class="highlight">' + completedStats.outstanding + '</span> HP remaining '	
 		} else {
 			if (completedStats.by != '') {
-				html += completedStats.pending + ' items collected by the party with a ' + completedStats.percentage + '% even distribution chance of finding all ' 
+				html += completedStats.pending + '</span> items collected by the party with a <span class="highlight">' + completedStats.percentage + '%</span> even distribution chance of finding all ' 
 			} else {
-				html += completedStats.pending + ' items collected by the party, ' 
+				html += completedStats.pending + '</span> items collected by the party, ' 
 			}
-			html += completedStats.outstanding + ' outstanding items to be collected '
+			html += completedStats.outstanding + '</span> outstanding items to be collected '
 		}
 		
 		html += 'in the quest ' + quests[group.quest.key].text
@@ -822,8 +822,8 @@ var exportFormat			 	= 1;
 var groupDropDownShow			= false;
 var maxMembersToFetch 			; //hold the max members to fetch input (will be rounded up to nearest 30 due to function)
 var ajaxTryAgainMax				= 3;
-var debug						= false;
-var debugShowObject				= false;
+var debug						= true;
+var debugShowObject				= true;
 
 if (debug || debugShowObject) serverName = '*** TURN DEBUG OFF! *** - ' + serverName
 if (debug) console.log('debug 1');
@@ -3470,6 +3470,7 @@ function parseData() {
 					members[obj.id].quest.collectionTotalPrevious = 0
 					
 					members[obj.id].quest.pending = ''
+					members[obj.id].quest.reqFinish = ''
 			});
 			
 			
@@ -3992,9 +3993,11 @@ function parseData() {
 				
 				//Go through each one subtracting each damage till enough.
 				for (i = 0; i < tempMembersList.length; i++) { 
-					if (debug) tempMembersList[i].profile.nameNotPretty + '    ' + tempMembersList[i].quest.pending
+					if (debug) console.log(tempMembersList[i].profile.nameNotPretty + '    ' + tempMembersList[i].quest.pending)
 					if ((tempMembersList[i].preferences.sleep != true) && (moment().subtract(24, 'hours').isBefore(tempMembersList[i].lastActive.utcTime))) {
 						completedStats.pending += tempMembersList[i].quest.pending
+						members[tempMembersList[i].id].quest.reqFinish = completedStats.outstanding - completedStats.pending
+						tempMembersList[i].quest.reqFinish = Math.ceil(members[tempMembersList[i].id].quest.reqFinish * 100) / 100 //round down.
 					} else {
 						completedStats.overdue += ', ' + tempMembersList[i].profile.nameNotPretty
 					}
@@ -4997,7 +5000,7 @@ ul#tableOfContents > li {
 </head>
 <body><div id="innerBody">	
 <h1><a href="https://habitica.com/">Habitica</a> Party & Guild Data Tool
-    <span class="showHideToggle" data-target="versionChanges" data-closemainsections="true">(v3.2)</span></h1><!-- VERSION TOGGLE -->
+    <span class="showHideToggle" data-target="versionChanges" data-closemainsections="true">(v3.3)</span></h1><!-- VERSION TOGGLE -->
 <div id="headerExtras"></div>
 <hr class="clear" />
 <div id="headerGroupExtras"></div>
@@ -5033,11 +5036,29 @@ ul#tableOfContents > li {
 <div id="versionChanges" class="hide"><!-- VERSION SECTION -->
     <h2>Version History</h2>
     <dl>
+		<dt>3.3 - May I take my leave?<span class="date">2018-08-??</span></dt>
+        <dd><ul>
+	            <li>Features:
+                <ul>
+					<li>TBS</li>
+				</ul> 
+            </li>	
+			<li>Documentation:
+                <ul>
+					<li>TBA</li>
+                </ul>
+            </li>				
+	        <li>Bug Fixes:
+                <ul>
+					<li>TBA</li>
+               </ul>
+            </li>
+		</ul></dd>
 		<dt>3.2 - Are we nearly there yet?<span class="date">2018-07-05</span></dt>
         <dd><ul>
 	        <li>Bug Fixes:
                 <ul>
-					<li>Fix issue with pending damage for boss quests on who can complete. It does now stop.</li>
+					<li>FFix issue with pending damage for boss quests on who will complete.</li>
 				</ul> 
             </li>	
 		</ul></dd>
