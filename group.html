@@ -3834,6 +3834,113 @@ function parseData() {
 			if (debugShowObject) console.log(tempMembersList);
 
 			///////////////////////////////////////////////////////////////
+			////   Determine who will finish the quest        ////////////
+			//////////////////////////////////////////////////////////////
+			if ((groupId == 'party') && (group.quest.key != undefined)) {
+				//Sort. Clone first to avoid issues.
+				var tempML = tempMembersList.slice(0)
+				
+				tempML.sort(function(a,b){
+					  // Subtract them to get a value that is either negative, positive, or zero to sort on.
+					  return new Date(a.lastLoggedIn.utcTime) - new Date(b.lastLoggedIn.utcTime);
+				});
+				if (debugShowObject) console.log(tempML)
+
+				var collectType = 0 
+				
+				if (quests[group.quest.key].boss) {
+					if (group.quest.progress.hp == undefined) 
+					{
+						completedStats.outstanding = quests[group.quest.key].boss.hp
+					} else {
+						completedStats.outstanding = Math.round(group.quest.progress.hp * 100) / 100 
+					}
+				} else {
+					var collectTarget = 0 
+					var collectDone = 0 
+									
+					$.each(quests[group.quest.key].collect, function(index, obj){
+						collectTarget += obj.count
+						if (group.quest.progress.collect[index] != undefined) collectDone += group.quest.progress.collect[index]
+						collectType += 1						
+					});
+											
+					completedStats.outstanding = collectTarget - collectDone
+				}
+				
+				//Go through each one subtracting each damage till enough.
+				for (i = 0; i < tempML.length; i++) { 
+					if (debug) console.log(tempML[i].profile.nameNotPretty + '    ' + tempML[i].quest.pending)
+					if ((tempML[i].preferences.sleep != true) && (moment().subtract(24, 'hours').isBefore(tempML[i].lastActive.utcTime))) {
+						completedStats.pending += tempML[i].quest.pending
+						members[tempML[i].id].quest.reqFinish = completedStats.outstanding - completedStats.pending
+						tempML[i].quest.reqFinish = Math.ceil(members[tempML[i].id].quest.reqFinish * 100) / 100 //round down.
+					} else {
+						completedStats.overdue += ', ' + tempML[i].profile.nameNotPretty
+					}
+
+					if (collectType <= 1) {
+						completedStats.percentage = 100
+					} else {
+						/***************************************************************************************
+							Formula to calculate probability. 
+							
+							x - Outstanding Items
+							k - x-1
+							n - pending items found (or number of attempts of finding item)
+							s - number of collection types
+							
+							Probability = 1 - F(k,n,s)
+							
+							F(k,n,s) = SIGMA Summation of (k to 0 as j)
+										n!/(j!(n-j!))  (1/s)^j  (1-1/s)^(n-j)
+
+							Yeah this is a little complicated.
+							
+							Thanks to anonymous Mathematician I found in a dark room playing Stellaris.
+						***************************************************************************************/
+						var tempProb = 0
+						
+						for (var j = completedStats.outstanding - 1; j >= 0; j--) {
+							tempProb += (factorial(completedStats.pending) / (factorial(j) * factorial(completedStats.pending - j))) *
+										Math.pow(1/collectType, j) *
+										Math.pow(1/collectType, (completedStats.pending - j)); 
+						}
+						
+						completedStats.percentage = 1 - tempProb
+						
+						if (debugShowObject) console.log(completedStats.percentage)
+						
+						completedStats.percentage = Math.round(completedStats.percentage*10000)/100 
+					}
+
+					if ((completedStats.outstanding <= completedStats.pending) && (completedStats.percentage > 5)) {
+						completedStats.by = tempML[i].profile.nameNotPretty
+						var tempDate = moment(tempML[i].lastLoggedIn.utcTime).add(1, 'd')
+						completedStats.time = reformatDate(tempDate)
+						break
+					}
+				}
+
+				//if the percentage probability was so low but it was the last item 
+				if ((completedStats.by == '') && (completedStats.outstanding <= completedStats.pending)) {
+						completedStats.by = tempML[tempML.length - 1].profile.nameNotPretty
+						var tempDate = moment(tempML[tempML.length - 1].lastLoggedIn.utcTime).add(1, 'd')
+						completedStats.time = reformatDate(tempDate)				
+				}
+				
+				
+				if (debugShowObject) console.log(completedStats)
+				
+				if (completedStats.overdue.length > 0) completedStats.overdue = completedStats.overdue.substring(2)
+			}
+			
+			completedStats.pending = Math.floor(completedStats.pending * 100) / 100 //round down.
+			if (debugShowObject) console.log(sectionTables);
+			
+			
+			
+			///////////////////////////////////////////////////////////////
 			////  Challenge Group Data    							////////////
 			//////////////////////////////////////////////////////////////
 			$.each(challengeGroup, function(index, obj){
@@ -3957,111 +4064,7 @@ function parseData() {
 				}
 			}); 
 			if (debug) console.log('Finish collating PMs');
-			
-			///////////////////////////////////////////////////////////////
-			////   Determine who will finish the quest        ////////////
-			//////////////////////////////////////////////////////////////
-			if ((groupId == 'party') && (group.quest.key != undefined)) {
-				//Sort. No need to clone as it temp var and this is at the end.
-				tempMembersList.sort(function(a,b){
-					  // Subtract them to get a value that is either negative, positive, or zero to sort on.
-					  return new Date(a.lastLoggedIn.utcTime) - new Date(b.lastLoggedIn.utcTime);
-				});
-				if (debugShowObject) console.log(tempMembersList)
-
-				var collectType = 0 
-				
-				if (quests[group.quest.key].boss) {
-					if (group.quest.progress.hp == undefined) 
-					{
-						completedStats.outstanding = quests[group.quest.key].boss.hp
-					} else {
-						completedStats.outstanding = Math.round(group.quest.progress.hp * 100) / 100 
-					}
-				} else {
-					var collectTarget = 0 
-					var collectDone = 0 
-									
-					$.each(quests[group.quest.key].collect, function(index, obj){
-						collectTarget += obj.count
-						if (group.quest.progress.collect[index] != undefined) collectDone += group.quest.progress.collect[index]
-						collectType += 1						
-					});
-											
-					completedStats.outstanding = collectTarget - collectDone
-				}
-				
-				//Go through each one subtracting each damage till enough.
-				for (i = 0; i < tempMembersList.length; i++) { 
-					if (debug) console.log(tempMembersList[i].profile.nameNotPretty + '    ' + tempMembersList[i].quest.pending)
-					if ((tempMembersList[i].preferences.sleep != true) && (moment().subtract(24, 'hours').isBefore(tempMembersList[i].lastActive.utcTime))) {
-						completedStats.pending += tempMembersList[i].quest.pending
-						members[tempMembersList[i].id].quest.reqFinish = completedStats.outstanding - completedStats.pending
-						tempMembersList[i].quest.reqFinish = Math.ceil(members[tempMembersList[i].id].quest.reqFinish * 100) / 100 //round down.
-					} else {
-						completedStats.overdue += ', ' + tempMembersList[i].profile.nameNotPretty
-					}
-
-					if (collectType <= 1) {
-						completedStats.percentage = 100
-					} else {
-						/***************************************************************************************
-							Formula to calculate probability. 
-							
-							x - Outstanding Items
-							k - x-1
-							n - pending items found (or number of attempts of finding item)
-							s - number of collection types
-							
-							Probability = 1 - F(k,n,s)
-							
-							F(k,n,s) = SIGMA Summation of (k to 0 as j)
-										n!/(j!(n-j!))  (1/s)^j  (1-1/s)^(n-j)
-
-							Yeah this is a little complicated.
-							
-							Thanks to anonymous Mathematician I found in a dark room playing Stellaris.
-						***************************************************************************************/
-						var tempProb = 0
-						
-						for (var j = completedStats.outstanding - 1; j >= 0; j--) {
-							tempProb += (factorial(completedStats.pending) / (factorial(j) * factorial(completedStats.pending - j))) *
-										Math.pow(1/collectType, j) *
-										Math.pow(1/collectType, (completedStats.pending - j)); 
-						}
-						
-						completedStats.percentage = 1 - tempProb
-						
-						if (debugShowObject) console.log(completedStats.percentage)
-						
-						completedStats.percentage = Math.round(completedStats.percentage*10000)/100 
-					}
-
-					if ((completedStats.outstanding <= completedStats.pending) && (completedStats.percentage > 5)) {
-						completedStats.by = tempMembersList[i].profile.nameNotPretty
-						var tempDate = moment(tempMembersList[i].lastLoggedIn.utcTime).add(1, 'd')
-						completedStats.time = reformatDate(tempDate)
-						break
-					}
-				}
-
-				//if the percentage probability was so low but it was the last item 
-				if ((completedStats.by == '') && (completedStats.outstanding <= completedStats.pending)) {
-						completedStats.by = tempMembersList[tempMembersList.length - 1].profile.nameNotPretty
-						var tempDate = moment(tempMembersList[tempMembersList.length - 1].lastLoggedIn.utcTime).add(1, 'd')
-						completedStats.time = reformatDate(tempDate)				
-				}
-				
-				
-				if (debugShowObject) console.log(completedStats)
-				
-				if (completedStats.overdue.length > 0) completedStats.overdue = completedStats.overdue.substring(2)
-			}
-			
-			completedStats.pending = Math.floor(completedStats.pending * 100) / 100 //round down.
-			if (debugShowObject) console.log(sectionTables);
-			
-		};
+		};	
 		
 		//////////////////////////////////////////////////////////////////////
 		////   Formatting data for data sets     ///////////////////////////
