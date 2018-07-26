@@ -736,7 +736,7 @@ function sectionQuestEstComplete() {
 			html += completedStats.outstanding + '</span> outstanding items to be collected '
 		}
 		
-		html += 'in the quest ' + quests[group.quest.key].text
+		html += 'in the quest' // ' + quests[group.quest.key].text
 		
 		
 		if (group.quest.active) {
@@ -1533,6 +1533,10 @@ function fetchData() {
 
 		if (debug) console.log('debug Member Fail Fetch for ' + (lastMemberIndex+1))
 		
+		if (ajaxTryAgain != ajaxTryAgainMax) {
+			ajaxTryAgainNeed++
+		}
+			
 		if (lastMemberIndex == listToFetch.length-1) { // all ajax calls have finished
 			if (debug) console.log('debug Lost ducks ' + (ajaxTryAgainNeed))
 			if (ajaxTryAgainNeed > 0) {
@@ -1544,9 +1548,6 @@ function fetchData() {
 			}
 		} else {
 			lastMemberIndex++
-			if (ajaxTryAgain != ajaxTryAgainMax) {
-				ajaxTryAgainNeed++
-			}
 		}
 
 	}
@@ -5043,17 +5044,18 @@ ul#tableOfContents > li {
         <dd><ul>
 	            <li>Features:
                 <ul>
-					<li>TBS</li>
+					<li>Add Required to Finish total.</li>
 				</ul> 
             </li>	
 			<li>Documentation:
                 <ul>
-					<li>TBA</li>
+					<li>Add highlighting to Member Quest Progress to clearly see the numbers left.</li>
+					<li>Remove the quest name being stated twice.</li>					
                 </ul>
             </li>				
 	        <li>Bug Fixes:
                 <ul>
-					<li>TBA</li>
+					<li>Allowing the last Member to Fail to be a Lost Duck and go search for it.</li>
                </ul>
             </li>
 		</ul></dd>
