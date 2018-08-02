@@ -539,18 +539,36 @@ sectionTables['memberQuest'] = {
 		}	
 		returnButton.push(rejectButton)
 		
-		if ((userId == group.leader.id) || (userIsAdmin) || (group.quest.leader  == userId) ) {
-			var startButton = {
-				text: 'Start Quest Now', 
-				className: 'questStartButton',
-				name: 'questStartButton',
-				action: function ( e, dt, node, config ) {
-					postQuestStart()	
-				}
-			}	
-			returnButton.push(startButton)
+		var startButton = {
+			text: 'Start Quest Now', 
+			className: 'questStartButton',
+			name: 'questStartButton',
+			action: function ( e, dt, node, config ) {
+				postQuestStart()	
+			}
+		}	
+		returnButton.push(startButton)
 
-		}
+		var abortButton = {
+			text: 'Abort Quest', 
+			className: 'questAbortButton',
+			name: 'questAbortButton',
+			action: function ( e, dt, node, config ) {
+				postQuestAbort()	
+			}
+		}	
+		returnButton.push(abortButton)
+		
+		var leaveButton = {
+			text: 'Leave Quest', 
+			className: 'questLeaveButton',
+			name: 'questLeaveButton',
+			action: function ( e, dt, node, config ) {
+				postQuestAbort()	
+			}
+		}	
+		returnButton.push(leaveButton)
+
 		
 		return returnButton
 	},
@@ -797,6 +815,8 @@ var serverPathBuySpecialSkill	= '/user/buy-special-spell' //will be /buy-special
 var serverPathQuestAccept		= '/groups/party/quests/accept' //api/v3/groups/:groupId/quests/accept
 var serverPathQuestReject		= '/groups/party/quests/reject' //api/v3/groups/:groupId/quests/reject
 var serverPathQuestStart		= '/groups/party/quests/force-start' //api/v3/groups/:groupId/quests/force-start
+var serverPathQuestLeave		= '/groups/party/quests/leave' //api/v3/groups/:groupId/quests/force-start
+var serverPathQuestAbort		= '/groups/party/quests/abort' //api/v3/groups/:groupId/quests/force-start
 var serverPathPostChatPart		= '/chat' //api/v3/groups/:groupId/chat
 var imageURL					= 'https://habitica-assets.s3.amazonaws.com/mobileApp/images/' 
 var imageShopPrefix             =  'shop_'
@@ -1533,23 +1553,12 @@ function fetchData() {
 
 		if (debug) console.log('debug Member Fail Fetch for ' + (lastMemberIndex+1))
 		
-		if (ajaxTryAgain != ajaxTryAgainMax) {
+		if (ajaxTryAgain < ajaxTryAgainMax) {
 			ajaxTryAgainNeed++
 		}
+		
+		fetchMemberComplete()
 			
-		if (lastMemberIndex == listToFetch.length-1) { // all ajax calls have finished
-			if (debug) console.log('debug Lost ducks ' + (ajaxTryAgainNeed))
-			if (ajaxTryAgainNeed > 0) {
-				fetchMembers()
-			} else {
-				$('#loading #statusFetch').text('Preparing to Display the Data');
-				if (debugShowObject) console.log(members);
-				parseData();
-			}
-		} else {
-			lastMemberIndex++
-		}
-
 	}
 			
 			
@@ -1557,23 +1566,30 @@ function fetchData() {
 		if (debug) console.log('debug Member Sucess data start ' +  lastMemberIndex + '  id: ' + data.data._id);
 		var friendlyMemberIndex = lastMemberIndex + 1
 		$('#loading #statusFetch').text('Fetching Member '  +  friendlyMemberIndex);
-		ajaxTryAgain = 0 //Success clear variable
 		
 		members[data.data._id] = data.data;
+
+		fetchMemberComplete()
+	}	
+	
+	function fetchMemberComplete() {
 		if (lastMemberIndex == listToFetch.length-1) { // all ajax calls have finished
 			if (debug) console.log('debug Lost ducks ' + (ajaxTryAgainNeed))
 			if (ajaxTryAgainNeed > 0) {
 				fetchMembers()
 			} else {
-				$('#loading #statusFetch').text('Preparing to Display the Data');
-				if (debugShowObject) console.log(members);
-				parseData();
+				if (ajaxTryAgain < ajaxTryAgainMax) {
+					$('#loading #statusFetch').text('Preparing to Display the Data');
+					if (debugShowObject) console.log(members);
+					parseData();
+				} else {
+					fetchFailure()
+				}
 			}
 		} else {
 			lastMemberIndex++
-		}
-		
-	}	
+		}	
+	}
 
 }
 
@@ -2465,6 +2481,119 @@ function postQuestStart() {
 	
 }
 
+//////////////////////////////////////////////////////////////////////
+////  Leave  Quest					    //////////////////////////////
+//////////////////////////////////////////////////////////////////////
+function postQuestLeave() {
+	if (debug) console.log('debug postQuestLeave start');
+	var urlToPost = ''	
+	var newData = {}
+
+	if (confirm('Are you sure you wish to leave the quest?\n\nYou will not gain the rewards of this quest.')){
+		postNextQuestLeave()
+	} else {
+		alert('Action cancelled')
+		return;
+	}
+	
+	//This is done like this as receive ERR_INCOMPLETE_CHUNKED_ENCODING
+	function postNextQuestLeave(){
+		urlToPost = serverUrl + serverPathQuestLeave
+		if (debugShowObject) console.log(urlToPost);
+		$.ajax({
+			url: urlToPost,
+			type: 'POST',
+			contentType: 'application/json',
+			cache: false,
+			beforeSend: function(xhr){
+					xhr.setRequestHeader('x-api-user', userId);
+					xhr.setRequestHeader('x-api-key',  apiToken);
+				},
+			success: postQuestLeaveSuccess,
+			error: postQuestLeaveFailure
+		});		
+	}
+		
+
+	
+	function postQuestLeaveFailure(data){
+		if (debug) console.log('debug postQuestLeaveFailure start');
+		if (debugShowObject) console.log(data);
+		var errData = data;
+		alert('ERROR WITH Leaving Quest\n\n' + errData.responseJSON.error + '\n' + errData.responseJSON.message  + '\n\nYour data will now be refreshed.');	
+		
+		fetchData()
+	}
+
+
+	function postQuestLeaveSuccess(data){
+		if (debug) console.log('debug postQuestLeaveSuccess start');
+		if (debugShowObject) console.log(data);
+		alert('Quest Left.\n\nYour data will now be refreshed')
+		
+		fetchData() 
+	}
+	
+}
+
+
+
+//////////////////////////////////////////////////////////////////////
+////  Abort Quest					    //////////////////////////////
+//////////////////////////////////////////////////////////////////////
+function postQuestAbort() {
+	if (debug) console.log('debug postQuestAbort start');
+	var urlToPost = ''	
+	var newData = {}
+
+	if (confirm('Are you sure you wish to abort the quest?\n\nAll progress will be lost and the scroll will be return to the quest owner.')){
+		postNextQuestAbort()
+	} else {
+		alert('Action cancelled')
+		return;
+	}
+	
+	//This is done like this as receive ERR_INCOMPLETE_CHUNKED_ENCODING
+	function postNextQuestAbort(){
+		urlToPost = serverUrl + serverPathQuestAbort
+		if (debugShowObject) console.log(urlToPost);
+		$.ajax({
+			url: urlToPost,
+			type: 'POST',
+			contentType: 'application/json',
+			cache: false,
+			beforeSend: function(xhr){
+					xhr.setRequestHeader('x-api-user', userId);
+					xhr.setRequestHeader('x-api-key',  apiToken);
+				},
+			success: postQuestAbortSuccess,
+			error: postQuestAbortFailure
+		});		
+	}
+		
+
+	
+	function postQuestAbortFailure(data){
+		if (debug) console.log('debug postQuestAbortFailure start');
+		if (debugShowObject) console.log(data);
+		var errData = data;
+		alert('ERROR WITH Aborting Quest\n\n' + errData.responseJSON.error + '\n' + errData.responseJSON.message  + '\n\nYour data will now be refreshed.');	
+		
+		fetchData()
+	}
+
+
+	function postQuestAbortSuccess(data){
+		if (debug) console.log('debug postQuestAbortSuccess start');
+		if (debugShowObject) console.log(data);
+		alert('Quest Aborted.\n\nYour data will now be refreshed')
+		
+		fetchData() 
+	}
+	
+}
+
+
 ///////////////////////////////////////////////////////////////
 ////   Clear Notifications                         ////////////
 //////////////////////////////////////////////////////////////
@@ -2953,11 +3082,27 @@ function parseData() {
 			if ((group.quest.key == undefined) || (group.quest.active == true)) {
 				table.button( 'questAcceptButton:name' ).nodes().hide();
 				table.button( 'questRejectButton:name' ).nodes().hide();
-				if ((userId == group.leader.id) || (userIsAdmin) || (group.quest.leader  == userId) ) table.button( 'questStartButton:name' ).nodes().hide();
+				table.button( 'questStartButton:name' ).nodes().hide();
+				if ((userId == group.leader.id) || (userIsAdmin) || (group.quest.leader  == userId) ) {
+					table.button( 'questAbortButton:name' ).nodes().show();
+				} else {
+					table.button( 'questAbortButton:name' ).nodes().hide();
+				}
+				if (group.quest.leader  != userId) {
+					table.button( 'questLeaveButton:name' ).nodes().show();
+				} else {
+					table.button( 'questLeaveButton:name' ).nodes().hide();
+				}
 			} else {
 				table.button( 'questAcceptButton:name' ).nodes().show();
 				table.button( 'questRejectButton:name' ).nodes().show();
-				if ((userId == group.leader.id) || (userIsAdmin) || (group.quest.leader  == userId) ) table.button( 'questStartButton:name' ).nodes().show();
+				if ((userId == group.leader.id) || (userIsAdmin) || (group.quest.leader  == userId) ) { 
+					table.button( 'questStartButton:name' ).nodes().show();
+				} else {
+					table.button( 'questStartButton:name' ).nodes().hide();
+				}
+				table.button( 'questAbortButton:name' ).nodes().hide();
+				table.button( 'questLeaveButton:name' ).nodes().hide();
 			}
 		}
 		
@@ -4775,6 +4920,14 @@ a.dt-button.questStartButton {
 	color: blue;
 }
 
+a.dt-button.questLeaveButton {
+	color: blue;
+}
+
+a.dt-button.questAbortButton {
+	color: blue;
+}
+
 /*********************************************************************
 ****   Page-wide Show/Hide Toggling   ********************************
 *********************************************************************/
@@ -5044,7 +5197,9 @@ ul#tableOfContents > li {
         <dd><ul>
 	            <li>Features:
                 <ul>
-					<li>Add Required to Finish total.</li>
+					<li>Added Abort Quest Button in Member in Quests Participation.</li>
+					<li>Added Leave Quest Button in Member in Quests Participation.</li>
+					<li>Add Required to Finish column in Member Quest Progress.</li>
 				</ul> 
             </li>	
 			<li>Documentation:
@@ -5056,6 +5211,7 @@ ul#tableOfContents > li {
 	        <li>Bug Fixes:
                 <ul>
 					<li>Allowing the last Member to Fail to be a Lost Duck and go search for it.</li>
+					<li>Quest Participation are always created now and tested to hide or show for each item. (Ie buttons display correctly despite if leader change/next quest starts).</li>
                </ul>
             </li>
 		</ul></dd>
