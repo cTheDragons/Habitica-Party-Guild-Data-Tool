@@ -3083,12 +3083,12 @@ function parseData() {
 				table.button( 'questAcceptButton:name' ).nodes().hide();
 				table.button( 'questRejectButton:name' ).nodes().hide();
 				table.button( 'questStartButton:name' ).nodes().hide();
-				if (((userId == group.leader.id) || (userIsAdmin) || (group.quest.leader  == userId)) && (group.quest.active == true) && (user.quest.active == true)){
+				if (((userId == group.leader.id) || (userIsAdmin) || (group.quest.leader  == userId)) && (group.quest.active == true) && (members[userId].quest.inQuest = "Accepted")){
 					table.button( 'questAbortButton:name' ).nodes().show();
 				} else {
 					table.button( 'questAbortButton:name' ).nodes().hide();
 				}
-				if ((group.quest.leader  != userId) && (group.quest.active == true) && (user.quest.active == true)) {
+				if ((group.quest.leader  != userId) && (group.quest.active == true) && (members[userId].quest.inQuest = "Accepted")) {
 					table.button( 'questLeaveButton:name' ).nodes().show();
 				} else {
 					table.button( 'questLeaveButton:name' ).nodes().hide();
