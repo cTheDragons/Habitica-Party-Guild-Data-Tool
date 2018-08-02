@@ -3840,7 +3840,7 @@ function parseData() {
 				members[obj.id].quest.damageBossCurrent =  Math.round(Number(members[obj.id].quest.damageBossCurrent)* 10000) / 10000
 				members[obj.id].quest.damageBossPrevious =  Math.round(Number(members[obj.id].quest.damageBossPrevious)* 10000) / 10000
 				
-				if (quests[group.quest.key] != undefined) {
+				if ((quests[group.quest.key] != undefined) && ((group.quest.members[obj.id] == true) || !(group.quest.active) )){
 					if (quests[group.quest.key].boss) {
 						members[obj.id].quest.pending = Math.floor(members[obj.id].party.quest.progress.up * 10) / 10
 					} else if (quests[group.quest.key].collect) {
@@ -5204,14 +5204,15 @@ ul#tableOfContents > li {
             </li>	
 			<li>Documentation:
                 <ul>
-					<li>Add highlighting to Member Quest Progress to clearly see the numbers left.</li>
-					<li>Remove the quest name being stated twice.</li>					
+					<li>Add highlighting to Member Quest Progress to clearly see the numbers left in Member Quest Progress.</li>
+					<li>Remove the quest name being stated twice in Member Quest Progress.</li>					
                 </ul>
             </li>				
 	        <li>Bug Fixes:
                 <ul>
-					<li>Allowing the last Member to Fail to be a Lost Duck and go search for it.</li>
+					<li>Allowing the last Member to be a Lost Duck and go search for it (not just fail).</li>
 					<li>Quest Participation are always created now and tested to hide or show for each item. (Ie buttons display correctly despite if leader change/next quest starts).</li>
+					<li>Pending damage only uses those Accepted the quest</li>
                </ul>
             </li>
 		</ul></dd>
@@ -5219,7 +5220,7 @@ ul#tableOfContents > li {
         <dd><ul>
 	        <li>Bug Fixes:
                 <ul>
-					<li>FFix issue with pending damage for boss quests on who will complete.</li>
+					<li>Fix issue with pending damage for boss quests on who will complete.</li>
 				</ul> 
             </li>	
 		</ul></dd>
