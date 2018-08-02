@@ -564,7 +564,7 @@ sectionTables['memberQuest'] = {
 			className: 'questLeaveButton',
 			name: 'questLeaveButton',
 			action: function ( e, dt, node, config ) {
-				postQuestAbort()	
+				postQuestLeave()	
 			}
 		}	
 		returnButton.push(leaveButton)
@@ -3083,12 +3083,12 @@ function parseData() {
 				table.button( 'questAcceptButton:name' ).nodes().hide();
 				table.button( 'questRejectButton:name' ).nodes().hide();
 				table.button( 'questStartButton:name' ).nodes().hide();
-				if (((userId == group.leader.id) || (userIsAdmin) || (group.quest.leader  == userId)) && (group.quest.active == true)){
+				if (((userId == group.leader.id) || (userIsAdmin) || (group.quest.leader  == userId)) && (group.quest.active == true) && (user.quest.active == true)){
 					table.button( 'questAbortButton:name' ).nodes().show();
 				} else {
 					table.button( 'questAbortButton:name' ).nodes().hide();
 				}
-				if ((group.quest.leader  != userId) && (group.quest.active == true)) {
+				if ((group.quest.leader  != userId) && (group.quest.active == true) && (user.quest.active == true)) {
 					table.button( 'questLeaveButton:name' ).nodes().show();
 				} else {
 					table.button( 'questLeaveButton:name' ).nodes().hide();
