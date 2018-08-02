@@ -842,8 +842,8 @@ var exportFormat			 	= 1;
 var groupDropDownShow			= false;
 var maxMembersToFetch 			; //hold the max members to fetch input (will be rounded up to nearest 30 due to function)
 var ajaxTryAgainMax				= 3;
-var debug						= true;
-var debugShowObject				= true;
+var debug						= false;
+var debugShowObject				= false;
 
 if (debug || debugShowObject) serverName = '*** TURN DEBUG OFF! *** - ' + serverName
 if (debug) console.log('debug 1');
@@ -2489,7 +2489,7 @@ function postQuestLeave() {
 	var urlToPost = ''	
 	var newData = {}
 
-	if (confirm('Are you sure you wish to leave the quest?\n\nYou will not gain the rewards of this quest.')){
+	if (confirm('Are you sure you wish to leave the quest?\n\nYou will not gain the rewards of this quest or be able to join a quest till a new one is started.')){
 		postNextQuestLeave()
 	} else {
 		alert('Action cancelled')
@@ -3840,13 +3840,17 @@ function parseData() {
 				members[obj.id].quest.damageBossCurrent =  Math.round(Number(members[obj.id].quest.damageBossCurrent)* 10000) / 10000
 				members[obj.id].quest.damageBossPrevious =  Math.round(Number(members[obj.id].quest.damageBossPrevious)* 10000) / 10000
 				
-				if ((quests[group.quest.key] != undefined) && ((group.quest.members[obj.id] == true) || !(group.quest.active) )){
-					if (quests[group.quest.key].boss) {
-						members[obj.id].quest.pending = Math.floor(members[obj.id].party.quest.progress.up * 10) / 10
-					} else if (quests[group.quest.key].collect) {
-						members[obj.id].quest.pending = members[obj.id].party.quest.progress.collectedItems
+				if (quests[group.quest.key] != undefined) {
+					if ((group.quest.members[obj.id] == true) || !(group.quest.active) ) {
+						if (quests[group.quest.key].boss) {
+							members[obj.id].quest.pending = Math.floor(members[obj.id].party.quest.progress.up * 10) / 10
+						} else if (quests[group.quest.key].collect) {
+							members[obj.id].quest.pending = members[obj.id].party.quest.progress.collectedItems
+						} else {
+							members[obj.id].quest.pending = Math.floor(members[obj.id].party.quest.progress.up * 10) / 10 + ' dmg or '  + members[obj.id].party.quest.progress.collectedItems + ' collected items'
+						}
 					} else {
-						members[obj.id].quest.pending = Math.floor(members[obj.id].party.quest.progress.up * 10) / 10 + ' dmg or '  + members[obj.id].party.quest.progress.collectedItems + ' collected items'
+						members[obj.id].quest.pending = 0 //Not part of the active quest
 					}
 				}
 			
@@ -5193,7 +5197,7 @@ ul#tableOfContents > li {
 <div id="versionChanges" class="hide"><!-- VERSION SECTION -->
     <h2>Version History</h2>
     <dl>
-		<dt>3.3 - May I take my leave?<span class="date">2018-08-??</span></dt>
+		<dt>3.3 - May I take my leave?<span class="date">2018-08-03</span></dt>
         <dd><ul>
 	            <li>Features:
                 <ul>
@@ -5210,9 +5214,9 @@ ul#tableOfContents > li {
             </li>				
 	        <li>Bug Fixes:
                 <ul>
-					<li>Allowing the last Member to be a Lost Duck and go search for it (not just fail).</li>
+					<li>Allowing the last member to be a Lost Duck and go search for it (not just fail).</li>
 					<li>Quest Participation are always created now and tested to hide or show for each item. (Ie buttons display correctly despite if leader change/next quest starts).</li>
-					<li>Pending damage only uses those Accepted the quest</li>
+					<li>Pending damage only calculates with those active in the quest</li>
                </ul>
             </li>
 		</ul></dd>
