@@ -125,10 +125,10 @@ var sectionsToDisplay = [
 		{type: 'sectionTable', id: 'memberAttributes', title: 'Member Attributes', showOnly: [], description: 'A table listing strength, intelligence, perception and constitution of the members.'},
 		{type: 'sectionTable', id: 'memberBuff', title: 'Member Buffs & Transformation', showOnly: ['party'], description: 'A table listing the number of buff and transformations completed by members.'},
 	{type: 'heading', id: 'headingQuest', title: 'Quests!', showOnly: ['party'], description: ''},
-		{type: 'sectionTable', id: 'memberQuest', title: 'Quests Participation', showOnly: ['party'], description: 'Only available for a party (and not a guild). A table showing if any members are in a quest.'},
-		{type: 'sectionTable', id: 'memberDamage', title: 'Member Quest Progress', showOnly: ['party'], description: 'A table listing the quest progress pending and completed by members.'},
-		{type: 'sectionTable', id: 'questCompleted', title: 'All Quests Completed', showOnly: ['party'], description: 'A table showing which quests have and have not been completed by the party. Also shows the scrolls owned by all party members.'},
-		{type: 'sectionTable', id: 'questPetCompleted', title: 'Pet Quests Completed', showOnly: ['party'], description: 'Focus on the Pet Quests and shows which ones have been completed by the party, or left unfinished. Also shows the pet scrolls owned by all party members.'}
+		{type: 'sectionTable', id: 'memberQuest', title: 'Quests Participation', showOnly: ['party'], description: 'Only available for a party (and not a guild). A table showing if any members are in a quest. Also allows to join or leave and if the quest owner/party leader force start or abort the quest.'},
+		{type: 'sectionTable', id: 'memberDamage', title: 'Member Quest Progress', showOnly: ['party'], description: 'A table listing the quest progress pending and completed by members.  Shows pending damage by the party for the current quest.'},
+		{type: 'sectionTable', id: 'questCompleted', title: 'All Quests Completed', showOnly: ['party'], description: 'A table showing which quests have and have not been completed by the party and which scrolls owned by the party.'},
+		{type: 'sectionTable', id: 'questPetCompleted', title: 'Pet Quests Completed', showOnly: ['party'], description: 'Focus on the Pet Quests and shows which ones have been completed by the party, or left unfinished. Shows the pet scrolls owned by all party members.'}
 ]
 
 //named for searching
@@ -842,8 +842,8 @@ var exportFormat			 	= 1;
 var groupDropDownShow			= false;
 var maxMembersToFetch 			; //hold the max members to fetch input (will be rounded up to nearest 30 due to function)
 var ajaxTryAgainMax				= 3;
-var debug						= false;
-var debugShowObject				= false;
+var debug						= true;
+var debugShowObject				= true;
 
 if (debug || debugShowObject) serverName = '*** TURN DEBUG OFF! *** - ' + serverName
 if (debug) console.log('debug 1');
@@ -4011,7 +4011,13 @@ function parseData() {
 									
 					$.each(quests[group.quest.key].collect, function(index, obj){
 						collectTarget += obj.count
-						if (group.quest.progress.collect[index] != undefined) collectDone += group.quest.progress.collect[index]
+						if (group.quest.progress.collect[index] != undefined) {
+							if (group.quest.progress.collect[index]>obj.count) {
+								collectDone += obj.count 
+							} else {
+								collectDone += group.quest.progress.collect[index] 
+							}
+						}
 						collectType += 1						
 					});
 											
@@ -4054,12 +4060,18 @@ function parseData() {
 						for (var j = completedStats.outstanding - 1; j >= 0; j--) {
 							tempProb += (factorial(completedStats.pending) / (factorial(j) * factorial(completedStats.pending - j))) *
 										Math.pow(1/collectType, j) *
-										Math.pow(1/collectType, (completedStats.pending - j)); 
+										Math.pow((1-1/collectType), (completedStats.pending - j)); 
+										
 						}
 						
 						completedStats.percentage = 1 - tempProb
 						
+						if (debugShowObject) console.log(collectTarget)
+						if (debugShowObject) console.log(completedStats.outstanding)
+						if (debugShowObject) console.log(completedStats.pending)
+						if (debugShowObject) console.log(collectType)
 						if (debugShowObject) console.log(completedStats.percentage)
+						
 						
 						completedStats.percentage = Math.round(completedStats.percentage*10000)/100 
 					}
@@ -5197,6 +5209,25 @@ ul#tableOfContents > li {
 <div id="versionChanges" class="hide"><!-- VERSION SECTION -->
     <h2>Version History</h2>
     <dl>
+		<dt>3.4 - ????<span class="date">2018-12-09</span></dt>
+        <dd><ul>
+	            <li>Features:
+                <ul>
+					<li>TEX??????</li>
+				</ul> 
+            </li>	
+			<li>Documentation:
+                <ul>
+					<li>Clean-up and added text to the section descriptions, based on the latest changes from this and last two changes.</li>
+                </ul>
+            </li>				
+	        <li>Bug Fixes:
+                <ul>
+					<li>Member Quest Progress in Collection Quests: Showing the correct outstanding items by accounting for over collected items.</li>
+					<li>Member Quest Progress in Collection Quests: Showing the % for quests with 3 or more itmes (I really should of read my own formula).</li>
+               </ul>
+            </li>
+		</ul></dd>
 		<dt>3.3 - May I take my leave?<span class="date">2018-08-03</span></dt>
         <dd><ul>
 	            <li>Features:
