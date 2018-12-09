@@ -137,12 +137,12 @@ var sectionTables =	{}
 sectionTables['transformMembers'] = {
 	type: 'member',
 	dataSet: [], 
-	dataSetHeader: ['User Id', 'User', 'Class', 'Level',  'Tier', 'Contributor', 'Last Active', 'Last Cron', 'Last Drop', 'Last Chat', 'Last Chat Text', 'Next Birthday', 'Transform Status', 'Last Cast Transform'  ], 
-	dataTable: ['id', 'profile.nameNotPretty', 'stats.classPretty', 'stats.lvl', 'contribPretty.level', 'contribPretty.text', 'lastActive.shortDate',  'lastLoggedIn.shortDate', 'lastDropItem.shortDate', 'lastChat.occured.shortDate', 'lastChat.textPretty', 'creation.nextBirthday.shortDate', 'transformStatus', 'lastTransformation.occured.shortDate'],
-	babyBear: {show: [1,3,11,12], orderBy: [[1, 'asc']]},
-	mamaBear: {show: [1,2,3,6,7,11,12], orderBy: [[1, 'asc']]},
+	dataSetHeader: ['User Id', 'Username', 'Display Name', 'Class', 'Level',  'Tier', 'Contributor', 'Last Active', 'Last Cron', 'Last Drop', 'Last Chat', 'Last Chat Text', 'Next Birthday', 'Transform Status', 'Last Cast Transform'  ], 
+	dataTable: ['id', 'auth.local.username', 'profile.nameNotPretty', 'stats.classPretty', 'stats.lvl', 'contribPretty.level', 'contribPretty.text', 'lastActive.shortDate',  'lastLoggedIn.shortDate', 'lastDropItem.shortDate', 'lastChat.occured.shortDate', 'lastChat.textPretty', 'creation.nextBirthday.shortDate', 'transformStatus', 'lastTransformation.occured.shortDate'],
+	babyBear: {show: [1,2,4,12,13], orderBy: [[1, 'asc']]},
+	mamaBear: {show: [1,2,3,4,7,8,12,13], orderBy: [[1, 'asc']]},
 	papaBear: {show: ['all'], orderBy: [[1, 'asc']]},
-	extraColumnDefs: [{'className': 'dt-right', 'targets': [3,4,6,7,8,9,11,13]}],
+	extraColumnDefs: [{'className': 'dt-right', 'targets': [4,5,7,8,9,10,12,14]}],
 	subTitle: function (){
 		if (debug) console.log('debug Start subTitle Transform')
 		if (debugShowObject) console.log(transformItems)
@@ -225,12 +225,12 @@ sectionTables['transformMembers'] = {
 sectionTables['challengeGroup'] = {
 	type: 'challengeGroup',
 	dataSet: [], 
-	dataSetHeader: ['Challenge Id', 'Title', 'Description', 'Gems', 'Created', 'Last Updated', 'Owner Id', 'Owner', 'Owner Last Active', 'Participants', 'Offical'], 
-	dataTable: ['id', 'nameLink', 'descriptionPretty', 'prize', 'creation.shortDate', 'lastUpdated.shortDate', 'leader.id', 'leader.profile.nameNotPretty', 'leader.lastActive.shortDate', 'memberCount', 'officalPretty'],
-	babyBear: {show: [1,3,7,9], orderBy: [[4, 'desc']]},
-	mamaBear: {show: [1,2,3,4,7,8,9], orderBy: [[4, 'desc']]},
+	dataSetHeader: ['Challenge Id', 'Title', 'Description', 'Gems', 'Created', 'Last Updated', 'Owner Id', 'Owner', 'Owner Display Name', 'Owner Last Active', 'Participants', 'Offical'], 
+	dataTable: ['id', 'nameLink', 'descriptionPretty', 'prize', 'creation.shortDate', 'lastUpdated.shortDate', 'leader.id', 'leader.auth.local.username', 'leader.profile.nameNotPretty', 'leader.lastActive.shortDate', 'memberCount', 'officalPretty'],
+	babyBear: {show: [1,3,4,7,8,10], orderBy: [[4, 'desc']]},
+	mamaBear: {show: [1,2,3,4,7,8,9,10], orderBy: [[4, 'desc']]},
 	papaBear: {show: ['all'], orderBy: [[4, 'desc']]},
-	extraColumnDefs: [{'className': 'dt-center', 'targets': [10]}, {'className': 'dt-right', 'targets': [3,4,5,8,9]}],
+	extraColumnDefs: [{'className': 'dt-center', 'targets': [11]}, {'className': 'dt-right', 'targets': [3,4,5,9,10]}],
 	subTitle: function (){
 		var html = ''
 	
@@ -247,12 +247,12 @@ sectionTables['challengeGroup'] = {
 sectionTables['chatExport'] = {
 	type: 'chat',
 	dataSet: [], 
-	dataSetHeader: ['Message Id', 'User Id', 'User', 'Tier', 'Contributor', 'Contributions', 'Mod', 'Posted', 'Epoch', 'Likes', 'Member Likes', 'Text', 'Appearance'], 
-	dataTable: ['id', 'uuid', 'userNotPretty', 'contribPretty.level', 'contribPretty.text', 'contribPretty.contributions', 'contribPretty.admin', 'creation.shortDate', 'timestamp', 'likeCount.total', 'likeCount.totalInGroup', 'textPretty', 'userStylesPretty'],
-	babyBear: {show: [2,7,9,11], orderBy: [[7, 'desc']]},
-	mamaBear: {show: [2,3,4,7,9,10,11], orderBy: [[7, 'desc']]},
-	papaBear: {show: ['all'], orderBy: [[7, 'desc']]},
-	extraColumnDefs: [{'className': 'dt-center', 'targets': [6]}, {'className': 'dt-right', 'targets': [3,7,8,9,10]}],
+	dataSetHeader: ['Message Id', 'User Id', 'Username', 'Display Name', 'Tier', 'Contributor', 'Contributions', 'Mod', 'Posted', 'Epoch', 'Likes', 'Member Likes', 'Text', 'Appearance'], 
+	dataTable: ['id', 'uuid', 'username', 'userNotPretty', 'contribPretty.level', 'contribPretty.text', 'contribPretty.contributions', 'contribPretty.admin', 'creation.shortDate', 'timestamp', 'likeCount.total', 'likeCount.totalInGroup', 'textPretty', 'userStylesPretty'],
+	babyBear: {show: [2,3,8,10,12], orderBy: [[8, 'desc']]},
+	mamaBear: {show: [2,3,4,5,8,10,11,12], orderBy: [[8, 'desc']]},
+	papaBear: {show: ['all'], orderBy: [[8, 'desc']]},
+	extraColumnDefs: [{'className': 'dt-center', 'targets': [7]}, {'className': 'dt-right', 'targets': [4,8,9,10,11]}],
 	subTitle: function (){
 		var html = ''
 	
@@ -269,12 +269,12 @@ sectionTables['chatExport'] = {
 sectionTables['chatNotSystemExport'] = {
 	type: 'chat',
 	dataSet: [], 
-	dataSetHeader: ['Message Id', 'User Id', 'User', 'Tier', 'Contributor', 'Contributions', 'Mod', 'Posted', 'Epoch', 'Likes', 'Member Likes', 'Text', 'Appearance'], 
-	dataTable: ['id', 'uuid', 'userNotPretty', 'contribPretty.level', 'contribPretty.text', 'contribPretty.contributions', 'contribPretty.admin', 'creation.shortDate', 'timestamp', 'likeCount.total', 'likeCount.totalInGroup', 'textPretty', 'userStylesPretty'],
-	babyBear: {show: [2,7,9,11], orderBy: [[7, 'desc']]},
-	mamaBear: {show: [2,3,4,7,9,10,11], orderBy: [[7, 'desc']]},
-	papaBear: {show: ['all'], orderBy: [[7, 'desc']]},
-	extraColumnDefs: [{'className': 'dt-center', 'targets': [6]}, {'className': 'dt-right', 'targets': [3,7,8,9,10]}],
+	dataSetHeader: ['Message Id', 'User Id', 'Username', 'Display Name', 'Tier', 'Contributor', 'Contributions', 'Mod', 'Posted', 'Epoch', 'Likes', 'Member Likes', 'Text', 'Appearance'], 
+	dataTable: ['id', 'uuid', 'username', 'userNotPretty', 'contribPretty.level', 'contribPretty.text', 'contribPretty.contributions', 'contribPretty.admin', 'creation.shortDate', 'timestamp', 'likeCount.total', 'likeCount.totalInGroup', 'textPretty', 'userStylesPretty'],
+	babyBear: {show: [2,3,8,10,12], orderBy: [[8, 'desc']]},
+	mamaBear: {show: [2,3,4,5,8,10,11,12], orderBy: [[8, 'desc']]},
+	papaBear: {show: ['all'], orderBy: [[8, 'desc']]},
+	extraColumnDefs: [{'className': 'dt-center', 'targets': [7]}, {'className': 'dt-right', 'targets': [4,8,9,10,11]}],
 	subTitle: function (){
 		var html = ''
 		
@@ -291,12 +291,12 @@ sectionTables['chatNotSystemExport'] = {
 sectionTables['chatSystemExport'] = {
 	type: 'chat',
 	dataSet: [], 
-	dataSetHeader: ['Message Id', 'User Id', 'User', 'Tier', 'Contributor', 'Contributions', 'Mod', 'Posted', 'Epoch', 'Likes', 'Member Likes', 'Text'], 
-	dataTable: ['id', 'uuid', 'userNotPretty', 'contribPretty.level', 'contribPretty.text', 'contribPretty.contributions', 'contribPretty.admin', 'creation.shortDate', 'timestamp', 'likeCount.total', 'likeCount.totalInGroup', 'textPretty'],
-	babyBear: {show: [2,7,9,11], orderBy: [[7, 'desc']]},
-	mamaBear: {show: [2,3,4,7,9,10,11], orderBy: [[7, 'desc']]},
-	papaBear: {show: ['all'], orderBy: [[7, 'desc']]},
-	extraColumnDefs: [{'className': 'dt-center', 'targets': [6]}, {'className': 'dt-right', 'targets': [3,7,8,9,10]}],
+	dataSetHeader: ['Message Id', 'User Id', 'Username', 'Display Name', 'Tier', 'Contributor', 'Contributions', 'Mod', 'Posted', 'Epoch', 'Likes', 'Member Likes', 'Text', 'Appearance'], 
+	dataTable: ['id', 'uuid', 'username', 'userNotPretty', 'contribPretty.level', 'contribPretty.text', 'contribPretty.contributions', 'contribPretty.admin', 'creation.shortDate', 'timestamp', 'likeCount.total', 'likeCount.totalInGroup', 'textPretty', 'userStylesPretty'],
+	babyBear: {show: [2,3,8,10,12], orderBy: [[8, 'desc']]},
+	mamaBear: {show: [2,3,4,5,8,10,11,12], orderBy: [[8, 'desc']]},
+	papaBear: {show: ['all'], orderBy: [[8, 'desc']]},
+	extraColumnDefs: [{'className': 'dt-center', 'targets': [7]}, {'className': 'dt-right', 'targets': [4,8,9,10,11]}],
 	subTitle: function (){
 		var html = ''
 		
@@ -312,12 +312,12 @@ sectionTables['chatSystemExport'] = {
 sectionTables['chatLikes'] = {
 	type: 'chatLikes',
 	dataSet: [], 
-	dataSetHeader: ['Message Id', 'Like Id', 'Like Name', 'User Id', 'User', 'Tier', 'Contributor', 'Contributions', 'Mod', 'Posted', 'Epoch', 'Text'], 
-	dataTable: ['chat.id', 'id', 'nameNotPretty', 'chat.uuid', 'chat.userNotPretty', 'chat.contribPretty.level', 'chat.contribPretty.text', 'chat.contribPretty.contributions', 'chat.contribPretty.admin', 'chat.creation.shortDate', 'chat.timestamp', 'chat.textPretty'],
-	babyBear: {show: [2,4,9,11], orderBy: [[9, 'desc']]},
-	mamaBear: {show: [1,2,3,4,9,11], orderBy: [[9, 'desc']]},
-	papaBear: {show: ['all'], orderBy: [[9, 'desc']]},
-	extraColumnDefs: [{'className': 'dt-center', 'targets': [8]}, {'className': 'dt-right', 'targets': [5,9,10]}],
+	dataSetHeader: ['Message Id', 'Like Id', 'Like UserName', 'Like Display Name', 'User Id', 'Username', 'Display Name', 'Tier', 'Contributor', 'Contributions', 'Mod', 'Posted', 'Epoch', 'Text'], 
+	dataTable: ['chat.id', 'id', 'username', 'nameNotPretty', 'chat.uuid', 'chat.username', 'chat.userNotPretty', 'chat.contribPretty.level', 'chat.contribPretty.text', 'chat.contribPretty.contributions', 'chat.contribPretty.admin', 'chat.creation.shortDate', 'chat.timestamp', 'chat.textPretty'],
+	babyBear: {show: [2,3,5,6,11,13], orderBy: [[11, 'desc']]},
+	mamaBear: {show: [1,2,3,4,5,6,11,13], orderBy: [[11, 'desc']]},
+	papaBear: {show: ['all'], orderBy: [[11, 'desc']]},
+	extraColumnDefs: [{'className': 'dt-center', 'targets': [10]}, {'className': 'dt-right', 'targets': [7,11,12]}],
 	subTitle: function (){
 		var html = ''
 		
@@ -336,12 +336,12 @@ sectionTables['chatLikes'] = {
 sectionTables['displayInboxSection'] = {
 	type: 'inbox',
 	dataSet: [], 
-	dataSetHeader: ['User Id', 'User', 'Tier', 'Contributor', 'Contributions', 'Mod', 'Posted', 'Epoch', 'Sent', 'Text'],
-	dataTable: ['uuid', 'userNotPretty', 'contribPretty.level', 'contribPretty.text', 'contribPretty.contributions', 'contribPretty.admin', 'creation.shortDate', 'timestamp', 'sentPretty', 'textPretty'],
-	babyBear: {show: [1,6,8,9], orderBy: [[6, 'desc']]},
-	mamaBear: {show: [1,2,3,6,8,9], orderBy: [[6, 'desc']]},
-	papaBear: {show: ['all'], orderBy: [[6, 'desc']]},
-	extraColumnDefs: [{'className': 'dt-center', 'targets': [5,8]}, {'className': 'dt-right', 'targets': [2,6,7]}],
+	dataSetHeader: ['User Id', 'Username', 'Display Name', 'Tier', 'Contributor', 'Contributions', 'Mod', 'Posted', 'Epoch', 'Sent', 'Text'],
+	dataTable: ['uuid', 'username', 'userNotPretty', 'contribPretty.level', 'contribPretty.text', 'contribPretty.contributions', 'contribPretty.admin', 'creation.shortDate', 'timestamp', 'sentPretty', 'textPretty'],
+	babyBear: {show: [1,2,7,9,10], orderBy: [[7, 'desc']]},
+	mamaBear: {show: [1,2,3,4,5,9,10], orderBy: [[7, 'desc']]},
+	papaBear: {show: ['all'], orderBy: [[7, 'desc']]},
+	extraColumnDefs: [{'className': 'dt-center', 'targets': [6,9]}, {'className': 'dt-right', 'targets': [3,7,8]}],
 	subTitle: function (){
 		var html = ''
 		html += 'PMs are filted based on fetched members only. That is those that are listed in <span class="showHideToggle" data-target="memberListSection" data-closemainsections="true">Member List</span>.'
@@ -359,12 +359,12 @@ sectionTables['displayInboxSection'] = {
 sectionTables['memberList'] = {
 	type: 'member',
 	dataSet: [], 
-	dataSetHeader: ['User Id', 'User', 'Profile', 'Class', 'Level', 'Tier', 'Contributor', 'Contributions',  'Admin',  'Born', 'Next Birthday', 'Can PM?', 'Avatar'],
-	dataTable: ['id', 'profile.nameNotPretty', 'blurbPretty', 'stats.classPretty', 'stats.lvl', 'contribPretty.level', 'contribPretty.text',  'contribPretty.contributions', 'contribPretty.admin',  'creation.shortDate',  'creation.nextBirthday.shortDate', 'inbox.canPM','profile.avatar'],
-	babyBear: {show: [1,3,4,12], orderBy: [[1, 'asc']]},
-	mamaBear: {show: [0,1,2,3,4,5,6,10,12], orderBy: [[1, 'asc']]},
+	dataSetHeader: ['User Id', 'Username', 'Display Name', 'Profile', 'Class', 'Level', 'Tier', 'Contributor', 'Contributions',  'Admin',  'Born', 'Next Birthday', 'Can PM?', 'Avatar'],
+	dataTable: ['id', 'auth.local.username', 'profile.nameNotPretty', 'blurbPretty', 'stats.classPretty', 'stats.lvl', 'contribPretty.level', 'contribPretty.text',  'contribPretty.contributions', 'contribPretty.admin',  'creation.shortDate',  'creation.nextBirthday.shortDate', 'inbox.canPM','profile.avatar'],
+	babyBear: {show: [1,2,4,5,13], orderBy: [[1, 'asc']]},
+	mamaBear: {show: [0,1,2,3,4,5,6,7,11,13], orderBy: [[1, 'asc']]},
 	papaBear: {show: ['all'], orderBy: [[1, 'asc']]},
-	extraColumnDefs: [{'className': 'dt-center', 'targets': [ 9 ]}],
+	extraColumnDefs: [{'className': 'dt-center', 'targets': [ 9, 12 ]}, {'className': 'dt-right', 'targets': [5,6,9]}],
 	subTitle: function (){
 		var html = ''
 		html += sectionHeadingLeadership()
@@ -379,12 +379,12 @@ sectionTables['memberList'] = {
 sectionTables['memberActivity'] = {
 	type: 'member',
 	dataSet: [], 
-	dataSetHeader: ['User Id', 'User', 'Class', 'Level', 'Tier', 'Born', 'Last Active', 'Last Cron', 'Last Drop', 'Last Chat', 'Total Chat Lines', 'Last Chat Text', 'In Inn'], 
-	dataTable: ['id', 'profile.nameNotPretty', 'stats.classPretty', 'stats.lvl',  'contribPretty.level', 'creation.shortDate', 'lastActive.shortDate', 'lastLoggedIn.shortDate', 'lastDropItem.shortDate', 'lastChat.occured.shortDate', 'lastChat.countTotal', 'lastChat.textPretty', 'preferences.sleep'],
-	babyBear: {show: [1,6,12], orderBy: [[1, 'asc']]},
-	mamaBear: {show: [0,1,2,3,6,7,8,9,12], orderBy: [[1, 'asc']]},
+	dataSetHeader: ['User Id', 'Username', 'Display Name', 'Class', 'Level', 'Tier', 'Born', 'Last Active', 'Last Cron', 'Last Drop', 'Last Chat', 'Total Chat Lines', 'Last Chat Text', 'In Inn'], 
+	dataTable: ['id', 'auth.local.username', 'profile.nameNotPretty', 'stats.classPretty', 'stats.lvl',  'contribPretty.level', 'creation.shortDate', 'lastActive.shortDate', 'lastLoggedIn.shortDate', 'lastDropItem.shortDate', 'lastChat.occured.shortDate', 'lastChat.countTotal', 'lastChat.textPretty', 'preferences.sleep'],
+	babyBear: {show: [1,2,7,13], orderBy: [[1, 'asc']]},
+	mamaBear: {show: [0,1,2,3,4,7,8,9,10,11], orderBy: [[1, 'asc']]},
 	papaBear: {show: ['all'], orderBy: [[1, 'asc']]},
-	extraColumnDefs: [{'className': 'dt-center', 'targets': [ 12 ]}],
+	extraColumnDefs: [{'className': 'dt-center', 'targets': [ 13 ]}, {'className': 'dt-right', 'targets': [4,5,11]}],
 	subTitle: function (){
 		var html = sectionHeadingLastActive()
 	html += sectionHeadingLeadership()
@@ -399,14 +399,14 @@ sectionTables['memberActivity'] = {
 sectionTables['memberRelativeActivity'] = {
 	type: 'member',
 	dataSet: [], 
-	dataSetHeader: ['User Id', 'User', 'Class', 'Level', 'Tier', 'Born', 'Last Active', 'Last Cron', 'Last Drop', 'Last Chat', 'Total Chat Lines', 'Last Chat Text', 'In Inn'], 
-	dataTable: ['id', 'profile.nameNotPretty', 'stats.classPretty', 'stats.lvl',  'contribPretty.level', 'creation.relativeTime', 'lastActive.relativeTime', 'lastLoggedIn.relativeTime', 'lastDropItem.relativeTime', 'lastChat.occured.relativeTime', 'lastChat.countTotal', 'lastChat.textPretty', 'preferences.sleep'],
-	babyBear: {show: [1,6,12], orderBy: [[1, 'asc']]},
-	mamaBear: {show: [0,1,2,3,6,7,8,9,12], orderBy: [[1, 'asc']]},
+	dataSetHeader: ['User Id', 'Username', 'Display Name', 'Class', 'Level', 'Tier', 'Born', 'Last Active', 'Last Cron', 'Last Drop', 'Last Chat', 'Total Chat Lines', 'Last Chat Text', 'In Inn'], 
+	dataTable: ['id', 'auth.local.username', 'profile.nameNotPretty', 'stats.classPretty', 'stats.lvl',  'contribPretty.level', 'creation.relativeTime', 'lastActive.relativeTime', 'lastLoggedIn.relativeTime', 'lastDropItem.relativeTime', 'lastChat.occured.relativeTime', 'lastChat.countTotal', 'lastChat.textPretty', 'preferences.sleep'],
+	babyBear: {show: [1,2,7,13], orderBy: [[1, 'asc']]},
+	mamaBear: {show: [0,1,2,3,4,7,8,9,10,11], orderBy: [[1, 'asc']]},
 	papaBear: {show: ['all'], orderBy: [[1, 'asc']]},
 	extraColumnDefs: [
-		{'className': 'dt-center', 'targets': [ 12 ]},
-		{'orderable': false, 'targets': [6,7,8,9]}
+		{'className': 'dt-center', 'targets': [ 13 ]},
+		{'orderable': false, 'targets': [7,8,9,10]}
 	],
 	subTitle: function (){
 		var html = sectionHeadingLastActive()
@@ -422,12 +422,12 @@ sectionTables['memberRelativeActivity'] = {
 sectionTables['memberStats'] = {
 	type: 'member',
 	dataSet: [], 
-	dataSetHeader: ['User Id', 'User', 'Class', 'Level', 'Tier', 'Born', 'Last Active', 'Last Cron', 'Health', 'Current Mana', 'Mana Max', 'Current Mana %', 'Gold', 'XP', 'XP to Next Level' ], 
-	dataTable: ['id', 'profile.nameNotPretty', 'stats.classPretty', 'stats.lvl',  'contribPretty.level', 'creation.shortDate', 'lastActive.shortDate', 'lastLoggedIn.shortDate', 'stats.hpPretty', 'stats.mpPretty', 'stats.maxMPPretty', 'stats.percentageMP', 'stats.gpPretty', 'stats.expPretty', 'stats.toNextLevelPretty'],
-	babyBear: {show: [1,8,9,10], orderBy: [[1, 'asc']]},
-	mamaBear: {show: [0,1,2,3,6,7,8,9,10,11], orderBy: [[1, 'asc']]},
+	dataSetHeader: ['User Id', 'Username', 'Display Name', 'Class', 'Level', 'Tier', 'Born', 'Last Active', 'Last Cron', 'Health', 'Current Mana', 'Mana Max', 'Current Mana %', 'Gold', 'XP', 'XP to Next Level' ], 
+	dataTable: ['id', 'auth.local.username', 'profile.nameNotPretty', 'stats.classPretty', 'stats.lvl',  'contribPretty.level', 'creation.shortDate', 'lastActive.shortDate', 'lastLoggedIn.shortDate', 'stats.hpPretty', 'stats.mpPretty', 'stats.maxMPPretty', 'stats.percentageMP', 'stats.gpPretty', 'stats.expPretty', 'stats.toNextLevelPretty'],
+	babyBear: {show: [1,2,9,10,11], orderBy: [[1, 'asc']]},
+	mamaBear: {show: [0,1,2,3,4,7,8,9,10,11,12], orderBy: [[1, 'asc']]},
 	papaBear: {show: ['all'], orderBy: [[1, 'asc']]},
-	extraColumnDefs: [{'className': 'dt-right', 'targets': [8,9,10,11,12,13,14]}],
+	extraColumnDefs: [{'className': 'dt-right', 'targets': [9,10,11,12,13,14,15]}],
 	subTitle: function (){
 		var html = ''
 		html += sectionHeadingLeadership()
@@ -443,12 +443,12 @@ sectionTables['memberStats'] = {
 sectionTables['memberAttributes'] = {
 	type: 'member',
 	dataSet: [], 
-	dataSetHeader: ['User Id', 'User', 'Class', 'Level', 'Last Cron', 'STR lvl', 'STR alloc', 'STR buff', 'STR gear', 'STR gear+', 'STR total', 'INT lvl', 'INT alloc', 'INT buff', 'INT gear', 'INT gear+', 'INT total',  'CON lvl', 'CON alloc', 'CON buff', 'CON gear', 'CON gear+', 'CON total', 'PER lvl', 'PER alloc', 'PER buff', 'PER gear', 'PER gear+', 'PER total'], 
-	dataTable: ['id', 'profile.nameNotPretty', 'stats.classPretty', 'stats.lvl', 'lastLoggedIn.shortDate', 'attributeTotals.str.lvl', 'attributeTotals.str.allocated', 'attributeTotals.str.buff', 'attributeTotals.str.gear', 'attributeTotals.str.gearBuff', 'attributeTotals.str.total', 'attributeTotals.int.lvl', 'attributeTotals.int.allocated', 'attributeTotals.int.buff', 'attributeTotals.int.gear', 'attributeTotals.int.gearBuff', 'attributeTotals.int.total', 'attributeTotals.con.lvl', 'attributeTotals.con.allocated', 'attributeTotals.con.buff', 'attributeTotals.con.gear', 'attributeTotals.con.gearBuff', 'attributeTotals.con.total', 'attributeTotals.per.lvl', 'attributeTotals.per.allocated', 'attributeTotals.per.buff', 'attributeTotals.per.gear', 'attributeTotals.per.gearBuff', 'attributeTotals.per.total'],
-	babyBear: {show: [1,2,10,16,22,28], orderBy: [[1, 'asc']]},
-	mamaBear: {show: [1,2,3,4,10,16,22,28], orderBy: [[1, 'asc']]},
+	dataSetHeader: ['User Id', 'Username', 'Display Name', 'Class', 'Level', 'Last Cron', 'STR lvl', 'STR alloc', 'STR buff', 'STR gear', 'STR gear+', 'STR total', 'INT lvl', 'INT alloc', 'INT buff', 'INT gear', 'INT gear+', 'INT total',  'CON lvl', 'CON alloc', 'CON buff', 'CON gear', 'CON gear+', 'CON total', 'PER lvl', 'PER alloc', 'PER buff', 'PER gear', 'PER gear+', 'PER total'], 
+	dataTable: ['id', 'auth.local.username', 'profile.nameNotPretty', 'stats.classPretty', 'stats.lvl', 'lastLoggedIn.shortDate', 'attributeTotals.str.lvl', 'attributeTotals.str.allocated', 'attributeTotals.str.buff', 'attributeTotals.str.gear', 'attributeTotals.str.gearBuff', 'attributeTotals.str.total', 'attributeTotals.int.lvl', 'attributeTotals.int.allocated', 'attributeTotals.int.buff', 'attributeTotals.int.gear', 'attributeTotals.int.gearBuff', 'attributeTotals.int.total', 'attributeTotals.con.lvl', 'attributeTotals.con.allocated', 'attributeTotals.con.buff', 'attributeTotals.con.gear', 'attributeTotals.con.gearBuff', 'attributeTotals.con.total', 'attributeTotals.per.lvl', 'attributeTotals.per.allocated', 'attributeTotals.per.buff', 'attributeTotals.per.gear', 'attributeTotals.per.gearBuff', 'attributeTotals.per.total'],
+	babyBear: {show: [1,2,3,11,17,23,29], orderBy: [[1, 'asc']]},
+	mamaBear: {show: [1,2,3,4,5,11,17,23,29], orderBy: [[1, 'asc']]},
 	papaBear: {show: ['all'], orderBy: [[1, 'asc']]},
-	extraColumnDefs: [{'className': 'dt-right', 'targets': [5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28]}],
+	extraColumnDefs: [{'className': 'dt-right', 'targets': [6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29]}],
 	subTitle: function (){
 		var html = ''
 		html += sectionHeadingLeadership()
@@ -465,12 +465,12 @@ sectionTables['memberAttributes'] = {
 sectionTables['memberBuff'] = {
 	type: 'member',
 	dataSet: [], 
-	dataSetHeader: ['User Id', 'User', 'Class', 'Level', 'Last Active', 'Last Cron', 'Last Buff', 'Total Buffs', 'Total Buff < 12 hr', 'Total Buff < 24 hr', 'Last Transform', 'Total Transform', 'Total Transform < 12 hr', 'Total Transform < 24 hr'], 
-	dataTable: ['id', 'profile.nameNotPretty', 'stats.classPretty', 'stats.lvl', 'lastActive.shortDate', 'lastLoggedIn.shortDate', 'lastBuff.occured.shortDate', 'lastBuff.countTotal', 'lastBuff.countLess12Hr', 'lastBuff.countLess24Hr', 'lastTransformation.occured.shortDate', 'lastTransformation.countTotal', 'lastTransformation.countLess12Hr', 'lastTransformation.countLess24Hr'],
-	babyBear: {show: [1,2,3,7,11], orderBy: [[1, 'asc']]},
-	mamaBear: {show: [1,2,3,4,6,7,9,10,11,13], orderBy: [[1, 'asc']]},
+	dataSetHeader: ['User Id', 'Username', 'Display Name', 'Class', 'Level', 'Last Active', 'Last Cron', 'Last Buff', 'Total Buffs', 'Total Buff < 12 hr', 'Total Buff < 24 hr', 'Last Transform', 'Total Transform', 'Total Transform < 12 hr', 'Total Transform < 24 hr'], 
+	dataTable: ['id', 'auth.local.username', 'profile.nameNotPretty', 'stats.classPretty', 'stats.lvl', 'lastActive.shortDate', 'lastLoggedIn.shortDate', 'lastBuff.occured.shortDate', 'lastBuff.countTotal', 'lastBuff.countLess12Hr', 'lastBuff.countLess24Hr', 'lastTransformation.occured.shortDate', 'lastTransformation.countTotal', 'lastTransformation.countLess12Hr', 'lastTransformation.countLess24Hr'],
+	babyBear: {show: [1,2,3,4,8,12], orderBy: [[1, 'asc']]},
+	mamaBear: {show: [1,2,3,4,5,7,7,10,11,12,14], orderBy: [[1, 'asc']]},
 	papaBear: {show: ['all'], orderBy: [[1, 'asc']]},
-	extraColumnDefs: [{'className': 'dt-right', 'targets': [7,8,9,11,12,13]}],
+	extraColumnDefs: [{'className': 'dt-right', 'targets': [8,9,10,12,13,14]}],
 	subTitle: function (){
 		var html = ''
 		html = '<p>Buff Totals are only counted for chat period showing.</br><span class="highlight">Chat period: </span>' + group.chatTotals.firstChat.dateAndTime + ' to ' + group.chatTotals.lastChat.dateAndTime + ' (' + group.chatTotals.chatDayPeriod + ' days)</p>'
@@ -488,12 +488,12 @@ sectionTables['memberBuff'] = {
 sectionTables['memberQuest'] = {
 	type: 'member',
 	dataSet: [], 
-	dataSetHeader: ['User Id', 'User', 'Class', 'Level', 'Tier', 'Last Active', 'Last Cron', 'Owner', 'In Inn', 'In Quest' ], 
-	dataTable: ['id', 'profile.nameNotPretty', 'stats.classPretty', 'stats.lvl',  'contribPretty.level', 'lastActive.shortDate', 'lastLoggedIn.shortDate', 'quest.leader', 'preferences.sleep', 'quest.inQuest'],
-	babyBear: {show: [1,8,9], orderBy: [[1, 'asc']]},
-	mamaBear: {show: [0,1,2,3,5,6,8,9], orderBy: [[1, 'asc']]},
+	dataSetHeader: ['User Id', 'Username', 'Display Name', 'Class', 'Level', 'Tier', 'Last Active', 'Last Cron', 'Owner', 'In Inn', 'In Quest' ], 
+	dataTable: ['id', 'auth.local.username', 'profile.nameNotPretty', 'stats.classPretty', 'stats.lvl',  'contribPretty.level', 'lastActive.shortDate', 'lastLoggedIn.shortDate', 'quest.leader', 'preferences.sleep', 'quest.inQuest'],
+	babyBear: {show: [1,2,7,9,10], orderBy: [[1, 'asc']]},
+	mamaBear: {show: [0,1,2,3,4,6,7,9,10], orderBy: [[1, 'asc']]},
 	papaBear: {show: ['all'], orderBy: [[1, 'asc']]},
-	extraColumnDefs: [],
+	extraColumnDefs: [{'className': 'dt-center', 'targets': [8,9,10]}, {'className': 'dt-right', 'targets': [4,5,6,7]}],
 	subTitle: function (){
 		var html = ''
 		if (group.quest.key == undefined) {
@@ -580,12 +580,12 @@ sectionTables['memberQuest'] = {
 sectionTables['memberDamage'] = {
 	type: 'member',
 	dataSet: [], 
-	dataSetHeader: ['User Id', 'User', 'Class', 'Level', 'Last Active', 'Last Cron', 'In Quest', 'Previous Quest Collection', 'Current Quest Collection', 'Total Collection',  'Previous Quest Damage', 'Current Quest Damage', 'Total Damage', 'Previous Boss Damage', 'Current Boss Damage', 'Total Boss Damage', 'Pending Damage', 'Req To Finish'], 
-	dataTable: ['id', 'profile.nameNotPretty', 'stats.classPretty', 'stats.lvl', 'lastActive.shortDate', 'lastLoggedIn.shortDate', 'quest.inQuest', 'quest.collectionTotalPrevious', 'quest.collectionTotalCurrent', 'quest.collectionTotal', 'quest.damageTotalPrevious', 'quest.damageTotalCurrent', 'quest.damageTotal', 'quest.damageBossPrevious', 'quest.damageBossCurrent', 'quest.damageBoss', 'quest.pending', 'quest.reqFinish'],
-	babyBear: {show: [1,2,3,5,6,8,11,14,16,17], orderBy: [[5, 'asc']]},
-	mamaBear: {show: [1,2,3,5,6,8,9,11,12,14,15,16,17], orderBy: [[5, 'asc']]},
-	papaBear: {show: ['all'], orderBy: [[5, 'asc']]},
-	extraColumnDefs: [{'className': 'dt-right', 'targets': [7,8,9,10,11,12,13,14,15,16,17]}],
+	dataSetHeader: ['User Id', 'Username', 'Display Name', 'Class', 'Level', 'Last Active', 'Last Cron', 'In Quest', 'Previous Quest Collection', 'Current Quest Collection', 'Total Collection',  'Previous Quest Damage', 'Current Quest Damage', 'Total Damage', 'Previous Boss Damage', 'Current Boss Damage', 'Total Boss Damage', 'Pending Damage', 'Req To Finish'], 
+	dataTable: ['id', 'auth.local.username', 'profile.nameNotPretty', 'stats.classPretty', 'stats.lvl', 'lastActive.shortDate', 'lastLoggedIn.shortDate', 'quest.inQuest', 'quest.collectionTotalPrevious', 'quest.collectionTotalCurrent', 'quest.collectionTotal', 'quest.damageTotalPrevious', 'quest.damageTotalCurrent', 'quest.damageTotal', 'quest.damageBossPrevious', 'quest.damageBossCurrent', 'quest.damageBoss', 'quest.pending', 'quest.reqFinish'],
+	babyBear: {show: [1,2,3,4,6,7,9,12,13,17,18], orderBy: [[6, 'asc']]},
+	mamaBear: {show: [1,2,3,4,6,7,9,10,12,13,15,16,17,18], orderBy: [[6, 'asc']]},
+	papaBear: {show: ['all'], orderBy: [[6, 'asc']]},
+	extraColumnDefs: [{'className': 'dt-right', 'targets': [8,9,10,11,12,13,14,15,16,17,18]}],
 	subTitle: function (){
 		var html = '' 
 		html += '<p>Quest Progress Totals are only counted for chat period showing. Quest progress stats are based off the players name. If the player has changed their name recently their stats may not show correctly.</p>'
@@ -2933,7 +2933,7 @@ function parseData() {
 		var displayName = group.nameNotPretty;
 		var gemAmount = group.balance * 4
 		var displayGemAmount = gemAmount + ' <img src="' + imageURL + imageGem + '" alt="' + 'Gem' + '">'
-		var displayLeaderName = group.leader.profile.nameNotPretty;
+		var displayLeaderName = group.leader.auth.local.username + ' (Display Name: ' + group.leader.profile.nameNotPretty + '  UserId: ' +  group.leader.id + ' Last Active: ' + members[group.leader.id].lastActive.relativeTime + ')';
 		var privacyGroup = group.privacy.charAt(0).toUpperCase() + group.privacy.slice(1);
 	
 		if (groupId == 'party') {
@@ -3917,10 +3917,11 @@ function parseData() {
 					//Quest information
 					if (group.quest.leader == obj.id) {
 						members[obj.id].quest.leader=true
-						group.quest.leaderDetails = {}
+						group.quest.leaderProfile = {}
 						group.quest.leaderProfile = members[obj.id].profile 
 						group.quest.leaderProfile.lastLoggedIn = members[obj.id].lastLoggedIn
 						group.quest.leaderProfile.lastActive = members[obj.id].lastActive
+						group.quest.leaderProfile.username = members[obj.id].auth.local.username
 					} else {
 						members[obj.id].quest.leader = false
 					}
@@ -4183,10 +4184,12 @@ function parseData() {
 					obj.name = members[obj.id].profile.name
 					obj.namePretty = members[obj.id].profile.namePretty
 					obj.nameNotPretty = members[obj.id].profile.nameNotPretty
+					obj.username = members[obj.id].auth.local.username
 				} else {
 					obj.name = notAvailableMember
 					obj.namePretty = notAvailableMember
 					obj.nameNotPretty = notAvailableMember
+					obj.username = notAvailableMember
 				}
 				
 				$.each(sectionsToDisplay, function(index2, obj2){
@@ -4532,7 +4535,7 @@ function parseData() {
 			subSectionTitle = 'Other Details'
 			htmlTOCDetail += '<li><a href="#' + 'toc_' + subSectionId + '_' + sectionId  + '" target="_self">' + subSectionTitle + '</a></li>'
 			html += '<h3 id="' + 'toc_' + subSectionId + '_' + sectionId +'">' + subSectionTitle + '</h3>'		
-			html += '<p>Leader: ' + group.leader.profile.nameNotPretty + ' (Last Active: ' + members[group.leader.id].lastActive.relativeTime + ') </p>'
+			html += '<p>Leader: ' + group.leader.auth.local.username + ' (Display Name: ' + group.leader.profile.nameNotPretty + '  UserId: ' +  group.leader.id + ' Last Active: ' + members[group.leader.id].lastActive.relativeTime + ') </p>'
 			html += '<p>Leader can only create challenges: ' + toTitleCase(String(group.leaderOnly.challenges))
 			if ((userId == group.leader.id) || (userIsAdmin)) html += '&nbsp;&nbsp;&nbsp;&nbsp;<input class="div-perMemberStats_toggleLeaderOnlyChallenge" id="perMemberStats_toggleLeaderOnlyChallenge" type="submit" value="Toggle" />' 
 			html += '</p>'
@@ -4687,7 +4690,7 @@ function parseData() {
 						html += 'See <span class="showHideToggle" data-target="memberDamageSection" data-closemainsections="true">Member Quest Progress</span> for more details. ' 
 					}
 					
-					html += '<p><span class="highlight">Quest Owner: </span>' + group.quest.leaderProfile.nameNotPretty + ' (Last Active: ' + group.quest.leaderProfile.lastActive.relativeTime + ') </p>'
+					html += '<p><span class="highlight">Quest Owner: </span>' + group.quest.leaderProfile.username + ' (Display Name: ' + group.quest.leaderProfile.nameNotPretty + '  UserId: ' +  group.quest.leader + ' Last Active: ' + group.quest.leaderProfile.lastActive.relativeTime + ') </p>'
 				}
 				html += htmlReturnTOC
 			}
@@ -5173,7 +5176,7 @@ ul#tableOfContents > li {
 </head>
 <body><div id="innerBody">	
 <h1><a href="https://habitica.com/">Habitica</a> Party & Guild Data Tool
-    <span class="showHideToggle" data-target="versionChanges" data-closemainsections="true">(v3.3)</span></h1><!-- VERSION TOGGLE -->
+    <span class="showHideToggle" data-target="versionChanges" data-closemainsections="true">(v3.4)</span></h1><!-- VERSION TOGGLE -->
 <div id="headerExtras"></div>
 <hr class="clear" />
 <div id="headerGroupExtras"></div>
@@ -5209,16 +5212,19 @@ ul#tableOfContents > li {
 <div id="versionChanges" class="hide"><!-- VERSION SECTION -->
     <h2>Version History</h2>
     <dl>
-		<dt>3.4 - ????<span class="date">2018-12-09</span></dt>
+		<dt>3.4 - More names to use<span class="date">2018-12-11</span></dt>
         <dd><ul>
 	            <li>Features:
                 <ul>
-					<li>TEX??????</li>
+					<li>Adding usernames for all tables with UserId</li>
+					<li>Expanding text for Leader and Quest owner in Overview</li>
+					<li>Adding more detail about the Leader in title</li>
 				</ul> 
             </li>	
 			<li>Documentation:
                 <ul>
 					<li>Clean-up and added text to the section descriptions, based on the latest changes from this and last two changes.</li>
+					<li>Clean-up of column justification for dates etc.</li>
                 </ul>
             </li>				
 	        <li>Bug Fixes:
