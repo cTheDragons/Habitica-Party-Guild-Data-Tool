@@ -4576,7 +4576,7 @@ function parseData() {
 			subSectionTitle = 'Other Details'
 			htmlTOCDetail += '<li><a href="#' + 'toc_' + subSectionId + '_' + sectionId  + '" target="_self">' + subSectionTitle + '</a></li>'
 			html += '<h3 id="' + 'toc_' + subSectionId + '_' + sectionId +'">' + subSectionTitle + '</h3>'		
-			html += '<p>Leader: ' + group.leader.profile.username + ' (Display Name: ' + group.leader.profile.nameNotPretty + '  UserId: ' +  group.leader.id + ' Last Active: ' + members[group.leader.id].lastActive.relativeTime + ') </p>'
+			html += '<p>Leader: ' + group.leader.profile.username + ' (UserId: ' +  group.leader.id + 'Display Name: ' + group.leader.profile.nameNotPretty + '   Last Active: ' + members[group.leader.id].lastActive.relativeTime + ') </p>'
 			html += '<p>Leader can only create challenges: ' + toTitleCase(String(group.leaderOnly.challenges))
 			if ((userId == group.leader.id) || (userIsAdmin)) html += '&nbsp;&nbsp;&nbsp;&nbsp;<input class="div-perMemberStats_toggleLeaderOnlyChallenge" id="perMemberStats_toggleLeaderOnlyChallenge" type="submit" value="Toggle" />' 
 			html += '</p>'
