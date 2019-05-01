@@ -1674,7 +1674,8 @@ function postChangeLeader(rowData, uuidIndex, nameIndex) {
 	if (debug) console.log('debug postChangeLeader start');
 	var urlToPost = ''	
 	var newData = {}
-
+	var actionItem = ''
+	var actionIndex = 0
 	
 	
 	if (rowData.length == 0){
@@ -1696,13 +1697,16 @@ function postChangeLeader(rowData, uuidIndex, nameIndex) {
 		return;
 	} else {
 		if (debugShowObject) console.log( rowData );
-		if (confirm('Are you sure you wish to change the leader to ' + rowData[0][nameIndex] + '?\n\nThere is no undo!')){
+		
+		actionIndex = rowData[0].length
+		actionItem = rowData[0][nameIndex]
+		if (actionItem.substring(0,3) == '<a '){
+			actionItem = actionItem.substring(actionItem.indexOf('>')+1,actionItem.length - ('</a>').length)
+		}
+		rowData[0].push(actionItem)
+		
+		if (confirm('Are you sure you wish to change the leader to ' + rowData[0][actionIndex] + '?\n\nThere is no undo!')){
 			obj = rowData[0]
-			//newData['_id'] = groupId
-			//newData['id'] = groupId
-			//newData['leader'] = {}
-			//newData.leader['id'] = obj[uuidIndex]
-			//newData.leader['_id'] = obj[uuidIndex]
 			
 			postNextChangeLeader()
 		} else {
@@ -1715,7 +1719,7 @@ function postChangeLeader(rowData, uuidIndex, nameIndex) {
 	function postNextChangeLeader(){
 		obj = rowData[0]
 		var newData = {leader: obj[uuidIndex]}
-		urlToPost = serverUrl + serverPathGroup + '/' + groupId //+ '?leader.id=' + obj[uuidIndex] 
+		urlToPost = serverUrl + serverPathGroup + '/' + groupId 
 		if (debugShowObject) console.log(urlToPost);
 		$.ajax({
 			url: urlToPost,
@@ -1739,7 +1743,7 @@ function postChangeLeader(rowData, uuidIndex, nameIndex) {
 		if (debug) console.log('debug postChangeLeaderFailure start');
 		if (debugShowObject) console.log(data);
 		var errData = data;
-		alert('ERROR WITH  ' +  obj[nameIndex] + '\n\n' + errData.responseJSON.error + '\n' + errData.responseJSON.message  + '\n\nPlease refetch your data and try again.');	
+		alert('ERROR WITH  ' +  obj[actionIndex] + '\n\n' + errData.responseJSON.error + '\n' + errData.responseJSON.message  + '\n\nPlease refetch your data and try again.');	
 				
 		fetchData()
 	}
@@ -1764,6 +1768,8 @@ function postRemoveUser(rowData, uuidIndex, nameIndex) {
 	if (debug) console.log('debug postRemoveUser start');
 	var urlToPost = ''	
 	var removeUserList = ''
+	var actionItem = ''
+	var actionIndex = 0
 	var index = 0
 	var removeMessage = ''
 	var pmMessage = false
@@ -1808,13 +1814,23 @@ function postRemoveUser(rowData, uuidIndex, nameIndex) {
 			optionalMessage += 'guild!'
 		}
 		
-		removeMessage = prompt('Please enter your optional email message to be sent to the users being removed', optionalMessage)
+		removeMessage = prompt('Please enter your optional email message to be sent to the users being removed.\n\n' + infoMessage , optionalMessage)
+
+		removeMessage = removeMessage.replace(/{nl}/g,'\n');
 
 		if (removeMessage.trim() != '') if (confirm('Do you wish to send the message as a private message?')) pmMessage = true
 
+
+		actionIndex = loopList[0].length
+		
 		for(var i = 0; i < loopList.length; i++)
 		{
-			removeUserList += '\n\u2022  ' + loopList[i][nameIndex]
+			actionItem = loopList[i][nameIndex]
+			if (actionItem.substring(0,3) == '<a '){
+				actionItem = actionItem.substring(actionItem.indexOf('>')+1,actionItem.length - ('</a>').length)
+			}
+			removeUserList += '\n\u2022  ' + actionItem
+			loopList[i].push(actionItem)
 		}
 		
 		if (removeMessage != null){
@@ -1837,7 +1853,7 @@ function postRemoveUser(rowData, uuidIndex, nameIndex) {
 		
 		obj = loopList[index]
 		urlToPost = serverUrl + serverPathGroup + '/' + groupId + serverPathRemoveUser + '/' + obj[uuidIndex] + '?message=' + removeMessage
-		$('#posting #statusPost').text('Removing ' + obj[nameIndex] );
+		$('#posting #statusPost').text('Removing ' + obj[actionIndex] );
 		if (debugShowObject) console.log(urlToPost);
 		$.ajax({
 			url: urlToPost,
@@ -1859,7 +1875,7 @@ function postRemoveUser(rowData, uuidIndex, nameIndex) {
 		if (debug) console.log('debug postRemoveUserFailure start');
 		if (debugShowObject) console.log(data);
 		var errData = data;
-		alert('ERROR WITH  ' +  obj[nameIndex] + '\n\n' + errData.responseJSON.error + '\n' + errData.responseJSON.message  + '\n\nPlease refetch your data and try again.');	
+		alert('ERROR WITH  ' +  obj[actionIndex] + '\n\n' + errData.responseJSON.error + '\n' + errData.responseJSON.message  + '\n\nPlease refetch your data and try again.');	
 		index++
 		
 		postRemoveUserCheckCompleted()
@@ -1868,9 +1884,9 @@ function postRemoveUser(rowData, uuidIndex, nameIndex) {
 
 	function postRemoveUserSuccess(data){
 		if (debug) console.log('debug postRemoveUserSucess start');
-		$('#posting #statusPost').text('Successfully Removed ' + obj[nameIndex] );
+		$('#posting #statusPost').text('Successfully Removed ' + obj[actionIndex] );
 		if (debugShowObject) console.log(data);
-		removeUserList += '\n\u2022  ' + obj[nameIndex]  
+		removeUserList += '\n\u2022  ' + obj[actionIndex]  
 		
 		if (pmMessage) {
 			postRemoveUserSendPM()
@@ -1890,7 +1906,7 @@ function postRemoveUser(rowData, uuidIndex, nameIndex) {
 		privateMessage = privateMessage + ' "' + group.name + '".` ' + removeMessage
 		var newData = {message: privateMessage, toUserId: obj[uuidIndex]}
 		urlToPost = serverUrl + serverPathMessageUser 
-		$('#posting #statusPost').text('Messaging ' + obj[nameIndex] );
+		$('#posting #statusPost').text('Messaging ' + obj[actionIndex] );
 		if (debugShowObject) console.log(urlToPost);
 		if (debugShowObject) console.log(newData);
 		$.ajax({
@@ -1913,7 +1929,7 @@ function postRemoveUser(rowData, uuidIndex, nameIndex) {
 		if (debug) console.log('debug postRemoveUserSendPMFailure start');
 		if (debugShowObject) console.log(data);
 		var errData = data;
-		alert('ERROR WITH  ' +  obj[nameIndex] + '\n\n' + errData.responseJSON.error + '\n' + errData.responseJSON.message  + '\n\nPlease refetch your data and try again.');	
+		alert('ERROR WITH  ' +  obj[actionIndex] + '\n\n' + errData.responseJSON.error + '\n' + errData.responseJSON.message  + '\n\nPlease refetch your data and try again.');	
 		index++
 		
 		postRemoveUserCheckCompleted()
@@ -1922,7 +1938,7 @@ function postRemoveUser(rowData, uuidIndex, nameIndex) {
 
 	function postRemoveUserSendPMSuccess(data){
 		if (debug) console.log('debug postRemoveUserSendPMSuccess start');
-		$('#posting #statusPost').text('Successfully Messaged ' + obj[nameIndex] );
+		$('#posting #statusPost').text('Successfully Messaged ' + obj[actionIndex] );
 		if (debugShowObject) console.log(data);
 		index++
 		
@@ -1952,6 +1968,8 @@ function postMessageUser(rowData, uuidIndex, nameIndex) {
 	if (debugShowObject) console.log(rowData)
 	var urlToPost = ''	
 	var actionNotificationList = ''
+	var actionItem = ''
+	var actionIndex = 0
 	var index = 0
 	var privateMessage = ''
 	var loopList = []
@@ -1995,9 +2013,16 @@ function postMessageUser(rowData, uuidIndex, nameIndex) {
 		}
 		
 		
+		actionIndex = loopList[0].length
+		
 		for(var i = 0; i < loopList.length; i++)
 		{
-			actionNotificationList += '\n\u2022  ' + loopList[i][nameIndex]
+			actionItem = loopList[i][nameIndex]
+			if (actionItem.substring(0,3) == '<a '){
+				actionItem = actionItem.substring(actionItem.indexOf('>')+1,actionItem.length - ('</a>').length)
+			}
+			actionNotificationList += '\n\u2022  ' + actionItem
+			loopList[i].push(actionItem)
 		}
 		
 		if (privateMessage != null){
@@ -2022,7 +2047,7 @@ function postMessageUser(rowData, uuidIndex, nameIndex) {
 		obj = loopList[index]
 		var newData = {message: privateMessage, toUserId: obj[uuidIndex]}
 		urlToPost = serverUrl + serverPathMessageUser //+ '/' + obj[uuidIndex] + '?message=' + privateMessage
-		$('#posting #statusPost').text('Messaging ' + obj[nameIndex] );
+		$('#posting #statusPost').text('Messaging ' + obj[actionIndex] );
 		if (debugShowObject) console.log(urlToPost);
 		if (debugShowObject) console.log(newData);
 		$.ajax({
@@ -2047,7 +2072,7 @@ function postMessageUser(rowData, uuidIndex, nameIndex) {
 		if (debug) console.log('debug postMessageUserFailure start');
 		if (debugShowObject) console.log(data);
 		var errData = data;
-		alert('ERROR WITH  ' +  obj[nameIndex] + '\n\n' + errData.responseJSON.error + '\n' + errData.responseJSON.message  + '\n\nPlease refetch your data and try again.');	
+		alert('ERROR WITH  ' +  obj[actionIndex] + '\n\n' + errData.responseJSON.error + '\n' + errData.responseJSON.message  + '\n\nPlease refetch your data and try again.');	
 		index++
 		
 		postMessageUserCheckCompleted()
@@ -2056,9 +2081,9 @@ function postMessageUser(rowData, uuidIndex, nameIndex) {
 
 	function postMessageUserSuccess(data){
 		if (debug) console.log('debug postMessageUserSucess start');
-		$('#posting #statusPost').text('Successfully Messaged ' + obj[nameIndex] );
+		$('#posting #statusPost').text('Successfully Messaged ' + obj[actionIndex] );
 		if (debugShowObject) console.log(data);
-		actionNotificationList += '\n\u2022  ' + obj[nameIndex]  
+		actionNotificationList += '\n\u2022  ' + obj[actionIndex]  
 		index++
 		
 		postMessageUserCheckCompleted()
@@ -2085,6 +2110,8 @@ function postGiveCard(cardType, rowData, uuidIndex, nameIndex) {
 	if (debug) console.log('debug postGiveCard start');
 	var urlToPost = ''	
 	var cardUserList = ''
+	var actionItem = ''
+	var actionIndex = 0
 	var index = 0
 	
 	
@@ -2094,6 +2121,7 @@ function postGiveCard(cardType, rowData, uuidIndex, nameIndex) {
 		return;
 	
 	} else {
+		actionIndex = rowData[0].length
 		if (debugShowObject) console.log( rowData );
 		//Check if enough Gold items $$$
 		if (user.stats.gp < (rowData.length * cardItems[cardType].cost)) {
@@ -2111,8 +2139,15 @@ function postGiveCard(cardType, rowData, uuidIndex, nameIndex) {
 
 		//Check if already card? $$$
 		obj = rowData[index]
+		
+		actionItem = obj[nameIndex]
+		if (actionItem.substring(0,3) == '<a '){
+			actionItem = actionItem.substring(actionItem.indexOf('>')+1,actionItem.length - ('</a>').length)
+		}
+		obj.push(actionItem)
+				
 		urlToPost = serverUrl + serverPathCastSkill + '/' + cardType + '?targetId=' + obj[uuidIndex]
-		$('#posting #statusPost').text('Giving Card to ' + obj[nameIndex] );
+		$('#posting #statusPost').text('Giving Card to ' + obj[actionIndex] );
 		if (debugShowObject) console.log(urlToPost);
 		$.ajax({
 			url: urlToPost,
@@ -2132,7 +2167,7 @@ function postGiveCard(cardType, rowData, uuidIndex, nameIndex) {
 		if (debug) console.log('debug postGiveCardFailure start');
 		if (debugShowObject) console.log(data);
 		var errData = data;
-		alert('ERROR WITH  ' +  obj[nameIndex] + '\n\n' + errData.responseJSON.error + '\n' + errData.responseJSON.message  + '\n\nPlease refetch your data and try again.');	
+		alert('ERROR WITH  ' +  obj[actionIndex] + '\n\n' + errData.responseJSON.error + '\n' + errData.responseJSON.message  + '\n\nPlease refetch your data and try again.');	
 		index = rowData.length; // Don't bother trying anymore
 		
 		postGiveCardCheckCompleted()
@@ -2141,7 +2176,7 @@ function postGiveCard(cardType, rowData, uuidIndex, nameIndex) {
 	function postGiveCardSuccess(data){
 		if (debug) console.log('debug postUseCardSucess start');
 		if (debugShowObject) console.log(data);
-		$('#posting #statusPost').text('Successfully Gave Card to ' + obj[nameIndex] );
+		$('#posting #statusPost').text('Successfully Gave Card to ' + obj[actionIndex] );
 		cardUserList += '\n\u2022  ' + data.data.partyMembers[0].profile.name  
 		index++
 		
@@ -2171,6 +2206,8 @@ function postTransformMember(transformItem, rowData, uuidIndex, nameIndex) {
 	if (debug) console.log('debug postTransformMember start');
 	var urlToPost = ''	
 	var transformedUserList = ''
+	var actionItem = ''
+	var actionIndex = 0
 	var index = 0
 	
 	
@@ -2180,6 +2217,7 @@ function postTransformMember(transformItem, rowData, uuidIndex, nameIndex) {
 		return;
 	
 	} else {
+		actionIndex = rowData[0].length
 		if (debugShowObject) console.log( rowData );
 		//Check if enough transformational items $$$
 		postNextTransformMember()
@@ -2192,8 +2230,15 @@ function postTransformMember(transformItem, rowData, uuidIndex, nameIndex) {
 
 		//Check if already transformed? $$$
 		obj = rowData[index]
+		
+		actionItem = obj[nameIndex]
+		if (actionItem.substring(0,3) == '<a '){
+			actionItem = actionItem.substring(actionItem.indexOf('>')+1,actionItem.length - ('</a>').length)
+		}
+		obj.push(actionItem)
+				
 		urlToPost = serverUrl + serverPathCastSkill + '/' + transformItem + '?targetId=' + obj[uuidIndex]
-		$('#posting #statusPost').text('Transforming ' + obj[nameIndex] );
+		$('#posting #statusPost').text('Transforming ' + obj[actionIndex] );
 		if (debugShowObject) console.log(urlToPost);
 		$.ajax({
 			url: urlToPost,
@@ -2215,7 +2260,7 @@ function postTransformMember(transformItem, rowData, uuidIndex, nameIndex) {
 		if (debug) console.log('debug postTransformMemberFailure start');
 		if (debugShowObject) console.log(data);
 		var errData = data;
-		alert('ERROR WITH  ' +  obj[nameIndex] + '\n\n' + errData.responseJSON.error + '\n' + errData.responseJSON.message  + '\n\nPlease refetch your data and try again.');	
+		alert('ERROR WITH  ' +  obj[actionIndex] + '\n\n' + errData.responseJSON.error + '\n' + errData.responseJSON.message  + '\n\nPlease refetch your data and try again.');	
 		index++
 		
 		postTransformMemberCheckCompleted()
@@ -2225,7 +2270,7 @@ function postTransformMember(transformItem, rowData, uuidIndex, nameIndex) {
 	function postTransformMemberSuccess(data){
 		if (debug) console.log('debug postTransformMemberSucess start');
 		if (debugShowObject) console.log(data);
-		$('#posting #statusPost').text('Successfully Transformed ' + obj[nameIndex] );
+		$('#posting #statusPost').text('Successfully Transformed ' + obj[actionIndex] );
 		transformedUserList += '\n\u2022  ' + data.data.partyMembers[0].profile.name  
 		index++
 		
@@ -2261,7 +2306,7 @@ function postChat() {
 		
 	chatMessage = prompt('Please enter your chat message to be posted.\n\n' + warningMessage + '\n\n' + infoMessage, optionalMessage)
 
-	privateMessage = privateMessage.replace(/{nl}/g,'\n');
+	chatMessage = chatMessage.replace(/{nl}/g,'\n');
 
 
 	if (chatMessage != null){
