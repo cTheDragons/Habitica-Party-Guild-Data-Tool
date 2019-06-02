@@ -838,6 +838,7 @@ var hookPPT						= '|'
 
 var userId						= '';
 var apiToken					= '';
+var clientId					= 'bc10ec41-4213-4482-bbb8-558e3c3ea8d5-PartyGuildDataTool'
 var groupId 					= ''; //holds selected group (drop down)
 var hideAvatar					= false;
 var clearNotification			= false;
@@ -1192,7 +1193,7 @@ function fetchGroupForUser() {
         dataType: 'json',
         cache: false,
         beforeSend: function(xhr){
-                xhr.setRequestHeader('x-api-user', userId);
+                xhr.setRequestHeader('x-client', clientId);xhr.setRequestHeader('x-api-user', userId);
                 xhr.setRequestHeader('x-api-key',  apiToken);
             },
         success: fetchGroupForUserSuccess,
@@ -1255,7 +1256,7 @@ function fetchData() {
         dataType: 'json',
         cache: false,
         beforeSend: function(xhr){
-                xhr.setRequestHeader('x-api-user', userId);
+                xhr.setRequestHeader('x-client', clientId);xhr.setRequestHeader('x-api-user', userId);
                 xhr.setRequestHeader('x-api-key',  apiToken);
             },
         success: fetchUserSuccess,
@@ -1330,7 +1331,7 @@ function fetchData() {
 			dataType: 'json',
 			cache: false,
 			beforeSend: function(xhr){
-					xhr.setRequestHeader('x-api-user', userId);
+					xhr.setRequestHeader('x-client', clientId);xhr.setRequestHeader('x-api-user', userId);
 					xhr.setRequestHeader('x-api-key',  apiToken);
 			},
 			success: fetchGuildSuccess,
@@ -1360,7 +1361,7 @@ function fetchData() {
 			dataType: 'json',
 			cache: false,
 			beforeSend: function(xhr){
-					xhr.setRequestHeader('x-api-user', userId);
+					xhr.setRequestHeader('x-client', clientId);xhr.setRequestHeader('x-api-user', userId);
 					xhr.setRequestHeader('x-api-key',  apiToken);
 			},
 			success: fetchPartySuccess,
@@ -1390,7 +1391,7 @@ function fetchData() {
 			dataType: 'json',
 			cache: false,
 			beforeSend: function(xhr){
-					xhr.setRequestHeader('x-api-user', userId);
+					xhr.setRequestHeader('x-client', clientId);xhr.setRequestHeader('x-api-user', userId);
 					xhr.setRequestHeader('x-api-key',  apiToken);
 				},
 			success: fetchChallengeGroupSuccess,
@@ -1431,7 +1432,7 @@ function fetchData() {
 				dataType: 'json',
 				cache: false,
 				beforeSend: function(xhr){
-						xhr.setRequestHeader('x-api-user', userId);
+						xhr.setRequestHeader('x-client', clientId);xhr.setRequestHeader('x-api-user', userId);
 						xhr.setRequestHeader('x-api-key',  apiToken);
 				},
 				success: fetchMemberListSuccess,
@@ -1542,7 +1543,7 @@ function fetchData() {
 					dataType: 'json',
 					cache: false,
 					beforeSend: function(xhr){
-							xhr.setRequestHeader('x-api-user', userId);
+							xhr.setRequestHeader('x-client', clientId);xhr.setRequestHeader('x-api-user', userId);
 							xhr.setRequestHeader('x-api-key',  apiToken);
 					},
 					success: fetchMemberSuccess,
@@ -1635,7 +1636,7 @@ function postToggleLeaderOnlyChallenge(newValue) {
 			dataType: 'json',
 			cache: false,
 			beforeSend: function(xhr){
-					xhr.setRequestHeader('x-api-user', userId);
+					xhr.setRequestHeader('x-client', clientId);xhr.setRequestHeader('x-api-user', userId);
 					xhr.setRequestHeader('x-api-key',  apiToken);
 				},
 			success: postToggleLeaderOnlyChallengeSuccess,
@@ -1729,7 +1730,7 @@ function postChangeLeader(rowData, uuidIndex, nameIndex) {
 			dataType: 'json',
 			cache: false,
 			beforeSend: function(xhr){
-					xhr.setRequestHeader('x-api-user', userId);
+					xhr.setRequestHeader('x-client', clientId);xhr.setRequestHeader('x-api-user', userId);
 					xhr.setRequestHeader('x-api-key',  apiToken);
 				},
 			success: postChangeLeaderSuccess,
@@ -1861,7 +1862,7 @@ function postRemoveUser(rowData, uuidIndex, nameIndex) {
 			dataType: 'json',
 			cache: false,
 			beforeSend: function(xhr){
-					xhr.setRequestHeader('x-api-user', userId);
+					xhr.setRequestHeader('x-client', clientId);xhr.setRequestHeader('x-api-user', userId);
 					xhr.setRequestHeader('x-api-key',  apiToken);
 				},
 			success: postRemoveUserSuccess,
@@ -1917,7 +1918,7 @@ function postRemoveUser(rowData, uuidIndex, nameIndex) {
 			dataType: 'json',
 			cache: false,
 			beforeSend: function(xhr){
-					xhr.setRequestHeader('x-api-user', userId);
+					xhr.setRequestHeader('x-client', clientId);xhr.setRequestHeader('x-api-user', userId);
 					xhr.setRequestHeader('x-api-key',  apiToken);
 				},
 			success: postRemoveUserSendPMSuccess,
@@ -2058,7 +2059,7 @@ function postMessageUser(rowData, uuidIndex, nameIndex) {
 			dataType: 'json',
 			cache: false,
 			beforeSend: function(xhr){
-					xhr.setRequestHeader('x-api-user', userId);
+					xhr.setRequestHeader('x-client', clientId);xhr.setRequestHeader('x-api-user', userId);
 					xhr.setRequestHeader('x-api-key',  apiToken);
 				},
 			success: postMessageUserSuccess,
@@ -2155,7 +2156,7 @@ function postGiveCard(cardType, rowData, uuidIndex, nameIndex) {
 			dataType: 'json',
 			cache: false,
 			beforeSend: function(xhr){
-					xhr.setRequestHeader('x-api-user', userId);
+					xhr.setRequestHeader('x-client', clientId);xhr.setRequestHeader('x-api-user', userId);
 					xhr.setRequestHeader('x-api-key',  apiToken);
 				},
 			success: postGiveCardSuccess,
@@ -2246,7 +2247,7 @@ function postTransformMember(transformItem, rowData, uuidIndex, nameIndex) {
 			dataType: 'json',
 			cache: false,
 			beforeSend: function(xhr){
-					xhr.setRequestHeader('x-api-user', userId);
+					xhr.setRequestHeader('x-client', clientId);xhr.setRequestHeader('x-api-user', userId);
 					xhr.setRequestHeader('x-api-key',  apiToken);
 				},
 			success: postTransformMemberSuccess,
@@ -2334,7 +2335,7 @@ function postChat() {
 			dataType: 'json',
 			cache: false,
 			beforeSend: function(xhr){
-					xhr.setRequestHeader('x-api-user', userId);
+					xhr.setRequestHeader('x-client', clientId);xhr.setRequestHeader('x-api-user', userId);
 					xhr.setRequestHeader('x-api-key',  apiToken);
 				},
 			success: postChatSuccess,
@@ -2390,7 +2391,7 @@ function postQuestAccept() {
 			contentType: 'application/json',
 			cache: false,
 			beforeSend: function(xhr){
-					xhr.setRequestHeader('x-api-user', userId);
+					xhr.setRequestHeader('x-client', clientId);xhr.setRequestHeader('x-api-user', userId);
 					xhr.setRequestHeader('x-api-key',  apiToken);
 				},
 			success: postQuestAcceptSuccess,
@@ -2448,7 +2449,7 @@ function postQuestReject() {
 			contentType: 'application/json',
 			cache: false,
 			beforeSend: function(xhr){
-					xhr.setRequestHeader('x-api-user', userId);
+					xhr.setRequestHeader('x-client', clientId);xhr.setRequestHeader('x-api-user', userId);
 					xhr.setRequestHeader('x-api-key',  apiToken);
 				},
 			success: postQuestRejectSuccess,
@@ -2506,7 +2507,7 @@ function postQuestStart() {
 			contentType: 'application/json',
 			cache: false,
 			beforeSend: function(xhr){
-					xhr.setRequestHeader('x-api-user', userId);
+					xhr.setRequestHeader('x-client', clientId);xhr.setRequestHeader('x-api-user', userId);
 					xhr.setRequestHeader('x-api-key',  apiToken);
 				},
 			success: postQuestStartSuccess,
@@ -2561,7 +2562,7 @@ function postQuestLeave() {
 			contentType: 'application/json',
 			cache: false,
 			beforeSend: function(xhr){
-					xhr.setRequestHeader('x-api-user', userId);
+					xhr.setRequestHeader('x-client', clientId);xhr.setRequestHeader('x-api-user', userId);
 					xhr.setRequestHeader('x-api-key',  apiToken);
 				},
 			success: postQuestLeaveSuccess,
@@ -2618,7 +2619,7 @@ function postQuestAbort() {
 			contentType: 'application/json',
 			cache: false,
 			beforeSend: function(xhr){
-					xhr.setRequestHeader('x-api-user', userId);
+					xhr.setRequestHeader('x-client', clientId);xhr.setRequestHeader('x-api-user', userId);
 					xhr.setRequestHeader('x-api-key',  apiToken);
 				},
 			success: postQuestAbortSuccess,
@@ -2681,7 +2682,7 @@ function postClearNotification(notifcationList) {
 			contentType: 'application/json',
 			cache: false,
 			beforeSend: function(xhr){
-					xhr.setRequestHeader('x-api-user', userId);
+					xhr.setRequestHeader('x-client', clientId);xhr.setRequestHeader('x-api-user', userId);
 					xhr.setRequestHeader('x-api-key',  apiToken);
 				},
 			success: postClearNotificationSuccess,
@@ -3747,94 +3748,82 @@ function parseData() {
 				
 				//Quests/Buffs/Transformations
 				if (groupId == 'party') {
-					if (obj.uuid == 'system') {
-						if (obj.text === '`All items found! Party has received their rewards.`' || (obj.text.substring(0, ('`You defeated ').length) === '`You defeated ' && obj.text.substring(obj.text.length - ('! Questing party members receive the rewards of victory.').length - 1, obj.text.length) === '! Questing party members receive the rewards of victory.`') ) {
+					if (obj.uuid == 'system' && (obj.info != undefined)) {
+					
+						if (obj.info.type === 'all_items_found' || obj.info.type == 'boss_defeated' ) {
 							 noQuestsInChat += 1
-						} else {
-							$.each(memberListToFetch, function(index2, obj2){
-								var objZ = members[obj2.id]
-								//test cast
-								if (obj.text.substring(0, ('`' + objZ.profile.name + ' casts ').length) === '`' + objZ.profile.name + ' casts ') { 
+						} else if (obj.info.user != undefined) {
 
-									if (obj.text.substring((obj.text.length - (' for the party.`').length), obj.text.length) === ' for the party.`') {
+							$.each(memberListToFetch, function(index2, obj2){								
+								if (members[obj2.id].profile.name == obj.info.user) 
+								{
+									objZ = members[obj2.id]
+							
+									switch (obj.info.type) {
+									case 'spell_cast_party' :
 										//Buff
 										if (objZ.lastBuff.occured.utcTime < obj.creation.utcTime) objZ.lastBuff.occured = obj.creation
 										objZ.lastBuff.countTotal++
 										
 										if (moment().subtract(12, 'hours').isBefore(obj.creation.utcTime)) objZ.lastBuff.countLess12Hr++
 										if (moment().subtract(24, 'hours').isBefore(obj.creation.utcTime)) objZ.lastBuff.countLess24Hr++
-									} else {
+										break;
+									case 'spell_cast_user' :
 										//Transformation
 										if (objZ.lastTransformation.occured.utcTime < obj.creation.utcTime) objZ.lastTransformation.occured = obj.creation
 										objZ.lastTransformation.countTotal++
 										
 										if (moment().subtract(12, 'hours').isBefore(obj.creation.utcTime)) objZ.lastTransformation.countLess12Hr++
 										if (moment().subtract(24, 'hours').isBefore(obj.creation.utcTime)) objZ.lastTransformation.countLess24Hr++
-									}
-									return false;
-									
-									
-								} else if (obj.text.substring(0, ('`' + objZ.profile.name + ' attacks ').length) === '`' + objZ.profile.name + ' attacks ') {
-									//attacks
-									var attackText = obj.text.substring(('`' + objZ.profile.name + ' attacks ').length, obj.text.length)
-									//Determine Boss
-									var bossName = attackText.substring(0, attackText.indexOf(' for '))
-									
-									var damageInflicted = attackText.substring((bossName + ' for ').length, attackText.indexOf(' damage.` `'))
-									var damageBoss = attackText.substring((bossName + ' for ' + damageInflicted + ' damage.` `' + bossName + ' attacks party for ').length, attackText.length - (' damage.`').length)
-									
-									damageInflicted = Number(damageInflicted)
-									damageBoss = Number(damageBoss)
-																				
-									objZ.quest.damageTotal += damageInflicted
-									objZ.quest.damageBoss += damageBoss
-									group.quest.damageTotal += damageInflicted
-									group.quest.damageBoss += damageBoss
-									
-									if (noQuestsInChat == 0) {
-										objZ.quest.damageTotalCurrent += damageInflicted
-										objZ.quest.damageBossCurrent += damageBoss
-										group.quest.damageTotalCurrent += damageInflicted
-										group.quest.damageBossCurrent += damageBoss
-									}
-									
-									if (noQuestsInChat == 1) {
-										objZ.quest.damageTotalPrevious += damageInflicted
-										objZ.quest.damageBossPrevious += damageBoss
-										group.quest.damageTotalPrevious += damageInflicted
-										group.quest.damageBossPrevious += damageBoss
-									}
-									return false;
-								} else if (obj.text.substring(0, ('`' + objZ.profile.name + ' found ').length) === '`' + objZ.profile.name + ' found ') {
-									//collection quest
-									var tempCollection = Number(obj.text.substring(('`' + objZ.profile.name + ' found ').length, obj.text.indexOf(' ', ('`' + objZ.profile.name + ' found ').length )))
-									
-									
-									var lastIndex = obj.text.indexOf(',', obj.text.indexOf(' ', '`' + objZ.profile.name + ' found ').length )
-									
-									while (lastIndex > 0) {
-										var tempCollection = tempCollection + Number(obj.text.substring(lastIndex + 1, obj.text.indexOf(' ', lastIndex + 2 )))
-									
-										lastIndex = obj.text.indexOf(',', lastIndex + 1)
-									}
-									
-									tempCollection = Number(tempCollection)
+										break;
+									case 'boss_damage' :				
+										//attacks								
+										var damageInflicted = obj.info.userDamage
+										var damageBoss = obj.info.bossDamage								
+										
+										objZ.quest.damageTotal += damageInflicted
+										objZ.quest.damageBoss += damageBoss
+										group.quest.damageTotal += damageInflicted
+										group.quest.damageBoss += damageBoss
+										
+										if (noQuestsInChat == 0) {
+											objZ.quest.damageTotalCurrent += damageInflicted
+											objZ.quest.damageBossCurrent += damageBoss
+											group.quest.damageTotalCurrent += damageInflicted
+											group.quest.damageBossCurrent += damageBoss
+										}
+										
+										if (noQuestsInChat == 1) {
+											objZ.quest.damageTotalPrevious += damageInflicted
+											objZ.quest.damageBossPrevious += damageBoss
+											group.quest.damageTotalPrevious += damageInflicted
+											group.quest.damageBossPrevious += damageBoss
+										}
+										break;
+									case 'user_found_items' :
+										//collection quest
+										var tempCollection = 0
+										
+										$.each(obj.info.items, function(key, value){
+											tempCollection += value
+										})
 																		
-									objZ.quest.collectionTotal += tempCollection
-									group.quest.collectionTotal += tempCollection
-									
-									if (noQuestsInChat == 0) {
-										group.quest.collectionTotalCurrent += tempCollection
-										objZ.quest.collectionTotalCurrent += tempCollection
-									}
-									
-									if (noQuestsInChat == 1) {
-										group.quest.collectionTotalPrevious += tempCollection
-										objZ.quest.collectionTotalPrevious += tempCollection
+										objZ.quest.collectionTotal += tempCollection
+										group.quest.collectionTotal += tempCollection
+										
+										if (noQuestsInChat == 0) {
+											group.quest.collectionTotalCurrent += tempCollection
+											objZ.quest.collectionTotalCurrent += tempCollection
+										}
+										
+										if (noQuestsInChat == 1) {
+											group.quest.collectionTotalPrevious += tempCollection
+											objZ.quest.collectionTotalPrevious += tempCollection
+										}
+										break;
 									}
 									return false;
-									
-								} ;	
+								}
 							});
 						}
 					}
@@ -4651,11 +4640,14 @@ function parseData() {
 			
 
 			
-			subSectionId = 'OtherDetail'
-			subSectionTitle = 'Other Details'
+			subSectionId = 'LeaderDetail'
+			subSectionTitle = 'Leader Details'
 			htmlTOCDetail += '<li><a href="#' + 'toc_' + subSectionId + '_' + sectionId  + '" target="_self">' + subSectionTitle + '</a></li>'
 			html += '<h3 id="' + 'toc_' + subSectionId + '_' + sectionId +'">' + subSectionTitle + '</h3>'		
-			html += '<p>Leader: ' + group.leader.profile.usernameNotPretty + ' (UserId: ' +  group.leader.id + 'Display Name: ' + group.leader.profile.nameNotPretty + '   Last Active: ' + members[group.leader.id].lastActive.relativeTime + ') </p>'
+			html += '<p>Leader: ' + group.leader.profile.usernameNotPretty + '</p>'
+			html += '<p>UserId: ' +  group.leader.id + '</p>'
+			html += '<p>Display Name: ' + group.leader.profile.nameNotPretty + '</p>' 
+			html += '<p>Last Active: ' + members[group.leader.id].lastActive.relativeTime + '</p>'
 			html += '<p>Leader can only create challenges: ' + toTitleCase(String(group.leaderOnly.challenges))
 			if ((userId == group.leader.id) || (userIsAdmin)) html += '&nbsp;&nbsp;&nbsp;&nbsp;<input class="div-perMemberStats_toggleLeaderOnlyChallenge" id="perMemberStats_toggleLeaderOnlyChallenge" type="submit" value="Toggle" />' 
 			html += '</p>'
@@ -5296,7 +5288,7 @@ ul#tableOfContents > li {
 </head>
 <body><div id="innerBody">	
 <h1><a href="https://habitica.com/">Habitica</a> Party & Guild Data Tool
-    <span class="showHideToggle" data-target="versionChanges" data-closemainsections="true">(v3.6)</span></h1><!-- VERSION TOGGLE -->
+    <span class="showHideToggle" data-target="versionChanges" data-closemainsections="true">(v3.7)</span></h1><!-- VERSION TOGGLE -->
 <div id="headerExtras"></div>
 <hr class="clear" />
 <div id="headerGroupExtras"></div>
@@ -5332,9 +5324,23 @@ ul#tableOfContents > li {
 <div id="versionChanges" class="hide"><!-- VERSION SECTION -->
     <h2>Version History</h2>
     <dl>
+		<dt>3.7 - Did you say something?<span class="date">2019-06-02</span></dt>
+        <dd><ul>
+	           <li>Features:
+                <ul>
+					<li>Refactored chat text to handle new system format with chat.info.</li>
+					<li>Rename Other Details in Overview to Leader Details. Formatted text.</li>
+				</ul> 
+            </li>	
+			<li>Documentation:
+                <ul>
+					<li>Add all x-client calls except content (no header required)</li>
+                </ul>
+            </li>
+		</ul></dd>
 		<dt>3.6 - Clunky Lines<span class="date">2019-05-01</span></dt>
         <dd><ul>
-	            <li>Features:
+	        <li>Features:
                 <ul>
 					<li>Able to put carriage returns into message (Clunky but will do for now).</li>
 					<li>Made usernames and display names linked to Habitica Profile Page.</li>
@@ -5354,7 +5360,7 @@ ul#tableOfContents > li {
 		</ul></dd>
 		<dt>3.5 - Pardon, what was your name?<span class="date">2018-12-23</span></dt>
         <dd><ul>
-	            <li>Features:
+	        <li>Features:
                 <ul>
 					<li>Showing Alt usernames when username not defined.</li>
 				</ul> 
@@ -5367,7 +5373,7 @@ ul#tableOfContents > li {
 		</ul></dd>
 		<dt>3.4 - Rose by any other name<span class="date">2018-12-18</span></dt>
         <dd><ul>
-	            <li>Features:
+	        <li>Features:
                 <ul>
 					<li>Adding usernames for all tables with UserId</li>
 					<li>Expanding text for Leader and Quest owner in Overview</li>
@@ -5389,7 +5395,7 @@ ul#tableOfContents > li {
 		</ul></dd>
 		<dt>3.3 - May I take my leave?<span class="date">2018-08-03</span></dt>
         <dd><ul>
-	            <li>Features:
+	        <li>Features:
                 <ul>
 					<li>Add Abort Quest Button in Member in Quests Participation.</li>
 					<li>Add Leave Quest Button in Member in Quests Participation.</li>
