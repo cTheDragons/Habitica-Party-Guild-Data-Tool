@@ -3752,9 +3752,8 @@ function parseData() {
 					
 						if (obj.info.type === 'all_items_found' || obj.info.type == 'boss_defeated' ) {
 							 noQuestsInChat += 1
-						} else if (obj.info.user != undefined) {
-
-							$.each(memberListToFetch, function(index2, obj2){								
+						} else if (obj.info.user != undefined) {						
+							$.each(memberListToFetch, function(index2, obj2){						
 								if (members[obj2.id].profile.name == obj.info.user) 
 								{
 									objZ = members[obj2.id]
@@ -3777,9 +3776,9 @@ function parseData() {
 										if (moment().subtract(24, 'hours').isBefore(obj.creation.utcTime)) objZ.lastTransformation.countLess24Hr++
 										break;
 									case 'boss_damage' :				
-										//attacks								
-										var damageInflicted = obj.info.userDamage
-										var damageBoss = obj.info.bossDamage								
+										//attacks	
+										var damageInflicted = Number(obj.info.userDamage)
+										var damageBoss = Number(obj.info.bossDamage)								
 										
 										objZ.quest.damageTotal += damageInflicted
 										objZ.quest.damageBoss += damageBoss
@@ -3798,14 +3797,14 @@ function parseData() {
 											objZ.quest.damageBossPrevious += damageBoss
 											group.quest.damageTotalPrevious += damageInflicted
 											group.quest.damageBossPrevious += damageBoss
-										}
+										}									
 										break;
 									case 'user_found_items' :
 										//collection quest
 										var tempCollection = 0
 										
 										$.each(obj.info.items, function(key, value){
-											tempCollection += value
+											tempCollection += Number(value)
 										})
 																		
 										objZ.quest.collectionTotal += tempCollection
@@ -5288,7 +5287,7 @@ ul#tableOfContents > li {
 </head>
 <body><div id="innerBody">	
 <h1><a href="https://habitica.com/">Habitica</a> Party & Guild Data Tool
-    <span class="showHideToggle" data-target="versionChanges" data-closemainsections="true">(v3.7)</span></h1><!-- VERSION TOGGLE -->
+    <span class="showHideToggle" data-target="versionChanges" data-closemainsections="true">(v3.8)</span></h1><!-- VERSION TOGGLE -->
 <div id="headerExtras"></div>
 <hr class="clear" />
 <div id="headerGroupExtras"></div>
@@ -5324,9 +5323,17 @@ ul#tableOfContents > li {
 <div id="versionChanges" class="hide"><!-- VERSION SECTION -->
     <h2>Version History</h2>
     <dl>
+		<dt>3.8 - We are counting here!<span class="date">2019-06-04</span></dt>
+        <dd><ul>
+	        <li>Bug Fixes:
+                <ul>
+					<li>Fix issue with previous quests totals being handled as text instead of number.</li>
+				</ul> 
+            </li>	
+		</ul></dd>
 		<dt>3.7 - Did you say something?<span class="date">2019-06-02</span></dt>
         <dd><ul>
-	           <li>Features:
+	        <li>Features:
                 <ul>
 					<li>Refactored chat text to handle new system format with chat.info.</li>
 					<li>Rename Other Details in Overview to Leader Details. Formatted text.</li>
