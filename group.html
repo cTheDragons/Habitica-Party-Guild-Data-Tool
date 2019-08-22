@@ -3985,7 +3985,7 @@ function parseData() {
 					if (group.quest.members[obj.id] == true) {
 						members[obj.id].quest.inQuest = 'Accepted'
 						group.quest.memberCount++
-					} else if (group.quest.members[obj.id] == false) {
+					} else if ((group.quest.members[obj.id] == false) || (group.quest.active == true)) {
 						members[obj.id].quest.inQuest = 'Rejected'
 					} else {
 						members[obj.id].quest.inQuest = 'Pending'
@@ -5287,7 +5287,7 @@ ul#tableOfContents > li {
 </head>
 <body><div id="innerBody">	
 <h1><a href="https://habitica.com/">Habitica</a> Party & Guild Data Tool
-    <span class="showHideToggle" data-target="versionChanges" data-closemainsections="true">(v3.8)</span></h1><!-- VERSION TOGGLE -->
+    <span class="showHideToggle" data-target="versionChanges" data-closemainsections="true">(v3.9)</span></h1><!-- VERSION TOGGLE -->
 <div id="headerExtras"></div>
 <hr class="clear" />
 <div id="headerGroupExtras"></div>
@@ -5323,6 +5323,14 @@ ul#tableOfContents > li {
 <div id="versionChanges" class="hide"><!-- VERSION SECTION -->
     <h2>Version History</h2>
     <dl>
+		<dt>3.9 - What are we doing?<span class="date">2019-08-22</span></dt>
+        <dd><ul>
+	        <li>Bug Fixes:
+                <ul>
+					<li>Showing correctly which members have rejected a quest when a quest has started.</li>
+				</ul> 
+            </li>	
+		</ul></dd>
 		<dt>3.8 - We are counting here!<span class="date">2019-06-04</span></dt>
         <dd><ul>
 	        <li>Bug Fixes:
