@@ -124,11 +124,12 @@ var sectionsToDisplay = [
 		{type: 'sectionTable', id: 'memberStats', title: 'Member Stats', showOnly: [], description: 'A table listing health, mana, XP and other stats of each member.'},
 		{type: 'sectionTable', id: 'memberAttributes', title: 'Member Attributes', showOnly: [], description: 'A table listing strength, intelligence, perception and constitution of the members.'},
 		{type: 'sectionTable', id: 'memberBuff', title: 'Member Buffs & Transformation', showOnly: ['party'], description: 'A table listing the number of buff and transformations completed by members.'},
-	{type: 'heading', id: 'headingQuest', title: 'Quests!', showOnly: ['party'], description: ''},
+	{type: 'heading', id: 'headingQuest', title: 'Quests', showOnly: ['party'], description: ''},
 		{type: 'sectionTable', id: 'memberQuest', title: 'Quests Participation', showOnly: ['party'], description: 'Only available for a party (and not a guild). A table showing if any members are in a quest. Also allows to join or leave and if the quest owner/party leader force start or abort the quest.'},
 		{type: 'sectionTable', id: 'memberDamage', title: 'Member Quest Progress', showOnly: ['party'], description: 'A table listing the quest progress pending and completed by members.  Shows pending damage by the party for the current quest.'},
 		{type: 'sectionTable', id: 'questCompleted', title: 'All Quests Completed', showOnly: ['party'], description: 'A table showing which quests have and have not been completed by the party and which scrolls owned by the party.'},
-		{type: 'sectionTable', id: 'questPetCompleted', title: 'Pet Quests Completed', showOnly: ['party'], description: 'Focus on the Pet Quests and shows which ones have been completed by the party, or left unfinished. Shows the pet scrolls owned by all party members.'}
+		{type: 'sectionTable', id: 'questPetCompleted', title: 'Pet Quests Completed', showOnly: ['party'], description: 'Focus on the Pet Quests and shows which ones have been completed by the party, or left unfinished. Shows the pet scrolls owned by all party members.'},
+		{type: 'sectionTable', id: 'questMagicCompleted', title: 'Magic Quests Completed', showOnly: ['party'], description: 'Focus on the Magic Hatching Quests and shows which ones have been completed by the party, or left unfinished. Shows the pet scrolls owned by all party members.'}
 ]
 
 //named for searching
@@ -501,12 +502,14 @@ sectionTables['memberQuest'] = {
 			html += '<p>No Quest Active!</p>'
 		} else {
 			var questStatus = ''
+			
 			if (group.quest.active) {
 				questStatus='active' 
 			} else {
 				questStatus='pending' 
 			}
 			html += '<p><span class="highlight">Current Quest: </span>' + quests[group.quest.key].text + ' ( ' + questStatus + ' )</p>'
+			if (group.memberCount != group.memberTotals.fetchCount) html = incompleteDataDueNotAllParty + html
 		}
 		html += sectionHeadingLeadership()
 		return html 
@@ -630,6 +633,7 @@ sectionTables['memberDamage'] = {
 		
 		html += '</p>'
 		html += sectionHeadingLeadership()
+		if (group.memberCount != group.memberTotals.fetchCount) html = incompleteDataDueNotAllParty + html
 		return html 
 	},
 	leadershipButton: true,
@@ -651,6 +655,7 @@ sectionTables['questCompleted'] = {
 	subTitle: function (){
 		var html = ''
 		html += '<p>Want to see which scrolls each party member has? Check out the <a href="' + sectionPPTLink() + '">Party Progress Tool</a></p>'
+		if (group.memberCount != group.memberTotals.fetchCount) html = incompleteDataDueNotAllParty + html
 		return html 
 	},
 	leadershipButton: false,
@@ -670,6 +675,26 @@ sectionTables['questPetCompleted'] = {
 		var html = ''
 		html += '<p>All quests are required to be completed 7 times each to have the maximum mounts and pets for each (3 eggs reward). However the Egg Hunt quest is only required to be completed twice as it rewards 10 eggs. The Dinosaur Unearthed and King of the Dinosaurs Quest need to be completed 7 times in total as both reward Tyrannosaurs.</p>'
 		html += '<p>Want to see which quest pets and pet scrolls each party member has? Check out the <a href="' + sectionPPTLink() + '">Party Progress Tool</a></p>'
+		if (group.memberCount != group.memberTotals.fetchCount) html = incompleteDataDueNotAllParty + html
+		return html 
+	},
+	leadershipButton: false,
+	chatButton: false
+}
+
+sectionTables['questMagicCompleted'] = {
+	type: 'quest',
+	dataSet: [], 
+	dataSetHeader: ['Scroll', 'Name', 'Potion', 'Type', 'Defeat By', 'XP', 'GP', 'Other Reward', 'Total Completed', 'Not At All', '1 Times', '2 Times', '3 Times', '4 Times', '5 Times', '6 Times Or More', 'Scrolls Owned'], 
+	dataTable: ['imgTagQuestScroll', 'text', 'magicPotion.text', 'typeOf', 'defeatBy', 'drop.exp', 'drop.gp', 'drop.rewardItemString', 'memberCompleted.memberCount', 'memberCompleted.missingCount',  'memberCompleted.only1',  'memberCompleted.only2',  'memberCompleted.only3',  'memberCompleted.only4',  'memberCompleted.only5',  'memberCompleted.only6OrMore', 'ownScroll'],
+	babyBear: {show: [2,3,4,7,9,15,16], orderBy: [[9, 'desc'],[15, 'asc'],[14, 'asc'],[13, 'asc'],[12, 'asc'],[11, 'asc'],[10, 'asc']]},
+	mamaBear: {show: [0,2,3,4,5,6,7,9,15,16], orderBy: [[9, 'desc'],[15, 'asc'],[14, 'asc'],[13, 'asc'],[12, 'asc'],[11, 'asc'],[10, 'asc']]},
+	papaBear: {show: ['all'], orderBy: [[9, 'desc'],[15, 'asc'],[14, 'asc'],[13, 'asc'],[12, 'asc'],[11, 'asc'],[10, 'asc']]},
+	extraColumnDefs: [{'className': 'dt-right', 'targets': [5,6,8,9,10,11,12,13,14,15,16]}],
+	subTitle: function (){
+		var html = ''
+		html += '<p>All quests are required to be completed 6 times each to have the maximum mounts and pets for each type. (3 potions reward).</p>'
+		if (group.memberCount != group.memberTotals.fetchCount) html = incompleteDataDueNotAllParty + html
 		return html 
 	},
 	leadershipButton: false,
@@ -846,6 +871,7 @@ var exportOption 			 	= 'babyBear';
 var exportFormat			 	= 1;
 var groupDropDownShow			= false;
 var maxMembersToFetch 			; //hold the max members to fetch input (will be rounded up to nearest 30 due to function)
+var maxMembersToFetch 			; //hold the max members to fetch input (will be rounded up to nearest 30 due to function)
 var ajaxTryAgainMax				= 3;
 var debug						= false;
 var debugShowObject				= false;
@@ -861,6 +887,7 @@ var tellMe = '<a href="https://github.com/cTheDragons">tell me</a>';
 var neverDate = '1900-01-01'
 var notAvailableMember = '-Member Not In Listed-'
 var noUsernamePrefix = '-Unknown Username- Display Name: '
+var incompleteDataDueNotAllParty = '<p><span class="lowlight">Not all party members fetched. Data may not show correctly.</span></p>'
 //////////////////////////////////////////////////////////////////////
 ////   allow Show/Hide Toggling to work    ///////////////////////////
 //////////////////////////////////////////////////////////////////////
@@ -3600,6 +3627,7 @@ function parseData() {
 					quests[obj.key].memberCompleted.only5 = 0
 					quests[obj.key].memberCompleted.only6 = 0
 					quests[obj.key].memberCompleted.only7OrMore = 0
+					quests[obj.key].memberCompleted.only6OrMore = 0 //For Magic Hatching Potion Quests
 					
 					
 					if (quests[obj.key].boss != undefined){
@@ -3626,6 +3654,10 @@ function parseData() {
 									if (quests[obj.key].category=='pet' && obj2.type=='eggs'){
 										quests[obj.key].pet = content.questEggs[obj2.key]
 									}
+									
+									if (quests[obj.key].category=='hatchingPotion' && obj2.type=='hatchingPotions'){
+										quests[obj.key].magicPotion = content.hatchingPotions[obj2.key]
+									}
 								} else {
 									questRewardItem[obj2.key].total++
 								}
@@ -3643,6 +3675,10 @@ function parseData() {
 					
 					if (quests[obj.key].pet == undefined) {
 						quests[obj.key].pet = {}
+					}
+					
+					if (quests[obj.key].magicPotion == undefined) {
+						quests[obj.key].magicPotion = {}
 					}
 					
 					if (quests[obj.key].category != 'world'){ //Don't include world quests
@@ -4020,9 +4056,11 @@ function parseData() {
 										break;
 									case 6:
 										quests[obj2.key].memberCompleted.only6++
+										quests[obj2.key].memberCompleted.only6OrMore++
 										break;
 									default:
-										quests[obj2.key].memberCompleted.only7OrMore++										
+										quests[obj2.key].memberCompleted.only7OrMore++
+										quests[obj2.key].memberCompleted.only6OrMore++										
 								}
 								
 							}							
@@ -4084,13 +4122,13 @@ function parseData() {
 				
 				//Go through each one subtracting each damage till enough.
 				for (i = 0; i < tempML.length; i++) { 
-					if (debug) console.log(tempML[i].profile.nameNotPretty + '    ' + tempML[i].quest.pending)
+					if (debug) console.log(tempML[i].profile.usernameNotPretty + '    ' + tempML[i].quest.pending)
 					if ((tempML[i].preferences.sleep != true) && (moment().subtract(24, 'hours').isBefore(tempML[i].lastActive.utcTime))) {
 						completedStats.pending += tempML[i].quest.pending
 						members[tempML[i].id].quest.reqFinish = completedStats.outstanding - completedStats.pending
 						tempML[i].quest.reqFinish = Math.ceil(members[tempML[i].id].quest.reqFinish * 100) / 100 //round down.
 					} else {
-						completedStats.overdue += ', ' + tempML[i].profile.nameNotPretty
+						completedStats.overdue += ', ' + tempML[i].profile.usernameNotPretty
 					}
 
 					if (collectType <= 1) {
@@ -4135,7 +4173,7 @@ function parseData() {
 					}
 
 					if ((completedStats.outstanding <= completedStats.pending) && (completedStats.percentage > 5)) {
-						completedStats.by = tempML[i].profile.nameNotPretty
+						completedStats.by = tempML[i].profile.usernameNotPretty
 						var tempDate = moment(tempML[i].lastLoggedIn.utcTime).add(1, 'd')
 						completedStats.time = reformatDate(tempDate)
 						break
@@ -4144,7 +4182,7 @@ function parseData() {
 
 				//if the percentage probability was so low but it was the last item 
 				if ((completedStats.by == '') && (completedStats.outstanding <= completedStats.pending)) {
-						completedStats.by = tempML[tempML.length - 1].profile.nameNotPretty
+						completedStats.by = tempML[tempML.length - 1].profile.usernameNotPretty
 						var tempDate = moment(tempML[tempML.length - 1].lastLoggedIn.utcTime).add(1, 'd')
 						completedStats.time = reformatDate(tempDate)				
 				}
@@ -4224,7 +4262,7 @@ function parseData() {
 								$.each(sectionTables[obj2.id].dataTable, function(index3, obj3){
 									arrayToAdd.push(eval('obj.' + obj3))
 								});
-								if (obj.pet.text != undefined || obj2.id != 'questPetCompleted') sectionTables[obj2.id].dataSet.push(arrayToAdd);
+								if (((obj2.id == 'questMagicCompleted') && (obj.category == 'hatchingPotion')) || ((obj2.id == 'questPetCompleted') && (obj.pet.text != undefined)) || ((obj2.id != 'questMagicCompleted') && (obj2.id != 'questPetCompleted'))) sectionTables[obj2.id].dataSet.push(arrayToAdd); //Testing obj.pet.text != undefined as category Pet also contains the Polar Bear/Cub which gives a special pet not the eggs. 
 							}
 						}
 					});
@@ -5287,7 +5325,7 @@ ul#tableOfContents > li {
 </head>
 <body><div id="innerBody">	
 <h1><a href="https://habitica.com/">Habitica</a> Party & Guild Data Tool
-    <span class="showHideToggle" data-target="versionChanges" data-closemainsections="true">(v3.9)</span></h1><!-- VERSION TOGGLE -->
+    <span class="showHideToggle" data-target="versionChanges" data-closemainsections="true">(v4.0)</span></h1><!-- VERSION TOGGLE -->
 <div id="headerExtras"></div>
 <hr class="clear" />
 <div id="headerGroupExtras"></div>
@@ -5323,7 +5361,23 @@ ul#tableOfContents > li {
 <div id="versionChanges" class="hide"><!-- VERSION SECTION -->
     <h2>Version History</h2>
     <dl>
-		<dt>3.9 - What are we doing?<span class="date">2019-08-22</span></dt>
+		<dt>4.0 - Questing for Some Magic<span class="date">2019-05-01</span></dt>
+        <dd><ul>
+	        <li>Features:
+                <ul>
+					<li class="subheading">Magic Quest Completed</li>
+				</ul> 
+            </li>	
+			<li>Documentation:
+                <ul>
+					<li>Username used in Member Quest Progress blurb</li>
+					<li>Removed ! from Quests Header. (It is important, just not that important)</li>
+					<li>Language clean-up with What's Next with practical statemet of my time without a time machine.</li>
+					<li>All sections under Quests: Adding a note if not all party members fetched information may not be correct.</li>
+                </ul>
+            </li>
+		</ul></dd>
+		<dt>3.9 - What are we doing?<span class="date">2019-08-22 (not released)</span></dt>
         <dd><ul>
 	        <li>Bug Fixes:
                 <ul>
@@ -5897,11 +5951,12 @@ ul#tableOfContents > li {
 		
 		<h2>Possible Future Features</h2>
 		<ul>
-			<li>Better dialogue boxes particular with PMs (Yes they are ugly with very little help)</li>
+			<li>Better dialogue boxes particular with PMs (Yes they are ugly)</li>
 			<li>Cards with PMs</li>
 			<li>Chat Avatar</li>
 			<li><span class="subheading">Other Stuff?</span>: Send me ideas! Contact details are below.</li>
 		</ul>
+		<p>Feel free to fork this and implement these features! (It's likely to be a long while before I get to them).</p>
 
 		<h2>Known Bugs</h2>
 		<p>The hiding and closing of sections is a bit funky. (One day I will fix it but not today.)</p>
