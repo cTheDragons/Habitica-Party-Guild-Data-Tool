@@ -1261,6 +1261,7 @@ function fetchData() {
     $('#loading .good').show();
     $('#loading .bad' ).hide();
 	$('#loading .error' ).hide();
+	$('#loading .dblClickError' ).hide();
 	
 	lastListMemberId = '' // clear from previous fetches
 	members = []; // clear from previous fetches
@@ -1481,6 +1482,7 @@ function fetchData() {
 					$('#loading #groupDetail').text(group.name + ' (Group Id: ' + groupId + ')');
 					$('#loading #groupDetailCount').text(' (Stated: ' + group.memberCount + ' Estimated: ' + memberListToFetch.length + ')');
 					$('#loading .error' ).show();
+					if ((memberListToFetch.length%group.memberCount == 0) && group.memberCount > 1) $('#loading .dblClickError' ).show();
 				}
 				if (debugShowObject) console.log(memberListToFetch);
 				ajaxTryAgain = 0; //Clear out previous count.
@@ -3651,7 +3653,10 @@ function parseData() {
 									questRewardItem[obj2.key] = obj2
 									questRewardItem[obj2.key].total = 1
 									
-									if (quests[obj.key].category=='pet' && obj2.type=='eggs'){
+									if (
+										((quests[obj.key].category=='pet') || (quests[obj.key].category=='timeTravelers') )&& 
+										(obj2.type=='eggs')
+									){
 										quests[obj.key].pet = content.questEggs[obj2.key]
 									}
 									
@@ -4262,7 +4267,20 @@ function parseData() {
 								$.each(sectionTables[obj2.id].dataTable, function(index3, obj3){
 									arrayToAdd.push(eval('obj.' + obj3))
 								});
-								if (((obj2.id == 'questMagicCompleted') && (obj.category == 'hatchingPotion')) || ((obj2.id == 'questPetCompleted') && (obj.pet.text != undefined)) || ((obj2.id != 'questMagicCompleted') && (obj2.id != 'questPetCompleted'))) sectionTables[obj2.id].dataSet.push(arrayToAdd); //Testing obj.pet.text != undefined as category Pet also contains the Polar Bear/Cub which gives a special pet not the eggs. 
+								if (
+									(
+										(obj2.id == 'questMagicCompleted') && 
+										(obj.category == 'hatchingPotion')
+									) || 
+									(
+										(obj2.id == 'questPetCompleted') && 
+										(obj.pet.text != undefined)
+									) || 
+									(
+										(obj2.id != 'questMagicCompleted') && 
+										(obj2.id != 'questPetCompleted') 
+									)
+								) sectionTables[obj2.id].dataSet.push(arrayToAdd); //Testing obj.pet.text != undefined as category Pet also contains the Polar Bear/Cub which gives a special pet not the eggs. 
 							}
 						}
 					});
@@ -5325,13 +5343,16 @@ ul#tableOfContents > li {
 </head>
 <body><div id="innerBody">	
 <h1><a href="https://habitica.com/">Habitica</a> Party & Guild Data Tool
-    <span class="showHideToggle" data-target="versionChanges" data-closemainsections="true">(v4.0)</span></h1><!-- VERSION TOGGLE -->
+    <span class="showHideToggle" data-target="versionChanges" data-closemainsections="true">(v4.1)</span></h1><!-- VERSION TOGGLE -->
 <div id="headerExtras"></div>
 <hr class="clear" />
 <div id="headerGroupExtras"></div>
 <hr class="clear" />
 
 <div id="loading">
+     <div class="dblClickError hide">
+        <p>Did you double click the Re-Fetch? I have too many things to count here. The error below may not be valid. Check for duplicate usernames in the tables below before reporting.</p>
+    </div>
     <div class="error hide">
         <p>ERROR! The membership count does not match what is recorded. Please report in the <a href="https://habitica.com/groups/guild/a29da26b-37de-4a71-b0c6-48e72a900dac" target="_blank">Report Bug Guild</a> that<br> 
         <span id="groupDetail">GROUP name (ID: 1234)</span> membership count does not match the listed users. <span id="groupDetailCount">(Stated: 1 Estimated: 2)</span> </p>
@@ -5361,6 +5382,19 @@ ul#tableOfContents > li {
 <div id="versionChanges" class="hide"><!-- VERSION SECTION -->
     <h2>Version History</h2>
     <dl>
+		<dt>4.1 - Warnings and Robots<span class="date">2020-01-24</span></dt>
+        <dd><ul>
+	        <li>Features:
+                <ul>
+					<li>Robot quest now plays with the other pets in Pet Quests Completed.</li>
+				</ul> 
+            </li>	
+			<li>Documentation:
+                <ul>
+					<li>Warning now includes message if the fetch button you click twice, thrice, or wow giving that button a work out times.</li>
+                </ul>
+            </li>
+		</ul></dd>
 		<dt>4.0 - Questing for Some Magic<span class="date">2020-01-19</span></dt>
         <dd><ul>
 	        <li>Features:
