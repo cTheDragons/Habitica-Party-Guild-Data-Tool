@@ -875,6 +875,7 @@ var maxMembersToFetch 			; //hold the max members to fetch input (will be rounde
 var maxMembersStart 			; //hold the max members to fetch input (will be rounded up to nearest 30 due to function)
 
 var ajaxTryAgainMax				= 3;
+var rlCurrent 							= {}; //holds the Current API Remaining details - must be a better way to do this.
 
 var debug						= true;
 var debugShowObject				= true;
@@ -1224,10 +1225,12 @@ function fetchGroupForUser() {
 	var call = []
 	call.push({requestType: 'GET', urlTo: serverUrl + serverPathGroup, newData: newData, fnSuccess: fetchGroupForUserSuccess, fnFailure: fetchFailure, statusText: 'Getting Joined Guilds/Party List'})
 	
-	makeAjaxCall(call, userId, apiToken)
+	makeAjaxCall(call, userId, apiToken, rlCurrent)
 	
-	function fetchFailure(data) {
+	function fetchFailure(data ,rl) {
         if (debug) console.log('debug fetchFailure start');
+		rlCurrent = rl
+		
         $('#loading .good').hide();
         $('#loading .bad' ).show();
         $('#documentationAndForm').show(); // in case user has done a re-fetch
@@ -1237,9 +1240,11 @@ function fetchGroupForUser() {
         if (debug) console.log('debug fetchGroupForUserSuccess not found');
     }
 	
-	function fetchGroupForUserSuccess(data) {
+	function fetchGroupForUserSuccess(data, rl) {
         if (debug) console.log('debug parseData Groups For User Success Start success start');
-		 $('#loading .good').hide();
+		rlCurrent = rl
+		
+		$('#loading .good').hide();
         groupForUser = data.data;
 		
 		if (debugShowObject) console.log(groupForUser);
@@ -1280,11 +1285,12 @@ function fetchData() {
     // fetch the user's own content (guilds, parties):
 	call.push({requestType: 'GET', urlTo: serverUrl + serverPathUser, newData: '', fnSuccess: fetchUserSuccess, fnFailure: fetchFailure, statusText: 'Asking for User Data'})
 	call.push({requestType: 'GET', urlTo: serverUrl + serverPathContent, newData: '', fnSuccess: fetchContentSuccess, fnFailure: fetchFailure, statusText: 'Asking for Generic Content'})
-	makeAjaxCall(call, userId, apiToken)
+	makeAjaxCall(call, userId, apiToken, rlCurrent)
 	
 
-	function fetchFailure(data) {
+	function fetchFailure(data, rl) {
         if (debug) console.log('debug fetchFailure start');
+		rlCurrent = rl
         $('#loading .good').hide();
         $('#loading .bad' ).show();
         $('#documentationAndForm').show(); // in case user has done a re-fetch
@@ -1295,8 +1301,9 @@ function fetchData() {
 		
         if (debug) console.log('debug fetchFailure end');
     }
-	function fetchUserSuccess(data) {
+	function fetchUserSuccess(data, rl) {
         if (debug) console.log('debug parseData User success start');
+		rlCurrent = rl
         user = data.data;
 		
 		userIsAdmin = false;
@@ -1321,8 +1328,9 @@ function fetchData() {
             fetchMemberList();
         }
     }
-	function fetchContentSuccess(data) {
+	function fetchContentSuccess(data, rl) {
         if (debug) console.log('debug parseData Content success start');
+		rlCurrent = rl
         content = data.data;
 		if (debugShowObject) console.log(content);
         ajaxRunningCount--;
@@ -1337,12 +1345,13 @@ function fetchData() {
 
 		call = [] //clear list
 		call.push({requestType: 'GET', urlTo: serverUrl + serverPathGroup + '/' + groupId, newData: '', fnSuccess: fetchGuildSuccess, fnFailure: fetchFailure, statusText: 'Asking for Guild Data'})
-		makeAjaxCall(call, userId, apiToken)
+		makeAjaxCall(call, userId, apiToken, rlCurrent)
 		
 	}
 		
-	function fetchGuildSuccess(data) {
+	function fetchGuildSuccess(data, rl) {
 		if (debug) console.log('debug Guild Sucess data start');
+		rlCurrent = rl
 		group = data.data;
 		if (debugShowObject) console.log(group);
 		fetchChallengeGroupData(group._id) //Challenge data requires actual Id
@@ -1359,12 +1368,13 @@ function fetchData() {
 	
 		call = [] //clear list
 		call.push({requestType: 'GET', urlTo: serverUrl + serverPathParty, newData: '', fnSuccess: fetchPartySuccess, fnFailure: fetchFailure, statusText: 'Asking for Party Data'})
-		makeAjaxCall(call, userId, apiToken)
+		makeAjaxCall(call, userId, apiToken, rlCurrent)
 		
 	}	
 	
-	function fetchPartySuccess(data) {
+	function fetchPartySuccess(data, rl) {
 		if (debug) console.log('debug Party Sucess data start');
+		rlCurrent = rl
 		party = data.data;
 		group = party;
 		if (debugShowObject) console.log(party);
@@ -1380,12 +1390,13 @@ function fetchData() {
 		
 		call = [] //clear list
 		call.push({requestType: 'GET', urlTo: serverUrl + serverPathChallengeGroup + '/' + actualGroupId, newData: '', fnSuccess: fetchChallengeGroupSuccess, fnFailure: fetchFailure, statusText: 'Asking for Challenge Data for Group'})
-		makeAjaxCall(call, userId, apiToken)
+		makeAjaxCall(call, userId, apiToken, rlCurrent)
 		
 	}	
 	
-	function fetchChallengeGroupSuccess(data) {
+	function fetchChallengeGroupSuccess(data, rl) {
         if (debug) console.log('debug parseData Challenge Group success start');
+		rlCurrent = rl
         challengeGroup = data.data;
 		if (debugShowObject) console.log(challengeGroup);
         ajaxRunningCount--;
@@ -1415,14 +1426,15 @@ function fetchData() {
 			if (debugShowObject) console.log(completeUrl);	
 			call = []
 			call.push({requestType: 'GET', urlTo: completeUrl, newData: '', fnSuccess: fetchMemberListSuccess, fnFailure: fetchMemberListFailure, statusText: 'Asking for Member List (' + memberListToFetch.length + ' so far)'})
-			makeAjaxCall(call, userId, apiToken)
+			makeAjaxCall(call, userId, apiToken, rlCurrent)
 		}
 	}
 
 		
 		
-	function fetchMemberListSuccess(data) {
+	function fetchMemberListSuccess(data, rl) {
 		if (debug) console.log('debug Member List Sucess start');
+		rlCurrent = rl
 		memberListToFetch = memberListToFetch.concat(data.data);
 		
 		if (memberListToFetch.length > 0 || maxMembersToFetch == 0) {
@@ -1448,13 +1460,14 @@ function fetchData() {
 		}
 	}	
 		
-	function fetchMemberListFailure(data) {
+	function fetchMemberListFailure(data, rl) {
 		if (debug) console.log('debug Member List Fail Start');
+		rlCurrent = rl
 		ajaxTryAgain++
 		if (ajaxTryAgain < ajaxTryAgainMax) {
 			fetchMemberList()
 		} else {
-			fetchFailure(data)
+			fetchFailure(data, rl)
 		}
 	}
 		
@@ -1519,14 +1532,14 @@ function fetchData() {
 			call.push({requestType: 'GET', urlTo: serverUrl + serverPathMemberProfilePart + '/' + obj.id, newData: '', fnSuccess: fetchMemberSuccess, fnFailure: fetchMemberFail, statusText: 'Asking for Member Data ... (This can take a while - ' + (index + 1) + ' of ' + listToFetch.length + ')'})
 
 		});
-		makeAjaxCall(call, userId, apiToken)		
+		makeAjaxCall(call, userId, apiToken, rlCurrent)		
 
 	}
 		
 		
-	function fetchMemberFail() {
-
+	function fetchMemberFail(data, rl) {
 		if (debug) console.log('debug Member Fail Fetch for ' + (lastMemberIndex+1))
+		rlCurrent = rl
 		
 		if (ajaxTryAgain < ajaxTryAgainMax) {
 			ajaxTryAgainNeed++
@@ -1537,8 +1550,10 @@ function fetchData() {
 	}
 			
 			
-	function fetchMemberSuccess(data) {
+	function fetchMemberSuccess(data, rl) {
 		if (debug) console.log('debug Member Sucess data start ' +  lastMemberIndex + '  id: ' + data.data._id);
+		rlCurrent = rl
+		
 		var friendlyMemberIndex = lastMemberIndex + 1
 		//$('#loading #statusMessage').text('Fetching Member '  +  friendlyMemberIndex);
 		
@@ -1547,7 +1562,7 @@ function fetchData() {
 		fetchMemberComplete()
 	}	
 	
-	function fetchMemberComplete(data) {
+	function fetchMemberComplete() {
 		if (lastMemberIndex == listToFetch.length-1) { // all ajax calls have finished
 			if (debug) console.log('debug Lost ducks ' + (ajaxTryAgainNeed))
 			if (ajaxTryAgainNeed > 0) {
@@ -1558,7 +1573,7 @@ function fetchData() {
 					if (debugShowObject) console.log(members);
 					parseData();
 				} else {
-					fetchFailure(daa)
+					fetchFailure({responseJSON: {error: 'Lost Ducks!', message: 'Unable to find all members - Check Console Log'}}, rlCurrent)
 				}
 			}
 		} else {
@@ -1602,14 +1617,15 @@ function postToggleLeaderOnlyChallenge(newValue) {
 
 
 		call.push({requestType: 'PUT', urlTo: urlToPost, newData: JSON.stringify(newData), fnSuccess: postToggleLeaderOnlyChallengeSuccess, fnFailure: postToggleLeaderOnlyChallengeFailure, statusText: 'Toggling Leader Only Challenges'})
-		makeAjaxCall(call, userId, apiToken)
+		makeAjaxCall(call, userId, apiToken, rlCurrent)
 		
 	}
 		
 
 	
-	function postToggleLeaderOnlyChallengeFailure(data){
+	function postToggleLeaderOnlyChallengeFailure(data, rl){
 		if (debug) console.log('debug postToggleLeaderOnlyChallengeFailure start');
+		rlCurrent = rl
 		if (debugShowObject) console.log(data);
 		var errData = data;
 		alert('ERROR WITH Toggle Leader Only Challenges \n\n' + errData.responseJSON.error + '\n' + errData.responseJSON.message  + '\n\nPlease refetch your data and try again.');	
@@ -1618,8 +1634,9 @@ function postToggleLeaderOnlyChallenge(newValue) {
 	}
 
 
-	function postToggleLeaderOnlyChallengeSuccess(data){
+	function postToggleLeaderOnlyChallengeSuccess(data, rl){
 		if (debug) console.log('debug postToggleLeaderOnlyChallengeSuccess start');
+		rlCurrent = rl
 		if (debugShowObject) console.log(data);
 		alert('Toggle Leader Only Challenge has changed.\n\nYour data will now be refreshed')
 		
@@ -1689,14 +1706,15 @@ function postChangeLeader(rowData, uuidIndex, nameIndex) {
 		if (debugShowObject) console.log(urlToPost);
 
 		call.push({requestType: 'PUT', urlTo: urlToPost, newData: JSON.stringify(newData), fnSuccess: postChangeLeaderSuccess, fnFailure: postChangeLeaderFailure, statusText: 'Changing Leaders'})
-		makeAjaxCall(call, userId, apiToken)
+		makeAjaxCall(call, userId, apiToken, rlCurrent)
 		
 	}
 		
 
 	
-	function postChangeLeaderFailure(data){
+	function postChangeLeaderFailure(data, rl){
 		if (debug) console.log('debug postChangeLeaderFailure start');
+		rlCurrent = rl
 		if (debugShowObject) console.log(data);
 		var errData = data;
 		alert('ERROR WITH  ' +  obj[actionIndex] + '\n\n' + errData.responseJSON.error + '\n' + errData.responseJSON.message  + '\n\nPlease refetch your data and try again.');	
@@ -1705,8 +1723,9 @@ function postChangeLeader(rowData, uuidIndex, nameIndex) {
 	}
 
 
-	function postChangeLeaderSuccess(data){
+	function postChangeLeaderSuccess(data, rl){
 		if (debug) console.log('debug postChangeLeaderSuccess start');
+		rlCurrent = rl
 		if (debugShowObject) console.log(data);
 		alert('Leader has changed.\n\nYour data will now be refreshed')
 		
@@ -1816,14 +1835,15 @@ function postRemoveUser(rowData, uuidIndex, nameIndex) {
 		if (debugShowObject) console.log(urlToPost);
 
 		call.push({requestType: 'POST', urlTo: urlToPost, newData: '', fnSuccess: postRemoveUserSuccess, fnFailure: postRemoveUserFailure, statusText: 'Remvoing user ' + obj[actionIndex]})
-		makeAjaxCall(call, userId, apiToken)
+		makeAjaxCall(call, userId, apiToken, rlCurrent)
 		
 	}
 		
 
 	
-	function postRemoveUserFailure(data){
+	function postRemoveUserFailure(data, rl){
 		if (debug) console.log('debug postRemoveUserFailure start');
+		rlCurrent = rl
 		if (debugShowObject) console.log(data);
 		var errData = data;
 		alert('ERROR WITH  ' +  obj[actionIndex] + '\n\n' + errData.responseJSON.error + '\n' + errData.responseJSON.message  + '\n\nPlease refetch your data and try again.');	
@@ -1833,8 +1853,9 @@ function postRemoveUser(rowData, uuidIndex, nameIndex) {
 	}
 
 
-	function postRemoveUserSuccess(data){
+	function postRemoveUserSuccess(data, rl){
 		if (debug) console.log('debug postRemoveUserSucess start');
+		rlCurrent = rl
 		if (debugShowObject) console.log(data);
 		removeUserList += '\n\u2022  ' + obj[actionIndex]  
 		
@@ -1862,12 +1883,13 @@ function postRemoveUser(rowData, uuidIndex, nameIndex) {
 		
 		var call = []
 		call.push({requestType: 'POST', urlTo: urlToPost, newData: JSON.stringify(newData), fnSuccess: postRemoveUserSendPMSuccess, fnFailure: postRemoveUserSendPMFailure, statusText: 'Sending removal message to user ' + obj[uuidIndex]})
-		makeAjaxCall(call, userId, apiToken)
+		makeAjaxCall(call, userId, apiToken, rlCurrent)
 		
 	}
 	
-	function postRemoveUserSendPMFailure(data){
+	function postRemoveUserSendPMFailure(data, rl){
 		if (debug) console.log('debug postRemoveUserSendPMFailure start');
+		rlCurrent = rl
 		if (debugShowObject) console.log(data);
 		var errData = data;
 		alert('ERROR WITH  ' +  obj[actionIndex] + '\n\n' + errData.responseJSON.error + '\n' + errData.responseJSON.message  + '\n\nPlease refetch your data and try again.');	
@@ -1877,8 +1899,9 @@ function postRemoveUser(rowData, uuidIndex, nameIndex) {
 	}
 
 
-	function postRemoveUserSendPMSuccess(data){
+	function postRemoveUserSendPMSuccess(data, rl){
 		if (debug) console.log('debug postRemoveUserSendPMSuccess start');
+		rlCurrent = rl
 		if (debugShowObject) console.log(data);
 		index++
 		
@@ -1992,14 +2015,15 @@ function postMessageUser(rowData, uuidIndex, nameIndex) {
 		
 		var call = []
 		call.push({requestType: 'POST', urlTo: urlToPost, newData: JSON.stringify(newData), fnSuccess: postMessageUserSuccess, fnFailure: postMessageUserFailure, statusText: 'Messaging: ' + obj[uuidIndex]})
-		makeAjaxCall(call, userId, apiToken)
+		makeAjaxCall(call, userId, apiToken, rlCurrent)
 		
 	}
 		
 
 	
-	function postMessageUserFailure(data){
+	function postMessageUserFailure(data,rl){
 		if (debug) console.log('debug postMessageUserFailure start');
+		rlCurrent = rl
 		if (debugShowObject) console.log(data);
 		var errData = data;
 		alert('ERROR WITH  ' +  obj[actionIndex] + '\n\n' + errData.responseJSON.error + '\n' + errData.responseJSON.message  + '\n\nPlease refetch your data and try again.');	
@@ -2009,8 +2033,9 @@ function postMessageUser(rowData, uuidIndex, nameIndex) {
 	}
 
 
-	function postMessageUserSuccess(data){
+	function postMessageUserSuccess(data, rl){
 		if (debug) console.log('debug postMessageUserSucess start');
+		rlCurrent = rl
 		if (debugShowObject) console.log(data);
 		actionNotificationList += '\n\u2022  ' + obj[actionIndex]  
 		index++
@@ -2079,12 +2104,13 @@ function postGiveCard(cardType, rowData, uuidIndex, nameIndex) {
 		
 		var call = []
 		call.push({requestType: 'POST', urlTo: urlToPost, newData: '', fnSuccess: postGiveCardSuccess, fnFailure: postGiveCardFailure, statusText: 'Giving Card to: ' + obj[uuidIndex]})
-		makeAjaxCall(call, userId, apiToken)
+		makeAjaxCall(call, userId, apiToken, rlCurrent)
 
 	}
 		
-	function postGiveCardFailure(data){
+	function postGiveCardFailure(data, rl){
 		if (debug) console.log('debug postGiveCardFailure start');
+		rlCurrent = rl
 		if (debugShowObject) console.log(data);
 		var errData = data;
 		alert('ERROR WITH  ' +  obj[actionIndex] + '\n\n' + errData.responseJSON.error + '\n' + errData.responseJSON.message  + '\n\nPlease refetch your data and try again.');	
@@ -2093,8 +2119,9 @@ function postGiveCard(cardType, rowData, uuidIndex, nameIndex) {
 		postGiveCardCheckCompleted()
 	}
 
-	function postGiveCardSuccess(data){
+	function postGiveCardSuccess(data,rl){
 		if (debug) console.log('debug postUseCardSucess start');
+		rlCurrent = rl
 		if (debugShowObject) console.log(data);
 		cardUserList += '\n\u2022  ' + data.data.partyMembers[0].profile.name  
 		index++
@@ -2159,14 +2186,15 @@ function postTransformMember(transformItem, rowData, uuidIndex, nameIndex) {
 		
 		var call = []
 		call.push({requestType: 'POST', urlTo: urlToPost, newData: '', fnSuccess: postTransformMemberSuccess, fnFailure: postTransformMemberFailure, statusText: 'Transforming ' + obj[actionIndex]})
-		makeAjaxCall(call, userId, apiToken)		
+		makeAjaxCall(call, userId, apiToken, rlCurrent)		
 		
 	}
 		
 
 	
-	function postTransformMemberFailure(data){
+	function postTransformMemberFailure(data, rl){
 		if (debug) console.log('debug postTransformMemberFailure start');
+		rlCurrent = rl
 		if (debugShowObject) console.log(data);
 		var errData = data;
 		alert('ERROR WITH  ' +  obj[actionIndex] + '\n\n' + errData.responseJSON.error + '\n' + errData.responseJSON.message  + '\n\nPlease refetch your data and try again.');	
@@ -2176,8 +2204,9 @@ function postTransformMember(transformItem, rowData, uuidIndex, nameIndex) {
 	}
 
 
-	function postTransformMemberSuccess(data){
+	function postTransformMemberSuccess(data, rl){
 		if (debug) console.log('debug postTransformMemberSucess start');
+		rlCurrent = rl
 		if (debugShowObject) console.log(data);
 		transformedUserList += '\n\u2022  ' + data.data.partyMembers[0].profile.name  
 		index++
@@ -2237,14 +2266,15 @@ function postChat() {
 		
 		var call = []
 		call.push({requestType: 'POST', urlTo: urlToPost, newData: JSON.stringify(newData), fnSuccess: postChatSuccess, fnFailure: postChatFailure, statusText: 'Posting chat message'})
-		makeAjaxCall(call, userId, apiToken)		
+		makeAjaxCall(call, userId, apiToken, rlCurrent)		
 		
 	}
 		
 
 	
-	function postChatFailure(data){
+	function postChatFailure(data, rl){
 		if (debug) console.log('debug postChatFailure start');
+		rlCurrent = rl
 		if (debugShowObject) console.log(data);
 		var errData = data;
 		alert('ERROR WITH POSTING CHAT MESSAGE\n\n' + errData.responseJSON.error + '\n' + errData.responseJSON.message  + '\n\nPlease refetch your data and try again.');	
@@ -2253,8 +2283,9 @@ function postChat() {
 	}
 
 
-	function postChatSuccess(data){
+	function postChatSuccess(data, rl){
 		if (debug) console.log('debug postChatSuccess start');
+		rlCurrent = rl
 		if (debugShowObject) console.log(data);
 		alert('Chat Posted.\n\nYour data will now be refreshed')
 		
@@ -2287,13 +2318,14 @@ function postQuestAccept() {
 
 		var call = []
 		call.push({requestType: 'POST', urlTo: urlToPost, newData: '', fnSuccess: postQuestAcceptSuccess, fnFailure: postQuestAcceptFailure, statusText: 'Posting accepting quest'})
-		makeAjaxCall(call, userId, apiToken)		
+		makeAjaxCall(call, userId, apiToken, rlCurrent)		
 	}
 		
 
 	
-	function postQuestAcceptFailure(data){
+	function postQuestAcceptFailure(data, rl){
 		if (debug) console.log('debug postQuestAcceptFailure start');
+		rlCurrent = rl
 		if (debugShowObject) console.log(data);
 		var errData = data;
 		alert('ERROR WITH Accepting Quest\n\n' + errData.responseJSON.error + '\n' + errData.responseJSON.message  + '\n\nYour data will now be refreshed.');	
@@ -2302,8 +2334,9 @@ function postQuestAccept() {
 	}
 
 
-	function postQuestAcceptSuccess(data){
+	function postQuestAcceptSuccess(data, rl){
 		if (debug) console.log('debug postQuestAcceptSuccess start');
+		rlCurrent = rl
 		if (debugShowObject) console.log(data);
 		alert('Quest Accepted.\n\nYour data will now be refreshed')
 		
@@ -2337,14 +2370,15 @@ function postQuestReject() {
 		
 		var call = []
 		call.push({requestType: 'POST', urlTo: urlToPost, newData: '', fnSuccess: postQuestRejectSuccess, fnFailure: postQuestRejectFailure, statusText: 'Rejecting Quest'})
-		makeAjaxCall(call, userId, apiToken)		
+		makeAjaxCall(call, userId, apiToken, rlCurrent)		
 		
 	}
 		
 
 	
-	function postQuestRejectFailure(data){
+	function postQuestRejectFailure(data, rlCurrent){
 		if (debug) console.log('debug postQuestRejectFailure start');
+		rlCurrent = rl
 		if (debugShowObject) console.log(data);
 		var errData = data;
 		alert('ERROR WITH Rejecting Quest\n\n' + errData.responseJSON.error + '\n' + errData.responseJSON.message  + '\n\nYour data will now be refreshed.');	
@@ -2353,8 +2387,9 @@ function postQuestReject() {
 	}
 
 
-	function postQuestRejectSuccess(data){
+	function postQuestRejectSuccess(data, rlCurrent){
 		if (debug) console.log('debug postQuestRejectSuccess start');
+		rlCurrent = rl
 		if (debugShowObject) console.log(data);
 		alert('Quest Rejected.\n\nYour data will now be refreshed')
 		
@@ -2388,14 +2423,15 @@ function postQuestStart() {
 		
 		var call = []
 		call.push({requestType: 'POST', urlTo: urlToPost, newData: '', fnSuccess: postQuestStartSuccess, fnFailure: postQuestStartFailure, statusText: 'Force Starting Quest'})
-		makeAjaxCall(call, userId, apiToken)		
+		makeAjaxCall(call, userId, apiToken, rlCurrent)		
 		
 	}
 		
 
 	
-	function postQuestStartFailure(data){
+	function postQuestStartFailure(data, rl){
 		if (debug) console.log('debug postQuestStartFailure start');
+		rlCurrent = rl
 		if (debugShowObject) console.log(data);
 		var errData = data;
 		alert('ERROR WITH Starting Quest\n\n' + errData.responseJSON.error + '\n' + errData.responseJSON.message  + '\n\nYour data will now be refreshed.');	
@@ -2404,8 +2440,9 @@ function postQuestStart() {
 	}
 
 
-	function postQuestStartSuccess(data){
+	function postQuestStartSuccess(data, rl){
 		if (debug) console.log('debug postQuestStartSuccess start');
+		rlCurrent = rl
 		if (debugShowObject) console.log(data);
 		alert('Quest Started.\n\nYour data will now be refreshed')
 		
@@ -2437,14 +2474,15 @@ function postQuestLeave() {
 		
 		var call = []
 		call.push({requestType: 'POST', urlTo: urlToPost, newData: '', fnSuccess: postQuestLeaveSuccess, fnFailure: postQuestLeaveFailure, statusText: 'Leaving Quest'})
-		makeAjaxCall(call, userId, apiToken)	
+		makeAjaxCall(call, userId, apiToken, rlCurrent)	
 		
 	}
 		
 
 	
-	function postQuestLeaveFailure(data){
+	function postQuestLeaveFailure(data, rl){
 		if (debug) console.log('debug postQuestLeaveFailure start');
+		rlCurrent = rl
 		if (debugShowObject) console.log(data);
 		var errData = data;
 		alert('ERROR WITH Leaving Quest\n\n' + errData.responseJSON.error + '\n' + errData.responseJSON.message  + '\n\nYour data will now be refreshed.');	
@@ -2453,8 +2491,9 @@ function postQuestLeave() {
 	}
 
 
-	function postQuestLeaveSuccess(data){
+	function postQuestLeaveSuccess(data, rl){
 		if (debug) console.log('debug postQuestLeaveSuccess start');
+		rlCurrent = rl
 		if (debugShowObject) console.log(data);
 		alert('Quest Left.\n\nYour data will now be refreshed')
 		
@@ -2488,13 +2527,14 @@ function postQuestAbort() {
 		
 		var call = []
 		call.push({requestType: 'POST', urlTo: urlToPost, newData: '', fnSuccess: postQuestAbortSuccess, fnFailure: postQuestAbortFailure, statusText: 'Aborting Quest'})
-		makeAjaxCall(call, userId, apiToken)	
+		makeAjaxCall(call, userId, apiToken, rlCurrent)	
 	}
 		
 
 	
-	function postQuestAbortFailure(data){
+	function postQuestAbortFailure(data, rl){
 		if (debug) console.log('debug postQuestAbortFailure start');
+		rlCurrent = rl
 		if (debugShowObject) console.log(data);
 		var errData = data;
 		alert('ERROR WITH Aborting Quest\n\n' + errData.responseJSON.error + '\n' + errData.responseJSON.message  + '\n\nYour data will now be refreshed.');	
@@ -2503,8 +2543,9 @@ function postQuestAbort() {
 	}
 
 
-	function postQuestAbortSuccess(data){
+	function postQuestAbortSuccess(data, rl){
 		if (debug) console.log('debug postQuestAbortSuccess start');
+		rlCurrent = rl
 		if (debugShowObject) console.log(data);
 		alert('Quest Aborted.\n\nYour data will now be refreshed')
 		
@@ -2542,15 +2583,15 @@ function postClearNotification(notifcationList) {
 		
 		var call = []
 		call.push({requestType: 'POST', urlTo: urlToPost, newData: '', fnSuccess: postClearNotificationSuccess, fnFailure: postClearNotificationFail, statusText: 'Clear Notifications for ' + notifcationList[obj].name })
-		makeAjaxCall(call, userId, apiToken)		
+		makeAjaxCall(call, userId, apiToken, rlCurrent)		
 
 			
 	}
 	
 	
-	function postClearNotificationFail(data) {
-	
+	function postClearNotificationFail(data, rl) {
 		if (debug) console.log('debug Clear Notification Failed for ' + obj)
+		rlCurrent = rl
 		if (debugShowObject) console.log(data);
 		alert('ERROR WITH  ' +  obj + '\n\n' + errData.responseJSON.error + '\n' + errData.responseJSON.message  + '\n\nPlease refetch your data and try again.');	
 		index++
@@ -2558,8 +2599,9 @@ function postClearNotification(notifcationList) {
 	}
 			
 			
-	function postClearNotificationSuccess(data) {
-//		if (debug) console.log('debug Clear Notification Success Start for ' +  lastGuildIndex + '  id: ' + data.data._id);
+	function postClearNotificationSuccess(data, rl) {
+		if (debug) console.log('debug Clear Notification Success Start for ' +  notifcationList[obj].name + '  id: ' + obj);
+		rlCurrent = rl
 		if (debugShowObject) console.log(data);
 		$('#loading #statusMessage').text('Clear  Notification for  '  +  notifcationList[obj].name);
 		
@@ -5784,7 +5826,7 @@ ul#tableOfContents > li {
             </label>
 			<div id="exportOptionSelector"></div>
             <input class="div-fetchData" type="submit" value="Fetch Group Data" />
-			<p>To ensure quick loads, only use one Third Party Tool at a time.</p>
+			<p>To ensure quick loads, only use one instance of Third Party Tool at a time.</p>
 			<p class="highlight">Guild ID/Party:</p>
 			<p>Enter either the word <i>party</i>, the Guild ID, or the URL for the Guild. The Guild ID is a string of characters similar to your User ID, e.g. 2ff9822b-27f2-4774-98da-db349b57a38e. The Guild ID appears at the end of the URL or on the left hand panel on the website. It is not the name of the guild. You can always just post the entire URL, which is much easier!</p>
 			<p class="highlight">Max Members to Fetch:</p>

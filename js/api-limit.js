@@ -1,3 +1,4 @@
+// Version 1.0
 // This code is licensed under the same terms as Habitica:
     // https://raw.githubusercontent.com/HabitRPG/habitrpg/develop/LICENSE
 
@@ -15,7 +16,7 @@
     // donoftime https://github.com/donoftime
     // me_and (Adam Dinwoodie) https://github.com/me-and
 	
-function makeAjaxCall(call, userId, apiToken){
+function makeAjaxCall(call, userId, apiToken, rl){
 	//////////////////////////////////////////////////////////////////////
 	////   Global Constants                              /////////////////
 	//////////////////////////////////////////////////////////////////////
@@ -26,12 +27,11 @@ function makeAjaxCall(call, userId, apiToken){
 	var debugShowObject				= true;
 
 	
-	var rlRemaining					= 30;
 	var rlRemainingMax				= 30; //Max number of tries before reset.
-	var rlResetDateTime				= '2000-01-01'
+	var rlRemainingSaftey			= 4; //Saftey before we try to revaluate number of tries before reset.
 	var rlTimeoutBasePeriod			= 5000 // Max time it can be timeout when random.
 	var rlTimeoutMaxPeriod 			= 7000 // Max time when we are close (Larger as there may be other calls happening)
-	var rlTimeoutMinPeriod 			= 2100 // 60s /30 s with a bit of fudge
+	var rlTimeoutMinPeriod 			= 2500 // 60s /30 s with a bit of fudge
 	var rlTimeoutCountDown 			= 1000 // Countdown per second for effect
 	var rlTimeoutPauseText			= [
 										'One moment! Let me fix my hair.',
@@ -60,48 +60,99 @@ function makeAjaxCall(call, userId, apiToken){
 										'Bad puns…it' + SINGLEQUOTE + 's how eye roll.',
 										'I' + SINGLEQUOTE + 'm a big fan of whiteboards. I find them quite re-markable.',
 										'If you were a fruit, you' + SINGLEQUOTE + 'd be a fine-apple',
-										'Wait, is that the light at the end of the tunnel or TRAIN!!!!'
-									] //Thank you to @ReyBisCO, @Ceran for contributing to some of the sayings 
+										'Wait, is that the light at the end of the tunnel or TRAIN!!!!',
+										'Close your eyes and count to ten, and I' + SINGLEQUOTE + 'll hide behind this shiny new webpage in the meantime',
+										'Bet you this will load faster than you can do five push-ups.... um maybe make that 50, 500, 5000?',
+										'One moment! Just need to sharpen my sword so I can find the pass in password.',
+										'Let' + SINGLEQUOTE + 's find the end of this rainbow!',
+										'Let' + SINGLEQUOTE + 's play hide and seek! I' + SINGLEQUOTE + 'll count to ... ',
+										'Inventing time travel: will be back immediately',
+										'Waiting on the world to change',
+										'Watching the sunrise',
+										'Transcribing the history of the entire world into every written language',
+										'Unlocking the secrets of the universe',
+										'Building an Ikea desk',
+										'Catching fireflies',
+										'Watching the snow fall',
+										'Temporarily indisposed (stuck as a starfish)',
+										'Putting some roots out',
+										'I' + SINGLEQUOTE + 'm dressed like this because it' + SINGLEQUOTE + 's laundry day. You want me to go change? Oh, okay...',
+										'Seeing if the refrigerator is running... In case I need to catch it...',
+										'Tea Time!',
+										'Running away from digital bugs',
+										'Setting up a Rube Goldberg machine',
+										'Taking Fido for a walk',
+										'Dusting off the cobwebs',
+										'Re-inventing the wheel',
+										'Do not disturb: cooking for the holidays',
+										'Zoned out and over-steeping the tea',
+										'Whatever you do, don' + SINGLEQUOTE + 't trust the person saying alt-f4 is the answer',
+										'Chopping vegetables',
+										'Out for lunch',
+										'Your call could not be connected. Please leave a message after the tone',
+										'Chasing after a dog chasing after a squirrel',
+										'Trying to get the stick out of the dog' + SINGLEQUOTE + 's mouth',
+										'Trying to convince the dog that this isn' + SINGLEQUOTE + 't a game and yes, I want my socks back',
+										'Waiting for bread to rise',
+										'Did you remember to buy milk?',
+										'Remember to sit up straight!',
+										'I' + SINGLEQUOTE + 'll be back before you can count to three. One. Two. Two and a half. Two and two thirds...',
+										'Feeding Gryphons...',
+										'Finding Testimonies...',
+										'Fighting the Laundromancer...'
+									] //Thank you to @ReyBisCO, @Ceran, @MaybeSteveRogers, @BradleyTheGreat  for contributing to some of the sayings 
 
-	
+
 	var timeoutPeriod = Math.floor((Math.random() * rlTimeoutMaxPeriod) + rlTimeoutBasePeriod);
 	var timeoutPeriodQueue = 0
 	var rlRemainingCurrent = rlRemainingMax
 	
-	
-	if (debug) console.log(rlRemaining)
-	if (debug) console.log(call.length)
-	if (debug) console.log(rlRemaining <= call.length)
-	if (debug) console.log(moment.utc().subtract(timeoutPeriod, 'ms').format())
-	if (debug) console.log(rlResetDateTime)
-	if (debug) console.log(moment.utc().subtract(timeoutPeriod, 'ms').isBefore(rlResetDateTime))
-	if (debug) console.log(moment(rlResetDateTime).diff(moment(), 'ms'))
+	//ensure there is a value to evaluate
+	if (rl.rlRemaining == undefined) rl.rlRemaining = rlRemainingSaftey
+	if (rl.rlResetDateTime == undefined) rl.rlResetDateTime = '2001-07-21T14:12:45Z'
 
 	
+
+	evalAjaxCall(call)
 	
-	if ((rlRemaining <= call.length) && (moment.utc().subtract(timeoutPeriod, 'ms').isBefore(rlResetDateTime))) {
-		//Throw the message we having to wait on....
-		$('#loading .good').show();
-		if (call[0].requestType == 'GET') {
-			$('#loading #statusType').text('Fetching') 
-		} else {
-			$('#loading #statusType').text('Posting') 
-		}
-
-		$('#loading #statusMessage').text(call[0].statusText);
-		$('#loading #statusWait').text('Looks like we been a little too busy talking to Habitica Servers. Lets get a drink and continue! Drinks for ' + Math.floor(timeoutPeriod/1000) + 's.'); 
-		
-		if (debug) console.log(moment(rlResetDateTime).diff(moment(), 'ms'))
-
-		timeoutPeriod = (moment(rlResetDateTime).diff(moment(), 'ms')) + timeoutPeriod
+	function evalAjaxCall(call) {
+		//Reset variables so when called again start with clean slate.
+		timeoutPeriod = Math.floor((Math.random() * rlTimeoutMaxPeriod) + rlTimeoutBasePeriod);
+		timeoutPeriodQueue = 0
 		rlRemainingCurrent = rlRemainingMax
-		drinksAjaxCall(call)
-	} else {
-		//all ok
-		
-		timeoutPeriod = 0
-		rlRemainingCurrent = rlRemaining
-		sendAjaxCall(call)
+
+		if (debug) console.log(rl.rlRemaining)
+		if (debug) console.log(call.length)
+		if (debug) console.log(rl.rlRemaining <= call.length)
+		if (debug) console.log(moment.utc().subtract(timeoutPeriod, 'ms').format())
+		if (debug) console.log(rl.rlResetDateTime)
+		if (debug) console.log(moment.utc().subtract(timeoutPeriod, 'ms').isBefore(rl.rlResetDateTime))
+		if (debug) console.log(moment(rl.rlResetDateTime).diff(moment(), 'ms'))
+
+		if ((rl.rlRemaining < rlRemainingSaftey) && (rl.rlRemaining <= call.length) && (moment.utc().subtract(timeoutPeriod, 'ms').isBefore(rl.rlResetDateTime))) {
+			//Throw the message we having to wait on....
+			$('#loading .good').show();
+			if (call[0].requestType == 'GET') {
+				$('#loading #statusType').text('Fetching') 
+			} else {
+				$('#loading #statusType').text('Posting') 
+			}
+
+			$('#loading #statusMessage').text(call[0].statusText);
+			$('#loading #statusWait').text('Looks like we been a little too busy talking to Habitica Servers. Lets get a drink and continue! Drinks for ' + Math.floor(timeoutPeriod/1000) + 's.'); 
+			
+			if (debug) console.log(moment(rl.rlResetDateTime).diff(moment(), 'ms'))
+
+			timeoutPeriod = (moment(rl.rlResetDateTime).diff(moment(), 'ms')) + timeoutPeriod
+			rlRemainingCurrent = rlRemainingMax
+			drinksAjaxCall(call)
+		} else {
+			//all ok
+			
+			timeoutPeriod = 0
+			rlRemainingCurrent = rl.rlRemaining
+			sendAjaxCall(call)
+		}
 	}
 	
 	//Pause while we get a reset.
@@ -109,7 +160,7 @@ function makeAjaxCall(call, userId, apiToken){
 		
 		if (debug) console.log('Getting Drinks for ' + timeoutPeriod)
 		setTimeout(function () {
-			$('#loading #statusWait').text('Looks like we been a little too busy talking to Habitica Servers. Lets get a drink and continue! Drinks for ' + Math.floor(timeoutPeriod/1000)); 
+			$('#loading #statusWait').text('Looks like we been a little too busy talking to Habitica Servers. Lets get a drink and continue! Drinks for ' + Math.floor(timeoutPeriod/1000) + 's.'); 
 			timeoutPeriod = timeoutPeriod - rlTimeoutCountDown
 			if (timeoutPeriod > rlTimeoutCountDown) {	
 				drinksAjaxCall(call)
@@ -121,6 +172,10 @@ function makeAjaxCall(call, userId, apiToken){
 	
 	function sendAjaxCall(call) {
 		if (debug) console.log('Sending Ajax call after ' + timeoutPeriod)
+			
+		var tempBox = []
+		var tempBox_MaxWait = 0
+		
 		setTimeout(function () {
 			if (rlRemainingCurrent < call.length) {
 				timeoutPeriodQueue = rlTimeoutMinPeriod
@@ -128,29 +183,44 @@ function makeAjaxCall(call, userId, apiToken){
 				timeoutPeriodQueue = 0
 			}
 			$.each(call, function(index,obj){
-				
-				setTimeout(function () {
-					$('#loading .good').show();
-					if (obj.requestType == 'GET') {
-						$('#loading #statusType').text('Fetching') 
-					} else {
-						$('#loading #statusType').text('Posting') 
-					}
+				//Check if we need breather to evaluate
+				if ((rlRemainingCurrent >= rlRemainingSaftey) || (timeoutPeriodQueue == 0)) {
+					tempBox_MaxWait = timeoutPeriodQueue * index
+					setTimeout(function () {
+						$('#loading .good').show();
+						if (obj.requestType == 'GET') {
+							$('#loading #statusType').text('Fetching') 
+						} else {
+							$('#loading #statusType').text('Posting') 
+						}
 
-					$('#loading #statusMessage').text(obj.statusText);
-				
-					if (timeoutPeriodQueue > 0 ) {
-						var randomText = Math.floor((Math.random() * rlTimeoutPauseText.length));
-						$('#loading #statusWait').text(rlTimeoutPauseText[randomText])
-					} else {
-						$('#loading #statusWait').text('Fluffy Bunny... I think I can swallow this...')
-					}	
+						$('#loading #statusMessage').text(obj.statusText);
 					
-					execAjaxCall(obj.requestType, obj.urlTo, obj.newData, obj.fnSuccess, obj.fnFailure)
-					
-				}, timeoutPeriodQueue * index)
+						if (timeoutPeriodQueue > 0 ) {
+							var randomText = Math.floor((Math.random() * rlTimeoutPauseText.length));
+							$('#loading #statusWait').text(rlTimeoutPauseText[randomText])
+						} else {
+							$('#loading #statusWait').text('Fluffy Bunny... I think I can swallow this...')
+						}	
+						
+						execAjaxCall(obj.requestType, obj.urlTo, obj.newData, obj.fnSuccess, obj.fnFailure)
+						
+					}, timeoutPeriodQueue * index)
+				} else {
+					tempBox.push(obj)
+				}
 				rlRemainingCurrent--
 			});
+			if (tempBox.length > 0) {
+				setTimeout(function () {
+					if (debug) console.log('Running again to check current RL for the calls of ' + tempBox.length)	
+					
+					call = tempBox 
+					evalAjaxCall(call)
+							
+				}, tempBox_MaxWait + timeoutPeriodQueue)
+			}
+
 		}, timeoutPeriod)
 	}
 
@@ -171,25 +241,28 @@ function makeAjaxCall(call, userId, apiToken){
 		//this section is executed when the server responds with no error 
 		jqxhr.done(function(data){
 			if (debug) console.log('Success! ' + urlTo)
-			rlRemaining = jqxhr.getResponseHeader('X-RateLimit-Remaining')
-			rlResetDateTime = jqxhr.getResponseHeader('X-RateLimit-Reset')
-			fnSuccess(data)
+			if (debug) console.log('Remaining ' + jqxhr.getResponseHeader('X-RateLimit-Remaining') + '  Reset: '+ jqxhr.getResponseHeader('X-RateLimit-Reset'))
+			rl.rlRemaining = jqxhr.getResponseHeader('X-RateLimit-Remaining')
+			rl.rlResetDateTime = jqxhr.getResponseHeader('X-RateLimit-Reset')
+			fnSuccess(data, rl)
 			
 		});
 		//this section is executed when the server responds with error
 		jqxhr.fail(function(data){
 			if (debug) console.log('Fail! ' + urlTo)
 			
-			var timeoutPeriod = jqxhr.getResponseHeader('Retry-After') + Math.floor((Math.random() * rlTimeoutBasePeriod) + 1);
 			if (data.status == 429) {
-				if (debug) console.log("getting header Retry-After: " + jqxhr.getResponseHeader('Retry-After'));
+				var timeoutPeriod = jqxhr.getResponseHeader('Retry-After')*1000 + Math.floor((Math.random() * rlTimeoutBasePeriod) + 1);
+				if (debug) console.log("getting header Retry-After: " + jqxhr.getResponseHeader('Retry-After') + '  ms: ' + timeoutPeriod);
 				//call again
 				$('#loading #statusWait').text('Opps I lost count, one moment...'); 
 				setTimeout(function () {
 					execAjaxCall(requestType, urlTo, newData, fnSuccess, fnFailure)
 				}, timeoutPeriod);
 			} else {
-				fnFailure(data)
+				rl.rlRemaining = jqxhr.getResponseHeader('X-RateLimit-Remaining')
+				rl.rlResetDateTime = jqxhr.getResponseHeader('X-RateLimit-Reset')
+				fnFailure(data, rl)
 			}
 			
 		})
