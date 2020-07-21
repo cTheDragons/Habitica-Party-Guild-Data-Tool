@@ -1,4 +1,4 @@
-url<!doctype html>
+<!doctype html>
 <html lang="en">
 <head>
     <meta charset="utf-8">
@@ -872,15 +872,16 @@ var exportOption 			 	= 'babyBear';
 var exportFormat			 	= 1;
 var groupDropDownShow			= false;
 var maxMembersToFetch 			; //hold the max members to fetch input (will be rounded up to nearest 30 due to function)
-var maxMembersToFetch 			; //hold the max members to fetch input (will be rounded up to nearest 30 due to function)
+var maxMembersStart 			; //hold the max members to fetch input (will be rounded up to nearest 30 due to function)
 
 var rlRemaining					= 30;
 var rlRemainingMax				= 30; //Max number of tries before reset.
 var rlResetDateTime				= '2000-01-01'
-var rlTimeOutBasePeriod			= 5000 // Max time it can be timeout when random.
-var rlTimeOutMaxPeriod 			= 7000 // Max time when we are close (Larger as there may be other calls happening)
-var rlTimeOutMinPeriod 			= 2010 // 60s /30 s with a bit of fudge
-var rlTimeOutPauseText			= [
+var rlTimeoutBasePeriod			= 5000 // Max time it can be timeout when random.
+var rlTimeoutMaxPeriod 			= 7000 // Max time when we are close (Larger as there may be other calls happening)
+var rlTimeoutMinPeriod 			= 2100 // 60s /30 s with a bit of fudge
+var rlTimeoutCountDown 			= 1000 // Countdown per second for effect
+var rlTimeoutPauseText			= [
 									'One moment! Let me fix my hair.',
 									'Where did I put my keys?',
 									'How do you start a dragon?',
@@ -900,12 +901,18 @@ var rlTimeOutPauseText			= [
 									'Never gonna give you up, never gonna let you down, never gonna - oh wait that'+ SINGLEQUOTE +'s the wrong file',
 									'Maybe the real elevator music is the friends we made along the way',
 									'Game time! The one who moves first loses.',
-									'Well, Well, Well, Three holes in the ground.'
+									'Well, Well, Well, Three holes in the ground.',
+									'It' + SINGLEQUOTE + 's impossible to put down a book about anti-gravity.',
+									'Ohhhh.. I found a digital penny!',
+									'Time flies like an arrow… Fruit flies like a banana!',
+									'Bad puns…it' + SINGLEQUOTE + 's how eye roll.',
+									'I' + SINGLEQUOTE + 'm a big fan of whiteboards. I find them quite re-markable.',
+									'If you were a fruit, you' + SINGLEQUOTE + 'd be a fine-apple'
 								] //Thank you to @ReyBisCO, @Ceran  
 var ajaxTryAgainMax				= 3;
 
-var debug						= false;
-var debugShowObject				= false;
+var debug						= true;
+var debugShowObject				= true;
 
 if (debug || debugShowObject) serverName = '*** TURN DEBUG OFF! *** - ' + serverName
 if (debug) console.log('debug 1');
@@ -1085,6 +1092,9 @@ if (url_vars.hasOwnProperty("groupId")) {
 if (url_vars.hasOwnProperty("max")) {
 	$("#maxMembersToFetch").val(url_vars.max);
 }
+if (url_vars.hasOwnProperty("start")) {
+	$("#maxMembersStart").val(url_vars.max);
+}
 if (url_vars.hasOwnProperty("hide_avatar")) {
 	if ((url_vars.hide_avatar == "checked") || (url_vars.hide_avatar == "true"))
 		$("#hideAvatar").prop("checked", true);
@@ -1179,6 +1189,9 @@ if (debug) console.log('debug #userApiDetailsForm (Fetch Data)');
     apiToken = $('#apiToken').val();
 	groupId = $('#groupId').val();
 	maxMembersToFetch = $('#maxMembersToFetch').val();
+	maxMembersStart = $('#maxMembersStart').val();
+	//make sure it is in a suitable UserId format
+	if (maxMembersStart <> '') maxMembersStart = maxMembersStart.replace(/[^a-gA-G0-9]+/g,"").concat('000000000000000000000000000000000000').substring(0,32).replace(/(........)(....)(....)(....)(........)/, "$1-$2-$3-$4-$5");
 	hideAvatar = $('#hideAvatar')[0].checked;
 	clearNotification = $('#clearNotification')[0].checked;
 	exportOption = $('#exportOption').val()
@@ -1424,7 +1437,11 @@ function fetchData() {
 			fetchMembers()
 		} else {
 			if (lastListMemberId == '') {
-				completeUrl = serverUrl + serverPathGroup + '/' + groupId + serverPathGroupMemberPart ;
+				if (maxMembersStart == '') {
+					completeUrl = serverUrl + serverPathGroup + '/' + groupId + serverPathGroupMemberPart ;
+				} else {
+					completeUrl = serverUrl + serverPathGroup + '/' + groupId + serverPathGroupMemberPart + '?lastId=' + maxMembersStart;
+				}
 			} else {
 				completeUrl = serverUrl + serverPathGroup + '/' + groupId + serverPathGroupMemberPart + '?lastId=' + lastListMemberId;
 			}
@@ -1501,6 +1518,11 @@ function fetchData() {
 			if (debug) console.log('debug MEMBER DATA - oK getting ready the first list (' + lastMemberIndex + ')');
 	
 			//Do a quick loop so we can check if leader is needed $$$I'm sure there is a better way but it is late
+			//Set the desired length
+			if (memberListToFetch.length > maxMembersToFetch) {
+				memberListToFetch.length = maxMembersToFetch
+			}
+			
 			memberListToFetch_idOnly = []
 			$.each(memberListToFetch, function(index, obj){
 				memberListToFetch_idOnly.push(obj.id)
@@ -4782,7 +4804,7 @@ function parseData() {
 }
 
 function makeAjaxCall(call){
-	var timeoutPeriod = Math.floor((Math.random() * rlTimeOutMaxPeriod) + rlTimeOutBasePeriod);
+	var timeoutPeriod = Math.floor((Math.random() * rlTimeoutMaxPeriod) + rlTimeoutBasePeriod);
 	var timeoutPeriodQueue = 0
 	var rlRemainingCurrent = rlRemainingMax
 	
@@ -4798,49 +4820,79 @@ function makeAjaxCall(call){
 	
 	
 	if ((rlRemaining <= call.length) && (moment.utc().subtract(timeoutPeriod, 'ms').isBefore(rlResetDateTime))) {
-		$('#loading #statusWait').text('Looks like we been a little too busy talking to Habitica Servers. Lets get a drink and continue! '); 
+		//Throw the message we having to wait on....
+		$('#loading .good').show();
+		if (call[0].requestType == 'GET') {
+			$('#loading #statusType').text('Fetching') 
+		} else {
+			$('#loading #statusType').text('Posting') 
+		}
+
+		$('#loading #statusMessage').text(call[0].statusText);
+		$('#loading #statusWait').text('Looks like we been a little too busy talking to Habitica Servers. Lets get a drink and continue! Drinks for ' + Math.floor(timeoutPeriod/1000) + 's.'); 
+		
 		if (debug) console.log(moment(rlResetDateTime).diff(moment(), 'ms'))
 
 		timeoutPeriod = (moment(rlResetDateTime).diff(moment(), 'ms')) + timeoutPeriod
 		rlRemainingCurrent = rlRemainingMax
+		drinksAjaxCall(call)
 	} else {
 		//all ok
 		timeoutPeriod = 0
 		rlRemainingCurrent = rlRemaining
+		sendAjaxCall(call)
 	}
 	
-	setTimeout(function () {
-		if (rlRemainingCurrent < call.length) {
-			timeoutPeriodQueue = rlTimeOutMinPeriod
-		} else {
-			timeoutPeriodQueue = 0
-		}
-		$.each(call, function(index,obj){
-			
-			if (debug) console.log('Call after ' + timeoutPeriodQueue + ' ' + moment().format() )
-			setTimeout(function () {
-				$('#loading .good').show();
-				if (obj.requestType == 'GET') {
-					$('#loading #statusType').text('Fetching') 
-				} else {
-					$('#loading #statusType').text('Posting') 
-				}
+	//Pause while we get a reset.
+	function drinksAjaxCall(call) {
+		
+		if (debug) console.log('Getting Drinks for ' + timeoutPeriod)
+		setTimeout(function () {
+			$('#loading #statusWait').text('Looks like we been a little too busy talking to Habitica Servers. Lets get a drink and continue! Drinks for ' + Math.floor(timeoutPeriod/1000)); 
+			timeoutPeriod = timeoutPeriod - rlTimeoutCountDown
+			if (timeoutPeriod > rlTimeoutCountDown) {	
+				drinksAjaxCall(call)
+			} else {
+				sendAjaxCall(call)
+			}
+		}, rlTimeoutCountDown);
+	}
+	
+	function sendAjaxCall(call) {
+		if (debug) console.log('Sending Ajax call after ' + timeoutPeriod)
+		setTimeout(function () {
+			if (rlRemainingCurrent < call.length) {
+				timeoutPeriodQueue = rlTimeoutMinPeriod
+			} else {
+				timeoutPeriodQueue = 0
+			}
+			$.each(call, function(index,obj){
+				
+				setTimeout(function () {
+					$('#loading .good').show();
+					if (obj.requestType == 'GET') {
+						$('#loading #statusType').text('Fetching') 
+					} else {
+						$('#loading #statusType').text('Posting') 
+					}
 
-				$('#loading #statusMessage').text(obj.statusText);
-			
-				if (timeoutPeriodQueue > 0 ) {
-					var randomText = Math.floor((Math.random() * rlTimeOutPauseText.length));
-					$('#loading #statusWait').text(rlTimeOutPauseText[randomText])
-				} else {
-					$('#loading #statusWait').text('')
-				}	
+					$('#loading #statusMessage').text(obj.statusText);
 				
-				execAjaxCall(obj.requestType, obj.urlTo, obj.newData, obj.fnSuccess, obj.fnFailure)
-				
-			}, timeoutPeriodQueue * index)
-			rlRemainingCurrent--
-		});
-    }, timeoutPeriod)
+					if (timeoutPeriodQueue > 0 ) {
+						var randomText = Math.floor((Math.random() * rlTimeoutPauseText.length));
+						$('#loading #statusWait').text(rlTimeoutPauseText[randomText])
+					} else {
+						$('#loading #statusWait').text('')
+					}	
+					
+					execAjaxCall(obj.requestType, obj.urlTo, obj.newData, obj.fnSuccess, obj.fnFailure)
+					
+				}, timeoutPeriodQueue * index)
+				rlRemainingCurrent--
+			});
+		}, timeoutPeriod)
+	}
+
 }
 
 function execAjaxCall(requestType, urlTo, newData, fnSuccess, fnFailure){
@@ -4869,7 +4921,7 @@ function execAjaxCall(requestType, urlTo, newData, fnSuccess, fnFailure){
 	jqxhr.fail(function(data){
 		if (debug) console.log('Fail! ' + urlTo)
 		
-		var timeoutPeriod = jqxhr.getResponseHeader('Retry-After') + Math.floor((Math.random() * rlTimeOutBasePeriod) + 1);
+		var timeoutPeriod = jqxhr.getResponseHeader('Retry-After') + Math.floor((Math.random() * rlTimeoutBasePeriod) + 1);
 		if (data.status == 429) {
 			if (debug) console.log("getting header Retry-After: " + jqxhr.getResponseHeader('Retry-After'));
 			//call again
@@ -5279,7 +5331,7 @@ ul#tableOfContents > li {
 </head>
 <body><div id="innerBody">	
 <h1><a href="https://habitica.com/">Habitica</a> Party & Guild Data Tool
-    <span class="showHideToggle" data-target="versionChanges" data-closemainsections="true">(v5.0)</span></h1><!-- VERSION TOGGLE -->
+    <span class="showHideToggle" data-target="versionChanges" data-closemainsections="true">(v5.1)</span></h1><!-- VERSION TOGGLE -->
 <div id="headerExtras"></div>
 <hr class="clear" />
 <div id="headerGroupExtras"></div>
@@ -5315,6 +5367,21 @@ ul#tableOfContents > li {
 <div id="versionChanges" class="hide"><!-- VERSION SECTION -->
     <h2>Version History</h2>
     <dl>
+		<dt>5.1 - Drink Tray Polished<span class="date">2021-07-22</span></dt>
+        <dd><ul>
+	        <li>Features:
+                <ul>
+					<li>Added in the ability to fetch start at any point to fetch the member list.</li>
+					<li>Removed the force round up from 30/60 users.</li>
+					<li>When completing a long pause, made it clear how long to wait.</li>
+				</ul>
+			</li>
+			<li>Documentation:
+                <ul>
+					<li>Updated documenation based on API limiting.</li>
+                </ul>
+            </li>	
+		</ul></dd>
 		<dt>5.0 - Lets not Limit the Drinks<span class="date">2021-07-21</span></dt>
         <dd><ul>
 	        <li>Features:
@@ -5877,6 +5944,9 @@ ul#tableOfContents > li {
 			<label for="maxMembersToFetch"><span>Max Members Details</span>
                 <input type="number" name="maxMembersToFetch" id="maxMembersToFetch" value="120" />
             </label>
+			<label for="maxMembersStart"><span>Start at UserId</span>
+                <input type="text" name="maxMembersStart" id="maxMembersStart" value="" />
+            </label>
 			<label for="hideAvatar"><span>Hide Avatar Images? (for faster load)</span>
                 <input type="checkbox" name="hideAvatar" id="hideAvatar" checked/>
             </label>
@@ -5885,16 +5955,14 @@ ul#tableOfContents > li {
             </label>
 			<div id="exportOptionSelector"></div>
             <input class="div-fetchData" type="submit" value="Fetch Group Data" />
+			<p>To ensure quick loads, only use one Third Party Tool at a time.</p>
 			<p class="highlight">Guild ID/Party:</p>
 			<p>Enter either the word <i>party</i>, the Guild ID, or the URL for the Guild. The Guild ID is a string of characters similar to your User ID, e.g. 2ff9822b-27f2-4774-98da-db349b57a38e. The Guild ID appears at the end of the URL or on the left hand panel on the website. It is not the name of the guild. You can always just post the entire URL, which is much easier!</p>
 			<p class="highlight">Max Members to Fetch:</p>
-			<p>Max Members to fetch indicates how many people you want to fetch. The lesser the number the quicker the page will load. 120 users will take approximately 50 seconds; 1200 users approximately 4 minutes. Members fetched will always round up to the nearest 30, with the possible for extra 1 or 2 users for the leader or quest leader. There is a 120 second pause for every 1500 members requested to ensure Habitica Servers are not overloaded.</p>
+			<p>Max Members to fetch indicates how many people you want to fetch. The lesser the number the quicker the page will load. 120 users will take approximately 5 minutes; Members fetch may have a possible extra 1 or 2 users for the leader or quest leader. For guilds/parties over 25 users there is a up to 60 second pause and then a 2 second pause while fetching every member requested to ensure Habitica Servers are not overloaded.</p>
 			<div id="exportOptionDesc"></div>
             <p class="highlight">Privacy and security notes:</p>
             <ul>
-            <!--<li>If you access this page from the Data menu on the Habitica
-            website, your User ID will be automatically added to the form
-            above.</li> $$$ Maybe one day when the tool that good--->
             <li>Your API Token is a password - do not share it with anyone,
             not even the maintainer of this page if you are seeking help.</li>
             <li>When you enter your User ID and API Token here and click
