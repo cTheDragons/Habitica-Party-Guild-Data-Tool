@@ -907,7 +907,8 @@ var rlTimeoutPauseText			= [
 									'Time flies like an arrow… Fruit flies like a banana!',
 									'Bad puns…it' + SINGLEQUOTE + 's how eye roll.',
 									'I' + SINGLEQUOTE + 'm a big fan of whiteboards. I find them quite re-markable.',
-									'If you were a fruit, you' + SINGLEQUOTE + 'd be a fine-apple'
+									'If you were a fruit, you' + SINGLEQUOTE + 'd be a fine-apple',
+									'Wait, is that the light at the end of the tunnel or TRAIN!!!!'
 								] //Thank you to @ReyBisCO, @Ceran  
 var ajaxTryAgainMax				= 3;
 
@@ -1191,7 +1192,7 @@ if (debug) console.log('debug #userApiDetailsForm (Fetch Data)');
 	maxMembersToFetch = $('#maxMembersToFetch').val();
 	maxMembersStart = $('#maxMembersStart').val();
 	//make sure it is in a suitable UserId format
-	if (maxMembersStart <> '') maxMembersStart = maxMembersStart.replace(/[^a-gA-G0-9]+/g,"").concat('000000000000000000000000000000000000').substring(0,32).replace(/(........)(....)(....)(....)(........)/, "$1-$2-$3-$4-$5");
+	if (maxMembersStart != '') maxMembersStart = maxMembersStart.replace(/[^a-gA-G0-9]+/g,"").concat('000000000000000000000000000000000000').substring(0,32).replace(/(........)(....)(....)(....)(........)/, "$1-$2-$3-$4-$5");
 	hideAvatar = $('#hideAvatar')[0].checked;
 	clearNotification = $('#clearNotification')[0].checked;
 	exportOption = $('#exportOption').val()
@@ -4838,6 +4839,7 @@ function makeAjaxCall(call){
 		drinksAjaxCall(call)
 	} else {
 		//all ok
+		
 		timeoutPeriod = 0
 		rlRemainingCurrent = rlRemaining
 		sendAjaxCall(call)
@@ -4882,7 +4884,7 @@ function makeAjaxCall(call){
 						var randomText = Math.floor((Math.random() * rlTimeoutPauseText.length));
 						$('#loading #statusWait').text(rlTimeoutPauseText[randomText])
 					} else {
-						$('#loading #statusWait').text('')
+						$('#loading #statusWait').text('I think I can swallow this whole...')
 					}	
 					
 					execAjaxCall(obj.requestType, obj.urlTo, obj.newData, obj.fnSuccess, obj.fnFailure)
