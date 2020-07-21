@@ -39,7 +39,7 @@ Contributors:
 	<script src="js/habitica-markdown.min.js"></script> <!--- Markdown -->
 	<script src="js/habitica-avatar.js"></script>  <!--- Avatar Generation https://github.com/crookedneighbor/habitica-avatar -->
 	<script src="js/lodash.js"></script> <!--lodash / copy objects -->
-	
+	<script src="js/api-limit.js""></script> <!-- Personal Script used to handle Ajax calls with limiting-->
 
 	 <!--- https://datatables.net/download/ -->
 	<script type="text/javascript" src="https://cdn.datatables.net/v/dt/jszip-2.5.0/pdfmake-0.1.18/dt-1.10.12/b-1.2.2/b-colvis-1.2.2/b-flash-1.2.2/b-html5-1.2.2/b-print-1.2.2/se-1.2.0/datatables.min.js"></script>
@@ -874,42 +874,6 @@ var groupDropDownShow			= false;
 var maxMembersToFetch 			; //hold the max members to fetch input (will be rounded up to nearest 30 due to function)
 var maxMembersStart 			; //hold the max members to fetch input (will be rounded up to nearest 30 due to function)
 
-var rlRemaining					= 30;
-var rlRemainingMax				= 30; //Max number of tries before reset.
-var rlResetDateTime				= '2000-01-01'
-var rlTimeoutBasePeriod			= 5000 // Max time it can be timeout when random.
-var rlTimeoutMaxPeriod 			= 7000 // Max time when we are close (Larger as there may be other calls happening)
-var rlTimeoutMinPeriod 			= 2100 // 60s /30 s with a bit of fudge
-var rlTimeoutCountDown 			= 1000 // Countdown per second for effect
-var rlTimeoutPauseText			= [
-									'One moment! Let me fix my hair.',
-									'Where did I put my keys?',
-									'How do you start a dragon?',
-									'Did I break a nail?',
-									'I don' + SINGLEQUOTE + 't need to ask for directions!',
-									'Sword, sheild, food, shoes, I think I have everything for the quest!',
-									'Did you hear that? I think something is under the bed...',
-									'Watching the pot boil',
-									'Let' + SINGLEQUOTE + 's see how long it takes paint to dry',
-									'Wait, what did I come in here for?',
-									'Intermission! Do you have snacks and drinks?',
-									'Bet I could run outside and touch that tree before you knew I was gone',
-									'Did I leave something on the stove?',
-									'Hold the phone! ... and the mouse and keyboard?',
-									'Let me pour you a nice cup of tea first',
-									'Destiny waits for no man... but it will for a computer',
-									'Never gonna give you up, never gonna let you down, never gonna - oh wait that'+ SINGLEQUOTE +'s the wrong file',
-									'Maybe the real elevator music is the friends we made along the way',
-									'Game time! The one who moves first loses.',
-									'Well, Well, Well, Three holes in the ground.',
-									'It' + SINGLEQUOTE + 's impossible to put down a book about anti-gravity.',
-									'Ohhhh.. I found a digital penny!',
-									'Time flies like an arrow… Fruit flies like a banana!',
-									'Bad puns…it' + SINGLEQUOTE + 's how eye roll.',
-									'I' + SINGLEQUOTE + 'm a big fan of whiteboards. I find them quite re-markable.',
-									'If you were a fruit, you' + SINGLEQUOTE + 'd be a fine-apple',
-									'Wait, is that the light at the end of the tunnel or TRAIN!!!!'
-								] //Thank you to @ReyBisCO, @Ceran  
 var ajaxTryAgainMax				= 3;
 
 var debug						= true;
@@ -1260,7 +1224,7 @@ function fetchGroupForUser() {
 	var call = []
 	call.push({requestType: 'GET', urlTo: serverUrl + serverPathGroup, newData: newData, fnSuccess: fetchGroupForUserSuccess, fnFailure: fetchFailure, statusText: 'Getting Joined Guilds/Party List'})
 	
-	makeAjaxCall(call)
+	makeAjaxCall(call, userId, apiToken)
 	
 	function fetchFailure(data) {
         if (debug) console.log('debug fetchFailure start');
@@ -1316,7 +1280,7 @@ function fetchData() {
     // fetch the user's own content (guilds, parties):
 	call.push({requestType: 'GET', urlTo: serverUrl + serverPathUser, newData: '', fnSuccess: fetchUserSuccess, fnFailure: fetchFailure, statusText: 'Asking for User Data'})
 	call.push({requestType: 'GET', urlTo: serverUrl + serverPathContent, newData: '', fnSuccess: fetchContentSuccess, fnFailure: fetchFailure, statusText: 'Asking for Generic Content'})
-	makeAjaxCall(call)
+	makeAjaxCall(call, userId, apiToken)
 	
 
 	function fetchFailure(data) {
@@ -1373,7 +1337,7 @@ function fetchData() {
 
 		call = [] //clear list
 		call.push({requestType: 'GET', urlTo: serverUrl + serverPathGroup + '/' + groupId, newData: '', fnSuccess: fetchGuildSuccess, fnFailure: fetchFailure, statusText: 'Asking for Guild Data'})
-		makeAjaxCall(call)
+		makeAjaxCall(call, userId, apiToken)
 		
 	}
 		
@@ -1395,7 +1359,7 @@ function fetchData() {
 	
 		call = [] //clear list
 		call.push({requestType: 'GET', urlTo: serverUrl + serverPathParty, newData: '', fnSuccess: fetchPartySuccess, fnFailure: fetchFailure, statusText: 'Asking for Party Data'})
-		makeAjaxCall(call)
+		makeAjaxCall(call, userId, apiToken)
 		
 	}	
 	
@@ -1416,7 +1380,7 @@ function fetchData() {
 		
 		call = [] //clear list
 		call.push({requestType: 'GET', urlTo: serverUrl + serverPathChallengeGroup + '/' + actualGroupId, newData: '', fnSuccess: fetchChallengeGroupSuccess, fnFailure: fetchFailure, statusText: 'Asking for Challenge Data for Group'})
-		makeAjaxCall(call)
+		makeAjaxCall(call, userId, apiToken)
 		
 	}	
 	
@@ -1451,7 +1415,7 @@ function fetchData() {
 			if (debugShowObject) console.log(completeUrl);	
 			call = []
 			call.push({requestType: 'GET', urlTo: completeUrl, newData: '', fnSuccess: fetchMemberListSuccess, fnFailure: fetchMemberListFailure, statusText: 'Asking for Member List (' + memberListToFetch.length + ' so far)'})
-			makeAjaxCall(call)
+			makeAjaxCall(call, userId, apiToken)
 		}
 	}
 
@@ -1555,7 +1519,7 @@ function fetchData() {
 			call.push({requestType: 'GET', urlTo: serverUrl + serverPathMemberProfilePart + '/' + obj.id, newData: '', fnSuccess: fetchMemberSuccess, fnFailure: fetchMemberFail, statusText: 'Asking for Member Data ... (This can take a while - ' + (index + 1) + ' of ' + listToFetch.length + ')'})
 
 		});
-		makeAjaxCall(call)		
+		makeAjaxCall(call, userId, apiToken)		
 
 	}
 		
@@ -1638,7 +1602,7 @@ function postToggleLeaderOnlyChallenge(newValue) {
 
 
 		call.push({requestType: 'PUT', urlTo: urlToPost, newData: JSON.stringify(newData), fnSuccess: postToggleLeaderOnlyChallengeSuccess, fnFailure: postToggleLeaderOnlyChallengeFailure, statusText: 'Toggling Leader Only Challenges'})
-		makeAjaxCall(call)
+		makeAjaxCall(call, userId, apiToken)
 		
 	}
 		
@@ -1725,7 +1689,7 @@ function postChangeLeader(rowData, uuidIndex, nameIndex) {
 		if (debugShowObject) console.log(urlToPost);
 
 		call.push({requestType: 'PUT', urlTo: urlToPost, newData: JSON.stringify(newData), fnSuccess: postChangeLeaderSuccess, fnFailure: postChangeLeaderFailure, statusText: 'Changing Leaders'})
-		makeAjaxCall(call)
+		makeAjaxCall(call, userId, apiToken)
 		
 	}
 		
@@ -1852,7 +1816,7 @@ function postRemoveUser(rowData, uuidIndex, nameIndex) {
 		if (debugShowObject) console.log(urlToPost);
 
 		call.push({requestType: 'POST', urlTo: urlToPost, newData: '', fnSuccess: postRemoveUserSuccess, fnFailure: postRemoveUserFailure, statusText: 'Remvoing user ' + obj[actionIndex]})
-		makeAjaxCall(call)
+		makeAjaxCall(call, userId, apiToken)
 		
 	}
 		
@@ -1898,7 +1862,7 @@ function postRemoveUser(rowData, uuidIndex, nameIndex) {
 		
 		var call = []
 		call.push({requestType: 'POST', urlTo: urlToPost, newData: JSON.stringify(newData), fnSuccess: postRemoveUserSendPMSuccess, fnFailure: postRemoveUserSendPMFailure, statusText: 'Sending removal message to user ' + obj[uuidIndex]})
-		makeAjaxCall(call)
+		makeAjaxCall(call, userId, apiToken)
 		
 	}
 	
@@ -2028,7 +1992,7 @@ function postMessageUser(rowData, uuidIndex, nameIndex) {
 		
 		var call = []
 		call.push({requestType: 'POST', urlTo: urlToPost, newData: JSON.stringify(newData), fnSuccess: postMessageUserSuccess, fnFailure: postMessageUserFailure, statusText: 'Messaging: ' + obj[uuidIndex]})
-		makeAjaxCall(call)
+		makeAjaxCall(call, userId, apiToken)
 		
 	}
 		
@@ -2115,7 +2079,7 @@ function postGiveCard(cardType, rowData, uuidIndex, nameIndex) {
 		
 		var call = []
 		call.push({requestType: 'POST', urlTo: urlToPost, newData: '', fnSuccess: postGiveCardSuccess, fnFailure: postGiveCardFailure, statusText: 'Giving Card to: ' + obj[uuidIndex]})
-		makeAjaxCall(call)
+		makeAjaxCall(call, userId, apiToken)
 
 	}
 		
@@ -2195,7 +2159,7 @@ function postTransformMember(transformItem, rowData, uuidIndex, nameIndex) {
 		
 		var call = []
 		call.push({requestType: 'POST', urlTo: urlToPost, newData: '', fnSuccess: postTransformMemberSuccess, fnFailure: postTransformMemberFailure, statusText: 'Transforming ' + obj[actionIndex]})
-		makeAjaxCall(call)		
+		makeAjaxCall(call, userId, apiToken)		
 		
 	}
 		
@@ -2273,7 +2237,7 @@ function postChat() {
 		
 		var call = []
 		call.push({requestType: 'POST', urlTo: urlToPost, newData: JSON.stringify(newData), fnSuccess: postChatSuccess, fnFailure: postChatFailure, statusText: 'Posting chat message'})
-		makeAjaxCall(call)		
+		makeAjaxCall(call, userId, apiToken)		
 		
 	}
 		
@@ -2323,7 +2287,7 @@ function postQuestAccept() {
 
 		var call = []
 		call.push({requestType: 'POST', urlTo: urlToPost, newData: '', fnSuccess: postQuestAcceptSuccess, fnFailure: postQuestAcceptFailure, statusText: 'Posting accepting quest'})
-		makeAjaxCall(call)		
+		makeAjaxCall(call, userId, apiToken)		
 	}
 		
 
@@ -2373,7 +2337,7 @@ function postQuestReject() {
 		
 		var call = []
 		call.push({requestType: 'POST', urlTo: urlToPost, newData: '', fnSuccess: postQuestRejectSuccess, fnFailure: postQuestRejectFailure, statusText: 'Rejecting Quest'})
-		makeAjaxCall(call)		
+		makeAjaxCall(call, userId, apiToken)		
 		
 	}
 		
@@ -2424,7 +2388,7 @@ function postQuestStart() {
 		
 		var call = []
 		call.push({requestType: 'POST', urlTo: urlToPost, newData: '', fnSuccess: postQuestStartSuccess, fnFailure: postQuestStartFailure, statusText: 'Force Starting Quest'})
-		makeAjaxCall(call)		
+		makeAjaxCall(call, userId, apiToken)		
 		
 	}
 		
@@ -2473,7 +2437,7 @@ function postQuestLeave() {
 		
 		var call = []
 		call.push({requestType: 'POST', urlTo: urlToPost, newData: '', fnSuccess: postQuestLeaveSuccess, fnFailure: postQuestLeaveFailure, statusText: 'Leaving Quest'})
-		makeAjaxCall(call)	
+		makeAjaxCall(call, userId, apiToken)	
 		
 	}
 		
@@ -2524,7 +2488,7 @@ function postQuestAbort() {
 		
 		var call = []
 		call.push({requestType: 'POST', urlTo: urlToPost, newData: '', fnSuccess: postQuestAbortSuccess, fnFailure: postQuestAbortFailure, statusText: 'Aborting Quest'})
-		makeAjaxCall(call)	
+		makeAjaxCall(call, userId, apiToken)	
 	}
 		
 
@@ -2578,7 +2542,7 @@ function postClearNotification(notifcationList) {
 		
 		var call = []
 		call.push({requestType: 'POST', urlTo: urlToPost, newData: '', fnSuccess: postClearNotificationSuccess, fnFailure: postClearNotificationFail, statusText: 'Clear Notifications for ' + notifcationList[obj].name })
-		makeAjaxCall(call)		
+		makeAjaxCall(call, userId, apiToken)		
 
 			
 	}
@@ -4804,144 +4768,7 @@ function parseData() {
 	
 }
 
-function makeAjaxCall(call){
-	var timeoutPeriod = Math.floor((Math.random() * rlTimeoutMaxPeriod) + rlTimeoutBasePeriod);
-	var timeoutPeriodQueue = 0
-	var rlRemainingCurrent = rlRemainingMax
-	
-	
-	if (debug) console.log(rlRemaining)
-	if (debug) console.log(call.length)
-	if (debug) console.log(rlRemaining <= call.length)
-	if (debug) console.log(moment.utc().subtract(timeoutPeriod, 'ms').format())
-	if (debug) console.log(rlResetDateTime)
-	if (debug) console.log(moment.utc().subtract(timeoutPeriod, 'ms').isBefore(rlResetDateTime))
-	if (debug) console.log(moment(rlResetDateTime).diff(moment(), 'ms'))
 
-	
-	
-	if ((rlRemaining <= call.length) && (moment.utc().subtract(timeoutPeriod, 'ms').isBefore(rlResetDateTime))) {
-		//Throw the message we having to wait on....
-		$('#loading .good').show();
-		if (call[0].requestType == 'GET') {
-			$('#loading #statusType').text('Fetching') 
-		} else {
-			$('#loading #statusType').text('Posting') 
-		}
-
-		$('#loading #statusMessage').text(call[0].statusText);
-		$('#loading #statusWait').text('Looks like we been a little too busy talking to Habitica Servers. Lets get a drink and continue! Drinks for ' + Math.floor(timeoutPeriod/1000) + 's.'); 
-		
-		if (debug) console.log(moment(rlResetDateTime).diff(moment(), 'ms'))
-
-		timeoutPeriod = (moment(rlResetDateTime).diff(moment(), 'ms')) + timeoutPeriod
-		rlRemainingCurrent = rlRemainingMax
-		drinksAjaxCall(call)
-	} else {
-		//all ok
-		
-		timeoutPeriod = 0
-		rlRemainingCurrent = rlRemaining
-		sendAjaxCall(call)
-	}
-	
-	//Pause while we get a reset.
-	function drinksAjaxCall(call) {
-		
-		if (debug) console.log('Getting Drinks for ' + timeoutPeriod)
-		setTimeout(function () {
-			$('#loading #statusWait').text('Looks like we been a little too busy talking to Habitica Servers. Lets get a drink and continue! Drinks for ' + Math.floor(timeoutPeriod/1000)); 
-			timeoutPeriod = timeoutPeriod - rlTimeoutCountDown
-			if (timeoutPeriod > rlTimeoutCountDown) {	
-				drinksAjaxCall(call)
-			} else {
-				sendAjaxCall(call)
-			}
-		}, rlTimeoutCountDown);
-	}
-	
-	function sendAjaxCall(call) {
-		if (debug) console.log('Sending Ajax call after ' + timeoutPeriod)
-		setTimeout(function () {
-			if (rlRemainingCurrent < call.length) {
-				timeoutPeriodQueue = rlTimeoutMinPeriod
-			} else {
-				timeoutPeriodQueue = 0
-			}
-			$.each(call, function(index,obj){
-				
-				setTimeout(function () {
-					$('#loading .good').show();
-					if (obj.requestType == 'GET') {
-						$('#loading #statusType').text('Fetching') 
-					} else {
-						$('#loading #statusType').text('Posting') 
-					}
-
-					$('#loading #statusMessage').text(obj.statusText);
-				
-					if (timeoutPeriodQueue > 0 ) {
-						var randomText = Math.floor((Math.random() * rlTimeoutPauseText.length));
-						$('#loading #statusWait').text(rlTimeoutPauseText[randomText])
-					} else {
-						$('#loading #statusWait').text('I think I can swallow this whole...')
-					}	
-					
-					execAjaxCall(obj.requestType, obj.urlTo, obj.newData, obj.fnSuccess, obj.fnFailure)
-					
-				}, timeoutPeriodQueue * index)
-				rlRemainingCurrent--
-			});
-		}, timeoutPeriod)
-	}
-
-}
-
-function execAjaxCall(requestType, urlTo, newData, fnSuccess, fnFailure){
-	if (debug) console.log('execAjaxCall START ' + urlTo)
-	var jqxhr = $.ajax({
-		url: urlTo,
-		type: requestType,
-		contentType: 'application/json',
-		data: newData,
-		dataType: 'json',
-		cache: false,
-		beforeSend: function(xhr){
-				xhr.setRequestHeader('x-api-user', userId);
-				xhr.setRequestHeader('x-api-key',  apiToken);
-			},
-	});
-	//this section is executed when the server responds with no error 
-	jqxhr.done(function(data){
-		if (debug) console.log('Success! ' + urlTo)
-		rlRemaining = jqxhr.getResponseHeader('X-RateLimit-Remaining')
-		rlResetDateTime = jqxhr.getResponseHeader('X-RateLimit-Reset')
-		fnSuccess(data)
-		
-	});
-	//this section is executed when the server responds with error
-	jqxhr.fail(function(data){
-		if (debug) console.log('Fail! ' + urlTo)
-		
-		var timeoutPeriod = jqxhr.getResponseHeader('Retry-After') + Math.floor((Math.random() * rlTimeoutBasePeriod) + 1);
-		if (data.status == 429) {
-			if (debug) console.log("getting header Retry-After: " + jqxhr.getResponseHeader('Retry-After'));
-			//call again
-			$('#loading #statusWait').text('Opps I lost count, one moment...'); 
-			setTimeout(function () {
-				execAjaxCall(requestType, urlTo, newData, fnSuccess, fnFailure)
-			}, timeoutPeriod);
-		} else {
-			fnFailure(data)
-		}
-		
-	})
-	//this section is always executed
-	jqxhr.always(function(){
-
-
-	});
-};
 
 
 
