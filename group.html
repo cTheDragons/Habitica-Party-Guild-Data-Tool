@@ -1,4 +1,4 @@
-<!doctype html>
+url<!doctype html>
 <html lang="en">
 <head>
     <meta charset="utf-8">
@@ -75,6 +75,7 @@ var captureTableData = {};
 ////   Global Constants                              /////////////////
 //////////////////////////////////////////////////////////////////////
 var DOUBLEQUOTES = 		'"' //This is to make my life easier... 
+var SINGLEQUOTE = 		"'" //This is to make my life easier... 
 var SECTIONREFRESH = 	"SectionRefresh"
 
 
@@ -872,7 +873,37 @@ var exportFormat			 	= 1;
 var groupDropDownShow			= false;
 var maxMembersToFetch 			; //hold the max members to fetch input (will be rounded up to nearest 30 due to function)
 var maxMembersToFetch 			; //hold the max members to fetch input (will be rounded up to nearest 30 due to function)
+
+var rlRemaining					= 30;
+var rlRemainingMax				= 30; //Max number of tries before reset.
+var rlResetDateTime				= '2000-01-01'
+var rlTimeOutBasePeriod			= 5000 // Max time it can be timeout when random.
+var rlTimeOutMaxPeriod 			= 7000 // Max time when we are close (Larger as there may be other calls happening)
+var rlTimeOutMinPeriod 			= 2010 // 60s /30 s with a bit of fudge
+var rlTimeOutPauseText			= [
+									'One moment! Let me fix my hair.',
+									'Where did I put my keys?',
+									'How do you start a dragon?',
+									'Did I break a nail?',
+									'I don' + SINGLEQUOTE + 't need to ask for directions!',
+									'Sword, sheild, food, shoes, I think I have everything for the quest!',
+									'Did you hear that? I think something is under the bed...',
+									'Watching the pot boil',
+									'Let' + SINGLEQUOTE + 's see how long it takes paint to dry',
+									'Wait, what did I come in here for?',
+									'Intermission! Do you have snacks and drinks?',
+									'Bet I could run outside and touch that tree before you knew I was gone',
+									'Did I leave something on the stove?',
+									'Hold the phone! ... and the mouse and keyboard?',
+									'Let me pour you a nice cup of tea first',
+									'Destiny waits for no man... but it will for a computer',
+									'Never gonna give you up, never gonna let you down, never gonna - oh wait that'+ SINGLEQUOTE +'s the wrong file',
+									'Maybe the real elevator music is the friends we made along the way',
+									'Game time! The one who moves first loses.',
+									'Well, Well, Well, Three holes in the ground.'
+								] //Thank you to @ReyBisCO, @Ceran  
 var ajaxTryAgainMax				= 3;
+
 var debug						= false;
 var debugShowObject				= false;
 
@@ -1203,29 +1234,19 @@ function fetchGroupForUser() {
     if (debug) console.log('Fetch Groups for User');
 	
     $('#loading #serverName').text(serverName);
-    $('#loading .good').show();
     $('#loading .bad' ).hide();
+	$('#loading #statusError' ).text('');
 	
 	groupForUser = []; // clear from previous fetches
 
     var ajaxRunningCount = 1; // drops to 0 when all calls have succeeded
 
-	$('#loading #statusFetch').text('Getting Joined Guilds/Party List');
 	var newData = { "type": "guilds,party" }
-    $.ajax({
-        url: serverUrl + serverPathGroup,
-        type: 'GET',
-		contentType: 'application/json',
-		data: newData,
-        dataType: 'json',
-        cache: false,
-        beforeSend: function(xhr){
-                xhr.setRequestHeader('x-client', clientId);xhr.setRequestHeader('x-api-user', userId);
-                xhr.setRequestHeader('x-api-key',  apiToken);
-            },
-        success: fetchGroupForUserSuccess,
-        error: fetchFailure
-    });
+	
+	var call = []
+	call.push({requestType: 'GET', urlTo: serverUrl + serverPathGroup, newData: newData, fnSuccess: fetchGroupForUserSuccess, fnFailure: fetchFailure, statusText: 'Getting Joined Guilds/Party List'})
+	
+	makeAjaxCall(call)
 	
 	function fetchFailure(data) {
         if (debug) console.log('debug fetchFailure start');
@@ -1233,6 +1254,7 @@ function fetchGroupForUser() {
         $('#loading .bad' ).show();
         $('#documentationAndForm').show(); // in case user has done a re-fetch
         $('#documentationAndFormClose').hide();
+		$('#loading #statusError').text('Error : ' + data.responseJSON.error + '  -  ' + data.responseJSON.message ); 
 		console.log(data)
         if (debug) console.log('debug fetchGroupForUserSuccess not found');
     }
@@ -1251,6 +1273,7 @@ function fetchGroupForUser() {
 			enableShowHideToggling()
 		}
     }
+
 	
 }
 
@@ -1258,8 +1281,8 @@ function fetchData() {
     if (debug) console.log('debug fetchData start');
 	if (debug) console.log('Group ID is ' +  groupId);
     $('#loading #serverName').text(serverName);
-    $('#loading .good').show();
     $('#loading .bad' ).hide();
+	$('#loading #statusError' ).text('');
 	$('#loading .error' ).hide();
 	$('#loading .dblClickError' ).hide();
 	
@@ -1274,46 +1297,28 @@ function fetchData() {
 		
     var ajaxRunningCount = 3; // drops to 0 when all calls have succeeded
 	var ajaxRunningCount_Group = 1;
-
+	var call = []
 	
     // fetch the user's own content (guilds, parties):
-	$('#loading #statusFetch').text('Asking for User Data');
-    $.ajax({
-        url: serverUrl + serverPathUser,
-        type: 'GET',
-        dataType: 'json',
-        cache: false,
-        beforeSend: function(xhr){
-                xhr.setRequestHeader('x-client', clientId);xhr.setRequestHeader('x-api-user', userId);
-                xhr.setRequestHeader('x-api-key',  apiToken);
-            },
-        success: fetchUserSuccess,
-        error: fetchFailure
-    });
-
-    // fetch the site-wide content (gear names and stats, etc):
-	$('#loading #statusFetch').text('Asking for Generic Content');
-    $.ajax({
-        url: serverUrl + serverPathContent,
-        type: 'GET',
-        dataType: 'json',
-        cache: true,
-        success: fetchContentSuccess,
-        error: fetchFailure
-    });
+	call.push({requestType: 'GET', urlTo: serverUrl + serverPathUser, newData: '', fnSuccess: fetchUserSuccess, fnFailure: fetchFailure, statusText: 'Asking for User Data'})
+	call.push({requestType: 'GET', urlTo: serverUrl + serverPathContent, newData: '', fnSuccess: fetchContentSuccess, fnFailure: fetchFailure, statusText: 'Asking for Generic Content'})
+	makeAjaxCall(call)
 	
 
-	function fetchFailure() {
+	function fetchFailure(data) {
         if (debug) console.log('debug fetchFailure start');
         $('#loading .good').hide();
         $('#loading .bad' ).show();
         $('#documentationAndForm').show(); // in case user has done a re-fetch
         $('#documentationAndFormClose').hide();
+		$('#loading #statusError').text('Error : ' + data.responseJSON.error + '  -  ' + data.responseJSON.message ); 
+		console.log(data)
+        if (debug) console.log('debug fetchGroupForUserSuccess not found');
+		
         if (debug) console.log('debug fetchFailure end');
     }
 	function fetchUserSuccess(data) {
         if (debug) console.log('debug parseData User success start');
-		$('#loading #statusFetch').text('Fetching User Data');
         user = data.data;
 		
 		userIsAdmin = false;
@@ -1340,7 +1345,6 @@ function fetchData() {
     }
 	function fetchContentSuccess(data) {
         if (debug) console.log('debug parseData Content success start');
-		$('#loading #statusFetch').text('Fetching Generic Content');
         content = data.data;
 		if (debugShowObject) console.log(content);
         ajaxRunningCount--;
@@ -1352,19 +1356,11 @@ function fetchData() {
   
 	function fetchGuildData() {
 		if (debug) console.log('debug parseData Guild Data start');
+
+		call = [] //clear list
+		call.push({requestType: 'GET', urlTo: serverUrl + serverPathGroup + '/' + groupId, newData: '', fnSuccess: fetchGuildSuccess, fnFailure: fetchFailure, statusText: 'Asking for Guild Data'})
+		makeAjaxCall(call)
 		
-		$.ajax({
-			url: serverUrl + serverPathGroup + '/' + groupId,
-			type: 'GET',
-			dataType: 'json',
-			cache: false,
-			beforeSend: function(xhr){
-					xhr.setRequestHeader('x-client', clientId);xhr.setRequestHeader('x-api-user', userId);
-					xhr.setRequestHeader('x-api-key',  apiToken);
-			},
-			success: fetchGuildSuccess,
-			error: fetchFailure  
-		});
 	}
 		
 	function fetchGuildSuccess(data) {
@@ -1382,19 +1378,11 @@ function fetchData() {
 	
 	function fetchPartyData() {
 		if (debug) console.log('debug parseData Party Data start');
+	
+		call = [] //clear list
+		call.push({requestType: 'GET', urlTo: serverUrl + serverPathParty, newData: '', fnSuccess: fetchPartySuccess, fnFailure: fetchFailure, statusText: 'Asking for Party Data'})
+		makeAjaxCall(call)
 		
-		$.ajax({
-			url: serverUrl + serverPathParty,
-			type: 'GET',
-			dataType: 'json',
-			cache: false,
-			beforeSend: function(xhr){
-					xhr.setRequestHeader('x-client', clientId);xhr.setRequestHeader('x-api-user', userId);
-					xhr.setRequestHeader('x-api-key',  apiToken);
-			},
-			success: fetchPartySuccess,
-			error: fetchFailure 
-		});
 	}	
 	
 	function fetchPartySuccess(data) {
@@ -1412,24 +1400,14 @@ function fetchData() {
 	function fetchChallengeGroupData(actualGroupId) {
 		if (debug) console.log('debug parseData Challenge Data start');
 		
-		$('#loading #statusFetch').text('Asking for Challenge Data for Group');
-		$.ajax({
-			url: serverUrl + serverPathChallengeGroup + '/' + actualGroupId,
-			type: 'GET',
-			dataType: 'json',
-			cache: false,
-			beforeSend: function(xhr){
-					xhr.setRequestHeader('x-client', clientId);xhr.setRequestHeader('x-api-user', userId);
-					xhr.setRequestHeader('x-api-key',  apiToken);
-				},
-			success: fetchChallengeGroupSuccess,
-			error: fetchFailure
-		});
+		call = [] //clear list
+		call.push({requestType: 'GET', urlTo: serverUrl + serverPathChallengeGroup + '/' + actualGroupId, newData: '', fnSuccess: fetchChallengeGroupSuccess, fnFailure: fetchFailure, statusText: 'Asking for Challenge Data for Group'})
+		makeAjaxCall(call)
+		
 	}	
 	
 	function fetchChallengeGroupSuccess(data) {
         if (debug) console.log('debug parseData Challenge Group success start');
-		$('#loading #statusFetch').text('Fetching Challenge Data for the Group');
         challengeGroup = data.data;
 		if (debugShowObject) console.log(challengeGroup);
         ajaxRunningCount--;
@@ -1440,7 +1418,6 @@ function fetchData() {
 		
 	function fetchMemberList() {
 		if (debug) console.log('debug Member List start');
-		$('#loading #statusFetch').text('Asking for Member List (' + memberListToFetch.length + ' so far)');
 		var completeUrl = '';
 
 		if  (maxMembersToFetch == 0) {
@@ -1454,18 +1431,9 @@ function fetchData() {
 			
 
 			if (debugShowObject) console.log(completeUrl);	
-			$.ajax({
-				url: completeUrl,
-				type: 'GET',
-				dataType: 'json',
-				cache: false,
-				beforeSend: function(xhr){
-						xhr.setRequestHeader('x-client', clientId);xhr.setRequestHeader('x-api-user', userId);
-						xhr.setRequestHeader('x-api-key',  apiToken);
-				},
-				success: fetchMemberListSuccess,
-				error: fetchMemberListFailure
-			});
+			call = []
+			call.push({requestType: 'GET', urlTo: completeUrl, newData: '', fnSuccess: fetchMemberListSuccess, fnFailure: fetchMemberListFailure, statusText: 'Asking for Member List (' + memberListToFetch.length + ' so far)'})
+			makeAjaxCall(call)
 		}
 	}
 
@@ -1498,13 +1466,13 @@ function fetchData() {
 		}
 	}	
 		
-	function fetchMemberListFailure() {
+	function fetchMemberListFailure(data) {
 		if (debug) console.log('debug Member List Fail Start');
 		ajaxTryAgain++
 		if (ajaxTryAgain < ajaxTryAgainMax) {
 			fetchMemberList()
 		} else {
-			fetchFailure()
+			fetchFailure(data)
 		}
 	}
 		
@@ -1557,29 +1525,15 @@ function fetchData() {
 		if (debugShowObject) console.log(listToFetch.length)
 		lastMemberIndex = 0
 		
-		
+		call = [] //clear list
 		$.each(listToFetch, function(index, obj){
-			
-			timeoutPeriod = Math.floor(index / 1500)  * 120000
-			
-			
-			setTimeout(function () {
-				$('#loading #statusFetch').text('Asking for Member Data ... (This can take a while - ' + Math.ceil(index / 1500) + ' group of 1500)'); 
-				if (debug) console.log('debug MEMBER DATA -Yes we are finally here folks (' + obj.id + ' Index: + ' + index + ')');
-				$.ajax({
-					url: serverUrl + serverPathMemberProfilePart + '/' + obj.id,
-					type: 'GET',
-					dataType: 'json',
-					cache: false,
-					beforeSend: function(xhr){
-							xhr.setRequestHeader('x-client', clientId);xhr.setRequestHeader('x-api-user', userId);
-							xhr.setRequestHeader('x-api-key',  apiToken);
-					},
-					success: fetchMemberSuccess,
-					error: fetchMemberFail
-				});
-			}, timeoutPeriod);
+			if (debug) console.log('debug MEMBER DATA -Yes we are finally here folks (' + obj.id + ' Index: + ' + index + ')');			
+						
+			call.push({requestType: 'GET', urlTo: serverUrl + serverPathMemberProfilePart + '/' + obj.id, newData: '', fnSuccess: fetchMemberSuccess, fnFailure: fetchMemberFail, statusText: 'Asking for Member Data ... (This can take a while - ' + (index + 1) + ' of ' + listToFetch.length + ')'})
+
 		});
+		makeAjaxCall(call)		
+
 	}
 		
 		
@@ -1599,25 +1553,25 @@ function fetchData() {
 	function fetchMemberSuccess(data) {
 		if (debug) console.log('debug Member Sucess data start ' +  lastMemberIndex + '  id: ' + data.data._id);
 		var friendlyMemberIndex = lastMemberIndex + 1
-		$('#loading #statusFetch').text('Fetching Member '  +  friendlyMemberIndex);
+		//$('#loading #statusMessage').text('Fetching Member '  +  friendlyMemberIndex);
 		
 		members[data.data._id] = data.data;
 
 		fetchMemberComplete()
 	}	
 	
-	function fetchMemberComplete() {
+	function fetchMemberComplete(data) {
 		if (lastMemberIndex == listToFetch.length-1) { // all ajax calls have finished
 			if (debug) console.log('debug Lost ducks ' + (ajaxTryAgainNeed))
 			if (ajaxTryAgainNeed > 0) {
 				fetchMembers()
 			} else {
 				if (ajaxTryAgain < ajaxTryAgainMax) {
-					$('#loading #statusFetch').text('Preparing to Display the Data');
+					$('#loading #statusMessage').text('Preparing to Display the Data');
 					if (debugShowObject) console.log(members);
 					parseData();
 				} else {
-					fetchFailure()
+					fetchFailure(daa)
 				}
 			}
 		} else {
@@ -1654,23 +1608,15 @@ function postToggleLeaderOnlyChallenge(newValue) {
 	//This is done like this as receive ERR_INCOMPLETE_CHUNKED_ENCODING
 	function postNextToggleLeaderOnlyChallenge(){
 		var newData = {leaderOnly: {challenges: newValue}}
+		var urlToPost = serverUrl + serverPathGroup + '/' + groupId 
+		var call = []
 		if (debugShowObject) console.log(newData);
-		urlToPost = serverUrl + serverPathGroup + '/' + groupId //+ '?leader.id=' + obj[uuidIndex] 
 		if (debugShowObject) console.log(urlToPost);
-		$.ajax({
-			url: urlToPost,
-			type: 'PUT',
-			contentType: 'application/json',
-			data: JSON.stringify(newData),
-			dataType: 'json',
-			cache: false,
-			beforeSend: function(xhr){
-					xhr.setRequestHeader('x-client', clientId);xhr.setRequestHeader('x-api-user', userId);
-					xhr.setRequestHeader('x-api-key',  apiToken);
-				},
-			success: postToggleLeaderOnlyChallengeSuccess,
-			error: postToggleLeaderOnlyChallengeFailure
-		});		
+
+
+		call.push({requestType: 'PUT', urlTo: urlToPost, newData: JSON.stringify(newData), fnSuccess: postToggleLeaderOnlyChallengeSuccess, fnFailure: postToggleLeaderOnlyChallengeFailure, statusText: 'Toggling Leader Only Challenges'})
+		makeAjaxCall(call)
+		
 	}
 		
 
@@ -1748,23 +1694,16 @@ function postChangeLeader(rowData, uuidIndex, nameIndex) {
 	//This is done like this as receive ERR_INCOMPLETE_CHUNKED_ENCODING
 	function postNextChangeLeader(){
 		obj = rowData[0]
-		var newData = {leader: obj[uuidIndex]}
+		newData = {leader: obj[uuidIndex]}
 		urlToPost = serverUrl + serverPathGroup + '/' + groupId 
+		var call = []
+		
+		if (debugShowObject) console.log(newData);
 		if (debugShowObject) console.log(urlToPost);
-		$.ajax({
-			url: urlToPost,
-			type: 'PUT',
-			contentType: 'application/json',
-			data: JSON.stringify(newData),
-			dataType: 'json',
-			cache: false,
-			beforeSend: function(xhr){
-					xhr.setRequestHeader('x-client', clientId);xhr.setRequestHeader('x-api-user', userId);
-					xhr.setRequestHeader('x-api-key',  apiToken);
-				},
-			success: postChangeLeaderSuccess,
-			error: postChangeLeaderFailure
-		});		
+
+		call.push({requestType: 'PUT', urlTo: urlToPost, newData: JSON.stringify(newData), fnSuccess: postChangeLeaderSuccess, fnFailure: postChangeLeaderFailure, statusText: 'Changing Leaders'})
+		makeAjaxCall(call)
+		
 	}
 		
 
@@ -1879,24 +1818,19 @@ function postRemoveUser(rowData, uuidIndex, nameIndex) {
 	
 	//This is done like this as receive ERR_INCOMPLETE_CHUNKED_ENCODING
 	function postNextRemoveUser(){
-		$('#posting .good').show();
 		
 		obj = loopList[index]
 		urlToPost = serverUrl + serverPathGroup + '/' + groupId + serverPathRemoveUser + '/' + obj[uuidIndex] + '?message=' + removeMessage
-		$('#posting #statusPost').text('Removing ' + obj[actionIndex] );
 		if (debugShowObject) console.log(urlToPost);
-		$.ajax({
-			url: urlToPost,
-			type: 'POST',
-			dataType: 'json',
-			cache: false,
-			beforeSend: function(xhr){
-					xhr.setRequestHeader('x-client', clientId);xhr.setRequestHeader('x-api-user', userId);
-					xhr.setRequestHeader('x-api-key',  apiToken);
-				},
-			success: postRemoveUserSuccess,
-			error: postRemoveUserFailure
-		});		
+		
+		var call = []
+		
+		if (debugShowObject) console.log(newData);
+		if (debugShowObject) console.log(urlToPost);
+
+		call.push({requestType: 'POST', urlTo: urlToPost, newData: '', fnSuccess: postRemoveUserSuccess, fnFailure: postRemoveUserFailure, statusText: 'Remvoing user ' + obj[actionIndex]})
+		makeAjaxCall(call)
+		
 	}
 		
 
@@ -1914,7 +1848,6 @@ function postRemoveUser(rowData, uuidIndex, nameIndex) {
 
 	function postRemoveUserSuccess(data){
 		if (debug) console.log('debug postRemoveUserSucess start');
-		$('#posting #statusPost').text('Successfully Removed ' + obj[actionIndex] );
 		if (debugShowObject) console.log(data);
 		removeUserList += '\n\u2022  ' + obj[actionIndex]  
 		
@@ -1936,23 +1869,14 @@ function postRemoveUser(rowData, uuidIndex, nameIndex) {
 		privateMessage = privateMessage + ' "' + group.name + '".` ' + removeMessage
 		var newData = {message: privateMessage, toUserId: obj[uuidIndex]}
 		urlToPost = serverUrl + serverPathMessageUser 
-		$('#posting #statusPost').text('Messaging ' + obj[actionIndex] );
+
 		if (debugShowObject) console.log(urlToPost);
 		if (debugShowObject) console.log(newData);
-		$.ajax({
-			url: urlToPost,
-			type: 'POST',
-			contentType: 'application/json',
-			data: JSON.stringify(newData),
-			dataType: 'json',
-			cache: false,
-			beforeSend: function(xhr){
-					xhr.setRequestHeader('x-client', clientId);xhr.setRequestHeader('x-api-user', userId);
-					xhr.setRequestHeader('x-api-key',  apiToken);
-				},
-			success: postRemoveUserSendPMSuccess,
-			error: postRemoveUserSendPMFailure
-		});		
+		
+		var call = []
+		call.push({requestType: 'POST', urlTo: urlToPost, newData: JSON.stringify(newData), fnSuccess: postRemoveUserSendPMSuccess, fnFailure: postRemoveUserSendPMFailure, statusText: 'Sending removal message to user ' + obj[uuidIndex]})
+		makeAjaxCall(call)
+		
 	}
 	
 	function postRemoveUserSendPMFailure(data){
@@ -1968,7 +1892,6 @@ function postRemoveUser(rowData, uuidIndex, nameIndex) {
 
 	function postRemoveUserSendPMSuccess(data){
 		if (debug) console.log('debug postRemoveUserSendPMSuccess start');
-		$('#posting #statusPost').text('Successfully Messaged ' + obj[actionIndex] );
 		if (debugShowObject) console.log(data);
 		index++
 		
@@ -1977,7 +1900,7 @@ function postRemoveUser(rowData, uuidIndex, nameIndex) {
 	
 	function postRemoveUserCheckCompleted() {
 		if (index === loopList.length){
-			$('#posting .good').hide();
+			$('#loading .good').hide();
 			if (debugShowObject) console.log(removeUserList);
 			alert('The following users have been removed:' + removeUserList + '\n\nYour data will now be refreshed')
 			fetchData() 
@@ -2072,28 +1995,18 @@ function postMessageUser(rowData, uuidIndex, nameIndex) {
 	
 	//This is done like this as receive ERR_INCOMPLETE_CHUNKED_ENCODING
 	function postNextMessageUser(){
-		$('#posting .good').show();
-		
+
 		obj = loopList[index]
 		var newData = {message: privateMessage, toUserId: obj[uuidIndex]}
 		urlToPost = serverUrl + serverPathMessageUser //+ '/' + obj[uuidIndex] + '?message=' + privateMessage
-		$('#posting #statusPost').text('Messaging ' + obj[actionIndex] );
+		
 		if (debugShowObject) console.log(urlToPost);
 		if (debugShowObject) console.log(newData);
-		$.ajax({
-			url: urlToPost,
-			type: 'POST',
-			contentType: 'application/json',
-			data: JSON.stringify(newData),
-			dataType: 'json',
-			cache: false,
-			beforeSend: function(xhr){
-					xhr.setRequestHeader('x-client', clientId);xhr.setRequestHeader('x-api-user', userId);
-					xhr.setRequestHeader('x-api-key',  apiToken);
-				},
-			success: postMessageUserSuccess,
-			error: postMessageUserFailure
-		});		
+		
+		var call = []
+		call.push({requestType: 'POST', urlTo: urlToPost, newData: JSON.stringify(newData), fnSuccess: postMessageUserSuccess, fnFailure: postMessageUserFailure, statusText: 'Messaging: ' + obj[uuidIndex]})
+		makeAjaxCall(call)
+		
 	}
 		
 
@@ -2111,7 +2024,6 @@ function postMessageUser(rowData, uuidIndex, nameIndex) {
 
 	function postMessageUserSuccess(data){
 		if (debug) console.log('debug postMessageUserSucess start');
-		$('#posting #statusPost').text('Successfully Messaged ' + obj[actionIndex] );
 		if (debugShowObject) console.log(data);
 		actionNotificationList += '\n\u2022  ' + obj[actionIndex]  
 		index++
@@ -2121,7 +2033,7 @@ function postMessageUser(rowData, uuidIndex, nameIndex) {
 	
 	function postMessageUserCheckCompleted(){
 		if (index === loopList.length){
-			$('#posting .good').hide();
+			$('#loading .good').hide();
 			if (debugShowObject) console.log(actionNotificationList);
 			alert('The following users have been messaged:' + actionNotificationList + '\n\nYour data will now be refreshed')
 			fetchData() 
@@ -2165,7 +2077,6 @@ function postGiveCard(cardType, rowData, uuidIndex, nameIndex) {
 	
 	//This is done like this as receive ERR_INCOMPLETE_CHUNKED_ENCODING
 	function postNextGiveCard(){
-		$('#posting .good').show();
 
 		//Check if already card? $$$
 		obj = rowData[index]
@@ -2177,20 +2088,12 @@ function postGiveCard(cardType, rowData, uuidIndex, nameIndex) {
 		obj.push(actionItem)
 				
 		urlToPost = serverUrl + serverPathCastSkill + '/' + cardType + '?targetId=' + obj[uuidIndex]
-		$('#posting #statusPost').text('Giving Card to ' + obj[actionIndex] );
 		if (debugShowObject) console.log(urlToPost);
-		$.ajax({
-			url: urlToPost,
-			type: 'POST',
-			dataType: 'json',
-			cache: false,
-			beforeSend: function(xhr){
-					xhr.setRequestHeader('x-client', clientId);xhr.setRequestHeader('x-api-user', userId);
-					xhr.setRequestHeader('x-api-key',  apiToken);
-				},
-			success: postGiveCardSuccess,
-			error: postGiveCardFailure
-		});		
+		
+		var call = []
+		call.push({requestType: 'POST', urlTo: urlToPost, newData: '', fnSuccess: postGiveCardSuccess, fnFailure: postGiveCardFailure, statusText: 'Giving Card to: ' + obj[uuidIndex]})
+		makeAjaxCall(call)
+
 	}
 		
 	function postGiveCardFailure(data){
@@ -2206,7 +2109,6 @@ function postGiveCard(cardType, rowData, uuidIndex, nameIndex) {
 	function postGiveCardSuccess(data){
 		if (debug) console.log('debug postUseCardSucess start');
 		if (debugShowObject) console.log(data);
-		$('#posting #statusPost').text('Successfully Gave Card to ' + obj[actionIndex] );
 		cardUserList += '\n\u2022  ' + data.data.partyMembers[0].profile.name  
 		index++
 		
@@ -2217,7 +2119,7 @@ function postGiveCard(cardType, rowData, uuidIndex, nameIndex) {
 	function postGiveCardCheckCompleted(){
 		if (index === rowData.length){
 			if (debugShowObject) console.log(cardUserList);
-			$('#posting .good').hide();
+			$('#loading .good').hide();
 			alert('The following users have been given a '+ cardItems[cardType].name +':' + cardUserList + '\n\nYour data will now be refreshed')
 			fetchData() 
 		} else
@@ -2256,8 +2158,6 @@ function postTransformMember(transformItem, rowData, uuidIndex, nameIndex) {
 	
 	//This is done like this as receive ERR_INCOMPLETE_CHUNKED_ENCODING
 	function postNextTransformMember(){
-		$('#posting .good').show();
-
 		//Check if already transformed? $$$
 		obj = rowData[index]
 		
@@ -2268,20 +2168,12 @@ function postTransformMember(transformItem, rowData, uuidIndex, nameIndex) {
 		obj.push(actionItem)
 				
 		urlToPost = serverUrl + serverPathCastSkill + '/' + transformItem + '?targetId=' + obj[uuidIndex]
-		$('#posting #statusPost').text('Transforming ' + obj[actionIndex] );
 		if (debugShowObject) console.log(urlToPost);
-		$.ajax({
-			url: urlToPost,
-			type: 'POST',
-			dataType: 'json',
-			cache: false,
-			beforeSend: function(xhr){
-					xhr.setRequestHeader('x-client', clientId);xhr.setRequestHeader('x-api-user', userId);
-					xhr.setRequestHeader('x-api-key',  apiToken);
-				},
-			success: postTransformMemberSuccess,
-			error: postTransformMemberFailure
-		});		
+		
+		var call = []
+		call.push({requestType: 'POST', urlTo: urlToPost, newData: '', fnSuccess: postTransformMemberSuccess, fnFailure: postTransformMemberFailure, statusText: 'Transforming ' + obj[actionIndex]})
+		makeAjaxCall(call)		
+		
 	}
 		
 
@@ -2300,7 +2192,6 @@ function postTransformMember(transformItem, rowData, uuidIndex, nameIndex) {
 	function postTransformMemberSuccess(data){
 		if (debug) console.log('debug postTransformMemberSucess start');
 		if (debugShowObject) console.log(data);
-		$('#posting #statusPost').text('Successfully Transformed ' + obj[actionIndex] );
 		transformedUserList += '\n\u2022  ' + data.data.partyMembers[0].profile.name  
 		index++
 		
@@ -2310,7 +2201,7 @@ function postTransformMember(transformItem, rowData, uuidIndex, nameIndex) {
 	function postTransformMemberCheckCompleted(){
 		if (index === rowData.length){
 			if (debugShowObject) console.log(transformedUserList);
-			$('#posting .good').hide();
+			$('#loading .good').hide();
 			alert('The following users are transformed by '+ transformItems[transformItem].name +':' + transformedUserList + '\n\nYour data will now be refreshed')
 			fetchData() 
 		} else
@@ -2356,20 +2247,11 @@ function postChat() {
 		var newData = {message: chatMessage}
 		urlToPost = serverUrl + serverPathGroup + '/' + groupId + serverPathPostChatPart
 		if (debugShowObject) console.log(urlToPost);
-		$.ajax({
-			url: urlToPost,
-			type: 'POST',
-			contentType: 'application/json',
-			data: JSON.stringify(newData),
-			dataType: 'json',
-			cache: false,
-			beforeSend: function(xhr){
-					xhr.setRequestHeader('x-client', clientId);xhr.setRequestHeader('x-api-user', userId);
-					xhr.setRequestHeader('x-api-key',  apiToken);
-				},
-			success: postChatSuccess,
-			error: postChatFailure
-		});		
+		
+		var call = []
+		call.push({requestType: 'POST', urlTo: urlToPost, newData: JSON.stringify(newData), fnSuccess: postChatSuccess, fnFailure: postChatFailure, statusText: 'Posting chat message'})
+		makeAjaxCall(call)		
+		
 	}
 		
 
@@ -2414,18 +2296,11 @@ function postQuestAccept() {
 	function postNextQuestAccept(){
 		urlToPost = serverUrl + serverPathQuestAccept
 		if (debugShowObject) console.log(urlToPost);
-		$.ajax({
-			url: urlToPost,
-			type: 'POST',
-			contentType: 'application/json',
-			cache: false,
-			beforeSend: function(xhr){
-					xhr.setRequestHeader('x-client', clientId);xhr.setRequestHeader('x-api-user', userId);
-					xhr.setRequestHeader('x-api-key',  apiToken);
-				},
-			success: postQuestAcceptSuccess,
-			error: postQuestAcceptFailure
-		});		
+
+
+		var call = []
+		call.push({requestType: 'POST', urlTo: urlToPost, newData: '', fnSuccess: postQuestAcceptSuccess, fnFailure: postQuestAcceptFailure, statusText: 'Posting accepting quest'})
+		makeAjaxCall(call)		
 	}
 		
 
@@ -2472,18 +2347,11 @@ function postQuestReject() {
 	function postNextQuestReject(){
 		urlToPost = serverUrl + serverPathQuestReject
 		if (debugShowObject) console.log(urlToPost);
-		$.ajax({
-			url: urlToPost,
-			type: 'POST',
-			contentType: 'application/json',
-			cache: false,
-			beforeSend: function(xhr){
-					xhr.setRequestHeader('x-client', clientId);xhr.setRequestHeader('x-api-user', userId);
-					xhr.setRequestHeader('x-api-key',  apiToken);
-				},
-			success: postQuestRejectSuccess,
-			error: postQuestRejectFailure
-		});		
+		
+		var call = []
+		call.push({requestType: 'POST', urlTo: urlToPost, newData: '', fnSuccess: postQuestRejectSuccess, fnFailure: postQuestRejectFailure, statusText: 'Rejecting Quest'})
+		makeAjaxCall(call)		
+		
 	}
 		
 
@@ -2530,18 +2398,11 @@ function postQuestStart() {
 	function postNextQuestStart(){
 		urlToPost = serverUrl + serverPathQuestStart
 		if (debugShowObject) console.log(urlToPost);
-		$.ajax({
-			url: urlToPost,
-			type: 'POST',
-			contentType: 'application/json',
-			cache: false,
-			beforeSend: function(xhr){
-					xhr.setRequestHeader('x-client', clientId);xhr.setRequestHeader('x-api-user', userId);
-					xhr.setRequestHeader('x-api-key',  apiToken);
-				},
-			success: postQuestStartSuccess,
-			error: postQuestStartFailure
-		});		
+		
+		var call = []
+		call.push({requestType: 'POST', urlTo: urlToPost, newData: '', fnSuccess: postQuestStartSuccess, fnFailure: postQuestStartFailure, statusText: 'Force Starting Quest'})
+		makeAjaxCall(call)		
+		
 	}
 		
 
@@ -2585,18 +2446,12 @@ function postQuestLeave() {
 	function postNextQuestLeave(){
 		urlToPost = serverUrl + serverPathQuestLeave
 		if (debugShowObject) console.log(urlToPost);
-		$.ajax({
-			url: urlToPost,
-			type: 'POST',
-			contentType: 'application/json',
-			cache: false,
-			beforeSend: function(xhr){
-					xhr.setRequestHeader('x-client', clientId);xhr.setRequestHeader('x-api-user', userId);
-					xhr.setRequestHeader('x-api-key',  apiToken);
-				},
-			success: postQuestLeaveSuccess,
-			error: postQuestLeaveFailure
-		});		
+		
+		
+		var call = []
+		call.push({requestType: 'POST', urlTo: urlToPost, newData: '', fnSuccess: postQuestLeaveSuccess, fnFailure: postQuestLeaveFailure, statusText: 'Leaving Quest'})
+		makeAjaxCall(call)	
+		
 	}
 		
 
@@ -2642,18 +2497,11 @@ function postQuestAbort() {
 	function postNextQuestAbort(){
 		urlToPost = serverUrl + serverPathQuestAbort
 		if (debugShowObject) console.log(urlToPost);
-		$.ajax({
-			url: urlToPost,
-			type: 'POST',
-			contentType: 'application/json',
-			cache: false,
-			beforeSend: function(xhr){
-					xhr.setRequestHeader('x-client', clientId);xhr.setRequestHeader('x-api-user', userId);
-					xhr.setRequestHeader('x-api-key',  apiToken);
-				},
-			success: postQuestAbortSuccess,
-			error: postQuestAbortFailure
-		});		
+		
+		
+		var call = []
+		call.push({requestType: 'POST', urlTo: urlToPost, newData: '', fnSuccess: postQuestAbortSuccess, fnFailure: postQuestAbortFailure, statusText: 'Aborting Quest'})
+		makeAjaxCall(call)	
 	}
 		
 
@@ -2702,21 +2550,13 @@ function postClearNotification(notifcationList) {
 	function postNextClearNotification(){
 	
 		obj = loopList[index]
-		$('#loading #statusFetch').text('Clear Notifications for ' + notifcationList[obj].name ) ;
 		if (debug) console.log('debug Clear Message for  (' + notifcationList[obj].name + ')');
 		urlToPost = serverUrl + serverPathGroup + '/' + obj + '/chat/seen' 
-		$.ajax({
-			url: urlToPost,
-			type: 'POST',
-			contentType: 'application/json',
-			cache: false,
-			beforeSend: function(xhr){
-					xhr.setRequestHeader('x-client', clientId);xhr.setRequestHeader('x-api-user', userId);
-					xhr.setRequestHeader('x-api-key',  apiToken);
-				},
-			success: postClearNotificationSuccess,
-			error: postClearNotificationFail
-		});
+		
+		var call = []
+		call.push({requestType: 'POST', urlTo: urlToPost, newData: '', fnSuccess: postClearNotificationSuccess, fnFailure: postClearNotificationFail, statusText: 'Clear Notifications for ' + notifcationList[obj].name })
+		makeAjaxCall(call)		
+
 			
 	}
 	
@@ -2734,7 +2574,7 @@ function postClearNotification(notifcationList) {
 	function postClearNotificationSuccess(data) {
 //		if (debug) console.log('debug Clear Notification Success Start for ' +  lastGuildIndex + '  id: ' + data.data._id);
 		if (debugShowObject) console.log(data);
-		$('#loading #statusFetch').text('Clear  Notification for  '  +  notifcationList[obj].name);
+		$('#loading #statusMessage').text('Clear  Notification for  '  +  notifcationList[obj].name);
 		
 		index++
 
@@ -2744,9 +2584,9 @@ function postClearNotification(notifcationList) {
 	
 	function checkClearNotification() {
 		if (index === loopList.length){
-			$('#loading #statusFetch').text('') //All Done
+			$('#loading #statusMessage').text('') //All Done
+			$('#loading #statusWait').text('') //All Done
 			$('#loading .good').hide();
-			$('#posting .good').hide(); // just to be sure
 			$('#documentationAndFormClose').show();
 			$('#documentationAndForm').hide();
 		} else
@@ -2785,9 +2625,9 @@ function parseData() {
 	//////////////////////////////////////////////////////////////////////
     ////   Display the HTML that the functions have created   ////////////
     //////////////////////////////////////////////////////////////////////
-    $('#loading #statusFetch').text('') //All Done
+    $('#loading #statusMessage').text('') //All Done
+	$('#loading #statusWait').text('') //All Done
 	$('#loading .good').hide();
-	$('#posting .good').hide(); // just to be sure
     $('#documentationAndFormClose').show();
     $('#documentationAndForm').hide();
 	
@@ -4941,6 +4781,115 @@ function parseData() {
 	
 }
 
+function makeAjaxCall(call){
+	var timeoutPeriod = Math.floor((Math.random() * rlTimeOutMaxPeriod) + rlTimeOutBasePeriod);
+	var timeoutPeriodQueue = 0
+	var rlRemainingCurrent = rlRemainingMax
+	
+	
+	if (debug) console.log(rlRemaining)
+	if (debug) console.log(call.length)
+	if (debug) console.log(rlRemaining <= call.length)
+	if (debug) console.log(moment.utc().subtract(timeoutPeriod, 'ms').format())
+	if (debug) console.log(rlResetDateTime)
+	if (debug) console.log(moment.utc().subtract(timeoutPeriod, 'ms').isBefore(rlResetDateTime))
+	if (debug) console.log(moment(rlResetDateTime).diff(moment(), 'ms'))
+
+	
+	
+	if ((rlRemaining <= call.length) && (moment.utc().subtract(timeoutPeriod, 'ms').isBefore(rlResetDateTime))) {
+		$('#loading #statusWait').text('Looks like we been a little too busy talking to Habitica Servers. Lets get a drink and continue! '); 
+		if (debug) console.log(moment(rlResetDateTime).diff(moment(), 'ms'))
+
+		timeoutPeriod = (moment(rlResetDateTime).diff(moment(), 'ms')) + timeoutPeriod
+		rlRemainingCurrent = rlRemainingMax
+	} else {
+		//all ok
+		timeoutPeriod = 0
+		rlRemainingCurrent = rlRemaining
+	}
+	
+	setTimeout(function () {
+		if (rlRemainingCurrent < call.length) {
+			timeoutPeriodQueue = rlTimeOutMinPeriod
+		} else {
+			timeoutPeriodQueue = 0
+		}
+		$.each(call, function(index,obj){
+			
+			if (debug) console.log('Call after ' + timeoutPeriodQueue + ' ' + moment().format() )
+			setTimeout(function () {
+				$('#loading .good').show();
+				if (obj.requestType == 'GET') {
+					$('#loading #statusType').text('Fetching') 
+				} else {
+					$('#loading #statusType').text('Posting') 
+				}
+
+				$('#loading #statusMessage').text(obj.statusText);
+			
+				if (timeoutPeriodQueue > 0 ) {
+					var randomText = Math.floor((Math.random() * rlTimeOutPauseText.length));
+					$('#loading #statusWait').text(rlTimeOutPauseText[randomText])
+				} else {
+					$('#loading #statusWait').text('')
+				}	
+				
+				execAjaxCall(obj.requestType, obj.urlTo, obj.newData, obj.fnSuccess, obj.fnFailure)
+				
+			}, timeoutPeriodQueue * index)
+			rlRemainingCurrent--
+		});
+    }, timeoutPeriod)
+}
+
+function execAjaxCall(requestType, urlTo, newData, fnSuccess, fnFailure){
+	if (debug) console.log('execAjaxCall START ' + urlTo)
+	var jqxhr = $.ajax({
+		url: urlTo,
+		type: requestType,
+		contentType: 'application/json',
+		data: newData,
+		dataType: 'json',
+		cache: false,
+		beforeSend: function(xhr){
+				xhr.setRequestHeader('x-api-user', userId);
+				xhr.setRequestHeader('x-api-key',  apiToken);
+			},
+	});
+	//this section is executed when the server responds with no error 
+	jqxhr.done(function(data){
+		if (debug) console.log('Success! ' + urlTo)
+		rlRemaining = jqxhr.getResponseHeader('X-RateLimit-Remaining')
+		rlResetDateTime = jqxhr.getResponseHeader('X-RateLimit-Reset')
+		fnSuccess(data)
+		
+	});
+	//this section is executed when the server responds with error
+	jqxhr.fail(function(data){
+		if (debug) console.log('Fail! ' + urlTo)
+		
+		var timeoutPeriod = jqxhr.getResponseHeader('Retry-After') + Math.floor((Math.random() * rlTimeOutBasePeriod) + 1);
+		if (data.status == 429) {
+			if (debug) console.log("getting header Retry-After: " + jqxhr.getResponseHeader('Retry-After'));
+			//call again
+			$('#loading #statusWait').text('Opps I lost count, one moment...'); 
+			setTimeout(function () {
+				execAjaxCall(requestType, urlTo, newData, fnSuccess, fnFailure)
+			}, timeoutPeriod);
+		} else {
+			fnFailure(data)
+		}
+		
+	})
+	//this section is always executed
+	jqxhr.always(function(){
+
+
+	});
+};
+
+
 
 if (debug) console.log('debug 99');	
 });
@@ -4980,19 +4929,6 @@ body {
 }
 
 
-#posting {
-    margin-right: 30px;
-    margin-left: 30px;
-    color: orange;
-    font-size: 1.5em;
-    font-weight: bold;
-}
-#posting ul {
-    font-size: 0.8em;
-}
-#posting ul a {
-    color: orange;
-}
 
 .narrowContent {      /* The data should be as wide as the user's window   */
     max-width: 500px; /* but some explanatory paragraphs should be narrow. */
@@ -5343,7 +5279,7 @@ ul#tableOfContents > li {
 </head>
 <body><div id="innerBody">	
 <h1><a href="https://habitica.com/">Habitica</a> Party & Guild Data Tool
-    <span class="showHideToggle" data-target="versionChanges" data-closemainsections="true">(v4.1)</span></h1><!-- VERSION TOGGLE -->
+    <span class="showHideToggle" data-target="versionChanges" data-closemainsections="true">(v5.0)</span></h1><!-- VERSION TOGGLE -->
 <div id="headerExtras"></div>
 <hr class="clear" />
 <div id="headerGroupExtras"></div>
@@ -5358,8 +5294,9 @@ ul#tableOfContents > li {
         <span id="groupDetail">GROUP name (ID: 1234)</span> membership count does not match the listed users. <span id="groupDetailCount">(Stated: 1 Estimated: 2)</span> </p>
     </div>
     <div class="good hide">
-        <p>Please wait. Fetching data from
-        <span id="serverName">Habitica</span>... <span id="statusFetch"></span></p>
+        <p>Please wait. <span id="statusCallType">Fetching</span> data from
+        <span id="serverName">Habitica</span>... <span id="statusMessage"></span></p>
+		<p><span id="statusWait"></span></p>
     </div>
     <div class="bad hide">
         <p>There was an error obtaining your data.</p>
@@ -5370,18 +5307,22 @@ ul#tableOfContents > li {
             <li>If the page's URL starts with "http://" change it to start with "https://" (or just use <a href="https://oldgods.net/habitica/cTheDragons/group.html">this correct link</a>).</li>
             <li>If neither of those help, contact me! See <strong>"Help and Contact Details"</strong> at the bottom of this page.</li>
         </ul>
+		<span id="statusError"></span></p>
     </div>
 </div>
-<div id="posting">
-	<div class="good hide">
-		<p>Please wait. Posting data to
-		<span id="serverName">Habitica</span>... <span id="statusPost"></span></p>
-	</div>
-</div>
+
 
 <div id="versionChanges" class="hide"><!-- VERSION SECTION -->
     <h2>Version History</h2>
     <dl>
+		<dt>5.0 - Lets not Limit the Drinks<span class="date">2021-07-21</span></dt>
+        <dd><ul>
+	        <li>Features:
+                <ul>
+					<li>Handle the new API Limiting - Rough implementation will polish till it shiny later.</li>
+				</ul> 
+            </li>	
+		</ul></dd>
 		<dt>4.1 - Not a Warning about Skynet<span class="date">2020-01-24</span></dt>
         <dd><ul>
 	        <li>Features:
@@ -5927,10 +5868,10 @@ ul#tableOfContents > li {
              -&gt; API page</a>)
             </legend>
             <label for="userId"><span>User ID</span>
-                <input type="text" name="userId" id="userId"/>
+                <input type="text" name="userId" id="userId" />
             </label>
             <label for="apiToken"><span>API Token</span>
-                <input type="password" name="apiToken" id="apiToken"/>
+                <input type="password" name="apiToken" id="apiToken" />
             </label>
 			<div id="groupSelector"></div>
 			<label for="maxMembersToFetch"><span>Max Members Details</span>
