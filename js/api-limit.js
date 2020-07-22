@@ -35,7 +35,7 @@ function makeAjaxCall(call, userId, apiToken, rl){
 	var rlRemainingSaftey			= 4; //Saftey before we try to revaluate number of tries before reset.
 	var rlTimeoutBasePeriod			= 5000 // Max time it can be timeout when random.
 	var rlTimeoutMaxPeriod 			= 7000 // Max time when we are close (Larger as there may be other calls happening)
-	var rlTimeoutMinPeriod 			= 2500 // 60s /30 s with a bit of fudge
+	var rlTimeoutMinPeriod 			= 2450 // 60s /30 s with a bit of fudge
 	var rlTimeoutCountDown 			= 1000 // Countdown per second for effect
 	var rlTimeoutPauseText			= [
 										'One moment! Let me fix my hair.',
