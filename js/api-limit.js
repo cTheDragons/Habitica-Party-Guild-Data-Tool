@@ -15,6 +15,10 @@
     // Blade Barringer https://github.com/crookedneighbor
     // donoftime https://github.com/donoftime
     // me_and (Adam Dinwoodie) https://github.com/me-and
+
+//History
+// V 1.0 - 2020-07-22
+
 	
 function makeAjaxCall(call, userId, apiToken, rl){
 	//////////////////////////////////////////////////////////////////////
