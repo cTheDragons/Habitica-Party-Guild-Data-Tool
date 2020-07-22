@@ -23,8 +23,8 @@ function makeAjaxCall(call, userId, apiToken, rl){
 	var DOUBLEQUOTES = 		'"' //This is to make my life easier... 
 	var SINGLEQUOTE = 		"'" //This is to make my life easier... 
 	
-	var debug						= true;
-	var debugShowObject				= true;
+	var debug						= false;
+	var debugShowObject				= false;
 
 	
 	var rlRemainingMax				= 30; //Max number of tries before reset.
