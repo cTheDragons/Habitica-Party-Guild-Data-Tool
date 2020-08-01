@@ -39,7 +39,7 @@ Contributors:
 	<script src="js/habitica-markdown.min.js"></script> <!--- Markdown -->
 	<script src="js/habitica-avatar.js"></script>  <!--- Avatar Generation https://github.com/crookedneighbor/habitica-avatar -->
 	<script src="js/lodash.js"></script> <!--lodash / copy objects -->
-	<script src="js/api-limit.js""></script> <!-- Personal Script used to handle Ajax calls with limiting-->
+	<script src="js/api-limit.js"></script> <!-- Personal Script used to handle Ajax calls with limiting-->
 
 	 <!--- https://datatables.net/download/ -->
 	<script type="text/javascript" src="https://cdn.datatables.net/v/dt/jszip-2.5.0/pdfmake-0.1.18/dt-1.10.12/b-1.2.2/b-colvis-1.2.2/b-flash-1.2.2/b-html5-1.2.2/b-print-1.2.2/se-1.2.0/datatables.min.js"></script>
@@ -835,7 +835,7 @@ var serverPathUser				= '/user';
 var serverPathGroup				= '/groups'
 var serverPathChallengeGroup	= '/challenges/groups'
 var serverPathParty				= '/groups/party'
-var serverPathGroupMemberPart	= '/members' //will be /groups/:groupId/members
+var serverPathGroupMemberPart	= '/members?limit=60&includeAllPublicFields=true' //will be /groups/:groupId/members
 var serverPathMemberProfilePart	= '/members' //will be /members/:uid
 var serverPathRemoveUser		= '/removeMember' //will be /groups/:groupId/removeMember/:uid
 var serverPathMessageUser		= '/members/send-private-message'
@@ -877,8 +877,8 @@ var maxMembersStart 			; //hold the max members to fetch input (will be rounded 
 var ajaxTryAgainMax				= 3;
 var rlCurrent 							= {}; //holds the Current API Remaining details - must be a better way to do this.
 
-var debug						= false;
-var debugShowObject				= false;
+var debug						= true;
+var debugShowObject				= true;
 
 if (debug || debugShowObject) serverName = '*** TURN DEBUG OFF! *** - ' + serverName
 if (debug) console.log('debug 1');
@@ -1416,10 +1416,10 @@ function fetchData() {
 				if (maxMembersStart == '') {
 					completeUrl = serverUrl + serverPathGroup + '/' + groupId + serverPathGroupMemberPart ;
 				} else {
-					completeUrl = serverUrl + serverPathGroup + '/' + groupId + serverPathGroupMemberPart + '?lastId=' + maxMembersStart;
+					completeUrl = serverUrl + serverPathGroup + '/' + groupId + serverPathGroupMemberPart + '&lastId=' + maxMembersStart;
 				}
 			} else {
-				completeUrl = serverUrl + serverPathGroup + '/' + groupId + serverPathGroupMemberPart + '?lastId=' + lastListMemberId;
+				completeUrl = serverUrl + serverPathGroup + '/' + groupId + serverPathGroupMemberPart + '&lastId=' + lastListMemberId;
 			}
 			
 
@@ -1435,7 +1435,15 @@ function fetchData() {
 	function fetchMemberListSuccess(data, rl) {
 		if (debug) console.log('debug Member List Sucess start');
 		rlCurrent = rl
+		
+		
 		memberListToFetch = memberListToFetch.concat(data.data);
+		
+		//Add each members 
+		$.each(memberListToFetch, function(index, obj){
+			members[obj.id] = obj
+		});
+		
 		
 		if (memberListToFetch.length > 0 || maxMembersToFetch == 0) {
 			if (memberListToFetch[memberListToFetch.length -1]._id == lastListMemberId || memberListToFetch.length >= maxMembersToFetch || memberListToFetch.length == group.memberCount) {
@@ -1474,37 +1482,22 @@ function fetchData() {
 	function fetchMembers(){
 		var timeoutPeriod = 0;
 		
-		if (ajaxTryAgainNeed > 0)  { 
-			if (debug) console.log('debug MEMBER DATA - Looks like we missed some stray ducks (' + ajaxTryAgainNeed + ')');
-	
-			//need to find the missing members
-			var ajaxTryAgainList = []
-			
-			$.each(memberListToFetch, function(index, obj){
-				if (members[obj.id] == undefined) {
-					ajaxTryAgainList.push(obj)
-				}
-			});
-			
-			ajaxTryAgainNeed = 0 
-			
-			ajaxTryAgain++ 
-			
-			listToFetch = ajaxTryAgainList
-			
-		} else {
+		if (ajaxTryAgainNeed == 0)  { 
 			if (debug) console.log('debug MEMBER DATA - oK getting ready the first list (' + lastMemberIndex + ')');
 	
-			//Do a quick loop so we can check if leader is needed $$$I'm sure there is a better way but it is late
+		
 			//Set the desired length
 			if (memberListToFetch.length > maxMembersToFetch) {
 				memberListToFetch.length = maxMembersToFetch
 			}
-			
+
 			memberListToFetch_idOnly = []
+			
+			//Do a quick loop so we can check if leader is needed $$$I'm sure there is a better way but it is late
 			$.each(memberListToFetch, function(index, obj){
 				memberListToFetch_idOnly.push(obj.id)
 			});
+			
 			//Add Group owner and Quest owner if not in list
 			if (memberListToFetch_idOnly.indexOf(group.leader.id) < 0){
 				memberListToFetch.push({_id: group.leader.id, id: group.leader.id, profile: {name: 'unknownLeaderName'}})
@@ -1518,22 +1511,45 @@ function fetchData() {
 					}
 				}
 			}
-			
-			listToFetch = memberListToFetch
-		}
+
+		} 
+
+
+		if (debug) console.log('debug MEMBER DATA - Checking if we missing some stray ducks (' + ajaxTryAgainNeed + ')');
+	
+		//need to find the missing members
+		var ajaxTryAgainList = []
 		
+		$.each(memberListToFetch, function(index, obj){
+			if (members[obj.id] == undefined) {
+				ajaxTryAgainList.push(obj)
+			}
+		});
+		
+		ajaxTryAgainNeed = 0 
+		
+		ajaxTryAgain++ 
+		
+		listToFetch = ajaxTryAgainList
+	
 		if (debugShowObject) console.log(listToFetch.length)
 		lastMemberIndex = 0
-		
-		call = [] //clear list
-		$.each(listToFetch, function(index, obj){
-			if (debug) console.log('debug MEMBER DATA -Yes we are finally here folks (' + obj.id + ' Index: + ' + index + ')');			
-						
-			call.push({requestType: 'GET', urlTo: serverUrl + serverPathMemberProfilePart + '/' + obj.id, newData: '', fnSuccess: fetchMemberSuccess, fnFailure: fetchMemberFail, statusText: 'Asking for Member Data ... (This can take a while - ' + (index + 1) + ' of ' + listToFetch.length + ')'})
+	
+		if (listToFetch.length == 0) {
+			if (debug) console.log('debug MEMBER DATA - Wooho! Done all my homework!');			
+			lastMemberIndex++	
+			fetchMemberComplete()
+		} else {
+				
+			call = [] //clear list
+			$.each(listToFetch, function(index, obj){
+				if (debug) console.log('debug MEMBER DATA -Yes we are finally here folks (' + obj.id + ' Index: + ' + index + ')');			
+							
+				call.push({requestType: 'GET', urlTo: serverUrl + serverPathMemberProfilePart + '/' + obj.id, newData: '', fnSuccess: fetchMemberSuccess, fnFailure: fetchMemberFail, statusText: 'Asking for Member Data ... (This can take a while - ' + (index + 1) + ' of ' + listToFetch.length + ')'})
 
-		});
-		makeAjaxCall(call, userId, apiToken, rlCurrent)		
-
+			});
+			makeAjaxCall(call, userId, apiToken, rlCurrent)		
+		}
 	}
 		
 		
@@ -1563,7 +1579,7 @@ function fetchData() {
 	}	
 	
 	function fetchMemberComplete() {
-		if (lastMemberIndex == listToFetch.length-1) { // all ajax calls have finished
+		if ((lastMemberIndex == listToFetch.length-1) || (listToFetch.length==0)){ // all ajax calls have finished
 			if (debug) console.log('debug Lost ducks ' + (ajaxTryAgainNeed))
 			if (ajaxTryAgainNeed > 0) {
 				fetchMembers()
@@ -5202,7 +5218,7 @@ ul#tableOfContents > li {
 </head>
 <body><div id="innerBody">	
 <h1><a href="https://habitica.com/">Habitica</a> Party & Guild Data Tool
-    <span class="showHideToggle" data-target="versionChanges" data-closemainsections="true">(v5.1)</span></h1><!-- VERSION TOGGLE -->
+    <span class="showHideToggle" data-target="versionChanges" data-closemainsections="true">(v5.2)</span></h1><!-- VERSION TOGGLE -->
 <div id="headerExtras"></div>
 <hr class="clear" />
 <div id="headerGroupExtras"></div>
@@ -5238,7 +5254,20 @@ ul#tableOfContents > li {
 <div id="versionChanges" class="hide"><!-- VERSION SECTION -->
     <h2>Version History</h2>
     <dl>
-		<dt>5.1 - Drinks Tray Polished<span class="date">2021-07-22</span></dt>
+		<dt>5.2 - Warp Speed<span class="date">2020-08-01</span></dt>
+        <dd><ul>
+	        <li>Features:
+                <ul>
+					<li>Fetch member's details while asking for list - thus cutting down requests.</li>
+				</ul>
+			</li>
+			<li>Documentation:
+                <ul>
+					<li>Fixing the years in the documention. - Seems I'm already thinking I'm in 2021</li>
+                </ul>
+            </li>	
+		</ul></dd>
+		<dt>5.1 - Drinks Tray Polished<span class="date">2020-07-22</span></dt>
         <dd><ul>
 	        <li>Features:
                 <ul>
@@ -5254,7 +5283,7 @@ ul#tableOfContents > li {
                 </ul>
             </li>	
 		</ul></dd>
-		<dt>5.0 - Lets not Limit the Drinks<span class="date">2021-07-21</span></dt>
+		<dt>5.0 - Lets not Limit the Drinks<span class="date">2020-07-21</span></dt>
         <dd><ul>
 	        <li>Features:
                 <ul>

@@ -1,4 +1,4 @@
-// Version 1.0
+// Version 1.1
 // This code is licensed under the same terms as Habitica:
     // https://raw.githubusercontent.com/HabitRPG/habitrpg/develop/LICENSE
 
@@ -17,8 +17,8 @@
     // me_and (Adam Dinwoodie) https://github.com/me-and
 
 //History
-// V 1.0 - 2020-07-22
-
+// V 1.0 - 2020-07-22 - Creation
+// V 1.1 - 2020-07-22 - Slowed down the sayings. More sayings
 	
 function makeAjaxCall(call, userId, apiToken, rl){
 	//////////////////////////////////////////////////////////////////////
@@ -37,6 +37,7 @@ function makeAjaxCall(call, userId, apiToken, rl){
 	var rlTimeoutMaxPeriod 			= 7000 // Max time when we are close (Larger as there may be other calls happening)
 	var rlTimeoutMinPeriod 			= 2450 // 60s /30 s with a bit of fudge
 	var rlTimeoutCountDown 			= 1000 // Countdown per second for effect
+	var rlMessageChangedPeriod		= 3700 // When the message needs to change
 	var rlTimeoutPauseText			= [
 										'One moment! Let me fix my hair.',
 										'Where did I put my keys?',
@@ -103,8 +104,50 @@ function makeAjaxCall(call, userId, apiToken, rl){
 										'I' + SINGLEQUOTE + 'll be back before you can count to three. One. Two. Two and a half. Two and two thirds...',
 										'Feeding Gryphons...',
 										'Finding Testimonies...',
-										'Fighting the Laundromancer...'
-									] //Thank you to @ReyBisCO, @Ceran, @MaybeSteveRogers, @BradleyTheGreat  for contributing to some of the sayings 
+										'Fighting the Laundromancer...',										
+										'Pausing to pet Melior',
+										'Be there soon, Melior needs feeding',
+										'Bringing in pixels by the barrowful',
+										'Griffinishing loading...',
+										'Searching for Meliora in the undergrowth',
+										'Did you know pineapples are not a cross between pine trees and apple trees?',
+										'Looking for honey to feed my pet. Where did my pet go?',
+										'High-ho, high-ho off to get your data I go... ',
+										'Where are the bars of soap?',
+										'Did you remember to feed the cactus pet?',
+										'Wait a moment, the Basi-List made the data-fairies run away.',
+										'I lost count, I need to start again.',
+										'Let' + SINGLEQUOTE + 's count the stars together!',
+										'Just a moment... I just need to build this table...',
+										'Waiting for water to boil',
+										'There are x pet quests in Habitica. I think. Um, I will count them again.',
+										'The Veloci-rapper came this way, everything run away, I just need to start... again?',
+										'Collecting moonstones...',
+										'Waiting for crowdsourced responses...',
+										'Orange you glad I' + SINGLEQUOTE + 'm not telling jokes?',
+										'What came first the chicken or the egg?',
+										'Why is the sky blue?',
+										'Uh-oh my shoe is untied!',
+										'Waiting for the grass to grow.',
+										'Look at the clouds!',
+										'Take a deep breath. Hold it... Hold it... Almost there... Almost there... why are you blue?',
+										'Hold on I' + SINGLEQUOTE + 'm almost ready.... I just need to get my hat.',
+										'Jotting down a meeting for us in my day planner... how does the middle of next week work for you?',
+										'Here there be hippogriffs.',
+										'Buffering...',
+										'Change is on the horizon. And also in the couch cushions.',
+										'Don' + SINGLEQUOTE + 't be afraid of progress. Fear its opposite.',
+										'How much flour would a cauliflower flour if -- no, wait...',
+										'This screen is probably very purple.',
+										'Grooming the wolves',
+										'Ow! That cactus is prickly.',
+										'Organising the quest scrolls',
+										'One moment! Let me find that runaway Triceratops',
+										'Trying to catch a turtle... be right back',
+										'Waiting for two snales to finish the 100 mile race...',
+										'Waiting for meat to rot',
+										'Searching for the Aether Mount.... Why can' + SINGLEQUOTE + 't I see it?'
+									] //Thank you to @ReyBisCO, @Ceran, @MaybeSteveRogers, @BradleyTheGreat, @DebbieS, @SuperSaraA, @ieahleen, @citrusella, @QuartzFox, @BattleOfTheWarwings for contributing to some of the sayings 
 
 
 	var timeoutPeriod = Math.floor((Math.random() * rlTimeoutMaxPeriod) + rlTimeoutBasePeriod);
@@ -114,6 +157,7 @@ function makeAjaxCall(call, userId, apiToken, rl){
 	//ensure there is a value to evaluate
 	if (rl.rlRemaining == undefined) rl.rlRemaining = rlRemainingSaftey
 	if (rl.rlResetDateTime == undefined) rl.rlResetDateTime = '2001-07-21T14:12:45Z'
+	if (rl.rlMessageChanged == undefined) rl.rlMessageChanged = '2001-07-21T14:12:45Z'
 
 	
 
@@ -200,12 +244,19 @@ function makeAjaxCall(call, userId, apiToken, rl){
 
 						$('#loading #statusMessage').text(obj.statusText);
 					
-						if (timeoutPeriodQueue > 0 ) {
-							var randomText = Math.floor((Math.random() * rlTimeoutPauseText.length));
-							$('#loading #statusWait').text(rlTimeoutPauseText[randomText])
-						} else {
-							$('#loading #statusWait').text('Fluffy Bunny... I think I can swallow this...')
-						}	
+						//Time to change the message?
+						if (moment.utc().subtract(rlMessageChangedPeriod, 'ms').isAfter(rl.rlMessageChanged)){
+							if (timeoutPeriodQueue > 0 || call.length == 1) {
+								//Change only every second message.
+								if (index%2 == 0 ) {
+									var randomText = Math.floor((Math.random() * rlTimeoutPauseText.length));
+									$('#loading #statusWait').text(rlTimeoutPauseText[randomText])
+									rl.rlMessageChanged = moment.utc()
+								}
+							} else {
+								$('#loading #statusWait').text('Fluffy Bunny... I think I can swallow this...')
+							}
+						}
 						
 						execAjaxCall(obj.requestType, obj.urlTo, obj.newData, obj.fnSuccess, obj.fnFailure)
 						
