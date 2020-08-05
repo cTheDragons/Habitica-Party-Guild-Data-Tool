@@ -310,7 +310,7 @@ function makeAjaxCall(call, userId, apiToken, rl){
 				var timeoutPeriod = jqxhr.getResponseHeader('Retry-After')*1000 + Math.floor((Math.random() * rlTimeoutBasePeriod) + 1);
 				if (debug) console.log("getting header Retry-After: " + jqxhr.getResponseHeader('Retry-After') + '  ms: ' + timeoutPeriod);
 				//call again
-				$('#loading #statusWait').text('Opps I lost count, one moment...'); 
+				$('#loading #statusWait').text('Opps I lost my place, one moment...'); 
 				setTimeout(function () {
 					execAjaxCall(requestType, urlTo, newData, fnSuccess, fnFailure)
 				}, timeoutPeriod);

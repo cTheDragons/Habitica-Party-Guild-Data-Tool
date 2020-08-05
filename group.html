@@ -1485,11 +1485,6 @@ function fetchData() {
 		if (ajaxTryAgainNeed == 0)  { 
 			if (debug) console.log('debug MEMBER DATA - oK getting ready the first list (' + lastMemberIndex + ')');
 	
-		
-			//Set the desired length
-			if (memberListToFetch.length > maxMembersToFetch) {
-				memberListToFetch.length = maxMembersToFetch
-			}
 
 			memberListToFetch_idOnly = []
 			
@@ -5217,7 +5212,7 @@ ul#tableOfContents > li {
 </head>
 <body><div id="innerBody">	
 <h1><a href="https://habitica.com/">Habitica</a> Party & Guild Data Tool
-    <span class="showHideToggle" data-target="versionChanges" data-closemainsections="true">(v5.2)</span></h1><!-- VERSION TOGGLE -->
+    <span class="showHideToggle" data-target="versionChanges" data-closemainsections="true">(v5.3)</span></h1><!-- VERSION TOGGLE -->
 <div id="headerExtras"></div>
 <hr class="clear" />
 <div id="headerGroupExtras"></div>
@@ -5253,6 +5248,14 @@ ul#tableOfContents > li {
 <div id="versionChanges" class="hide"><!-- VERSION SECTION -->
     <h2>Version History</h2>
     <dl>
+		<dt>5.3 - Bigger helping<span class="date">2020-08-06</span></dt>
+        <dd><ul>
+			<li>Bug Fixes:
+                <ul>
+					<li>Handling error if not asking for round 60 members or all.</li>
+                </ul>
+            </li>	
+		</ul></dd>
 		<dt>5.2 - Warp Speed<span class="date">2020-08-01</span></dt>
         <dd><ul>
 	        <li>Features:
@@ -5859,7 +5862,7 @@ ul#tableOfContents > li {
 			<p class="highlight">Guild ID/Party:</p>
 			<p>Enter either the word <i>party</i>, the Guild ID, or the URL for the Guild. The Guild ID is a string of characters similar to your User ID, e.g. 2ff9822b-27f2-4774-98da-db349b57a38e. The Guild ID appears at the end of the URL or on the left hand panel on the website. It is not the name of the guild. You can always just post the entire URL, which is much easier!</p>
 			<p class="highlight">Max Members to Fetch:</p>
-			<p>Max Members to fetch indicates how many people you want to fetch. The lesser the number the quicker the page will load. 120 users will take approximately 5 minutes; Members fetch may have a possible extra 1 or 2 users for the leader or quest leader. For guilds/parties over 25 users there is a up to 60 second pause and then a 2 second pause while fetching every member requested to ensure Habitica Servers are not overloaded.</p>
+			<p>Max Members to fetch indicates how many people you want to fetch. The lesser the number the quicker the page will load. Members fetched will always round up to the nearest 60, with the possible for extra 1 or 2 users for the leader or quest leader. 1200 users will take approximately 1 minutes.</p>
 			<div id="exportOptionDesc"></div>
             <p class="highlight">Privacy and security notes:</p>
             <ul>
