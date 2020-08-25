@@ -1,4 +1,3 @@
-// Version 1.1
 // This code is licensed under the same terms as Habitica:
     // https://raw.githubusercontent.com/HabitRPG/habitrpg/develop/LICENSE
 
@@ -17,8 +16,14 @@
     // me_and (Adam Dinwoodie) https://github.com/me-and
 
 //History
-// V 1.0 - 2020-07-22 - Creation
-// V 1.1 - 2020-07-22 - Slowed down the sayings. More sayings
+// v 1.0 - 2020-07-22 - Creation
+// v 1.1 - 2020-07-22 - Slowed down the sayings. More sayings
+// v 2.0 - 2020-08-23 - Return version to display. More sayings. Few typo corrections.
+
+
+function getApiVersion() {
+	return '2.0'
+}
 	
 function makeAjaxCall(call, userId, apiToken, rl){
 	//////////////////////////////////////////////////////////////////////
@@ -144,10 +149,18 @@ function makeAjaxCall(call, userId, apiToken, rl){
 										'Organising the quest scrolls',
 										'One moment! Let me find that runaway Triceratops',
 										'Trying to catch a turtle... be right back',
-										'Waiting for two snales to finish the 100 mile race...',
+										'Waiting for two snails to finish the 100 mile race...',
 										'Waiting for meat to rot',
-										'Searching for the Aether Mount.... Why can' + SINGLEQUOTE + 't I see it?'
-									] //Thank you to @ReyBisCO, @Ceran, @MaybeSteveRogers, @BradleyTheGreat, @DebbieS, @SuperSaraA, @ieahleen, @citrusella, @QuartzFox, @BattleOfTheWarwings for contributing to some of the sayings 
+										'Searching for the Aether Mount.... Why can' + SINGLEQUOTE + 't I see it?',
+										'Waiting for the molasses to stop dripping...',
+										'I need to finish washing the dishes first... Where is the garden hose?',
+										'Wishing every star goodnight, one at a time',
+										'Fluffing up some clouds',
+										'Building a blanket fort',
+										'Whispering a lullaby to the wind',
+										'Waiting for the cat to get off my laptop...',
+										'Hey wake up sleepy server! We have customers!'
+									] //Thank you to @ReyBisCO, @Ceran, @MaybeSteveRogers, @BradleyTheGreat, @DebbieS, @SuperSaraA, @ieahleen, @citrusella, @QuartzFox, @BattleOfTheWarwings, @littlepurpleslipper for contributing to some of the sayings 
 
 
 	var timeoutPeriod = Math.floor((Math.random() * rlTimeoutMaxPeriod) + rlTimeoutBasePeriod);

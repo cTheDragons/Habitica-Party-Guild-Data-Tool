@@ -130,7 +130,7 @@ var sectionsToDisplay = [
 		{type: 'sectionTable', id: 'memberDamage', title: 'Member Quest Progress', showOnly: ['party'], description: 'A table listing the quest progress pending and completed by members.  Shows pending damage by the party for the current quest.'},
 		{type: 'sectionTable', id: 'questCompleted', title: 'All Quests Completed', showOnly: ['party'], description: 'A table showing which quests have and have not been completed by the party and which scrolls owned by the party.'},
 		{type: 'sectionTable', id: 'questPetCompleted', title: 'Pet Quests Completed', showOnly: ['party'], description: 'Focus on the Pet Quests and shows which ones have been completed by the party, or left unfinished. Shows the pet scrolls owned by all party members.'},
-		{type: 'sectionTable', id: 'questMagicCompleted', title: 'Magic Quests Completed', showOnly: ['party'], description: 'Focus on the Magic Hatching Quests and shows which ones have been completed by the party, or left unfinished. Shows the pet scrolls owned by all party members.'}
+		{type: 'sectionTable', id: 'questMagicCompleted', title: 'Magic & Wacky Quests Completed', showOnly: ['party'], description: 'Focus on the Magic Hatching Quests and shows which ones have been completed by the party, or left unfinished. Shows the pet scrolls owned by all party members.'}
 ]
 
 //named for searching
@@ -688,13 +688,13 @@ sectionTables['questMagicCompleted'] = {
 	dataSet: [], 
 	dataSetHeader: ['Scroll', 'Name', 'Potion', 'Type', 'Defeat By', 'XP', 'GP', 'Other Reward', 'Total Completed', 'Not At All', '1 Times', '2 Times', '3 Times', '4 Times', '5 Times', '6 Times Or More', 'Scrolls Owned'], 
 	dataTable: ['imgTagQuestScroll', 'text', 'magicPotion.text', 'typeOf', 'defeatBy', 'drop.exp', 'drop.gp', 'drop.rewardItemString', 'memberCompleted.memberCount', 'memberCompleted.missingCount',  'memberCompleted.only1',  'memberCompleted.only2',  'memberCompleted.only3',  'memberCompleted.only4',  'memberCompleted.only5',  'memberCompleted.only6OrMore', 'ownScroll'],
-	babyBear: {show: [2,3,4,7,9,15,16], orderBy: [[9, 'desc'],[15, 'asc'],[14, 'asc'],[13, 'asc'],[12, 'asc'],[11, 'asc'],[10, 'asc']]},
-	mamaBear: {show: [0,2,3,4,5,6,7,9,15,16], orderBy: [[9, 'desc'],[15, 'asc'],[14, 'asc'],[13, 'asc'],[12, 'asc'],[11, 'asc'],[10, 'asc']]},
+	babyBear: {show: [2,3,4,7,9,12,15,16], orderBy: [[9, 'desc'],[15, 'asc'],[14, 'asc'],[13, 'asc'],[12, 'asc'],[11, 'asc'],[10, 'asc']]},
+	mamaBear: {show: [0,2,3,4,5,6,7,9,12,15,16], orderBy: [[9, 'desc'],[15, 'asc'],[14, 'asc'],[13, 'asc'],[12, 'asc'],[11, 'asc'],[10, 'asc']]},
 	papaBear: {show: ['all'], orderBy: [[9, 'desc'],[15, 'asc'],[14, 'asc'],[13, 'asc'],[12, 'asc'],[11, 'asc'],[10, 'asc']]},
 	extraColumnDefs: [{'className': 'dt-right', 'targets': [5,6,8,9,10,11,12,13,14,15,16]}],
 	subTitle: function (){
 		var html = ''
-		html += '<p>All quests are required to be completed 6 times each to have the maximum mounts and pets for each type. (3 potions reward).</p>'
+		html += '<p>Quests are required to be completed 6 times each to have the maximum mounts and pets for each type (3 potions reward), except for wacky pets like Confection which only required to be completed 3 times.</p>'
 		if (group.memberCount != group.memberTotals.fetchCount) html = incompleteDataDueNotAllParty + html
 		return html 
 	},
@@ -892,6 +892,13 @@ var neverDate = '1900-01-01'
 var notAvailableMember = '-Member Not In Listed-'
 var noUsernamePrefix = '-Unknown Username- Display Name: '
 var incompleteDataDueNotAllParty = '<p><span class="lowlight">Not all party members fetched. Data may not show correctly.</span></p>'
+
+//////////////////////////////////////////////////////////////////////
+////   Show API Version                   ///////////////////////////
+//////////////////////////////////////////////////////////////////////
+var apiVersion = getApiVersion()
+$('#apiVersion').text(apiVersion);
+
 //////////////////////////////////////////////////////////////////////
 ////   allow Show/Hide Toggling to work    ///////////////////////////
 //////////////////////////////////////////////////////////////////////
@@ -5023,9 +5030,17 @@ h1>a:first-child:hover { /* "Habitica" link in header */
 h1 span {
     font-size: 0.5em;
 }
+
+h1 span span {
+    font-size: 1.0em;
+}
+
 h2 {
     margin-top: 30px;
 }
+
+
+
 
 #headerExtras .showHideToggle {
     white-space: nowrap;
@@ -5212,7 +5227,7 @@ ul#tableOfContents > li {
 </head>
 <body><div id="innerBody">	
 <h1><a href="https://habitica.com/">Habitica</a> Party & Guild Data Tool
-    <span class="showHideToggle" data-target="versionChanges" data-closemainsections="true">(v5.3)</span></h1><!-- VERSION TOGGLE -->
+    <span class="showHideToggle" data-target="versionChanges" data-closemainsections="true">(v5.4 - vApi<span class="apiVersion" id="apiVersion"> NOT INSTALLED !</span>)</span></h1><!-- VERSION TOGGLE -->
 <div id="headerExtras"></div>
 <hr class="clear" />
 <div id="headerGroupExtras"></div>
@@ -5248,6 +5263,15 @@ ul#tableOfContents > li {
 <div id="versionChanges" class="hide"><!-- VERSION SECTION -->
     <h2>Version History</h2>
     <dl>
+		<dt>5.4 - Cookie Cutter<span class="date">2020-08-22</span></dt>
+        <dd><ul>
+	        <li>Features:
+                <ul>
+					<li>Showing version of API as well as version of tool</li>
+					<li>Modifying text around Wacky Pets completed. (Not the same as Magic)</li>
+				</ul>
+			</li
+		</ul></dd>
 		<dt>5.3 - Bigger helping<span class="date">2020-08-06</span></dt>
         <dd><ul>
 			<li>Bug Fixes:
