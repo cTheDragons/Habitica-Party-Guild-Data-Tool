@@ -159,7 +159,8 @@ function makeAjaxCall(call, userId, apiToken, rl){
 										'Building a blanket fort',
 										'Whispering a lullaby to the wind',
 										'Waiting for the cat to get off my laptop...',
-										'Hey wake up sleepy server! We have customers!'
+										'Hey wake up sleepy server! We have customers!',
+										'Counting the grains in the sands of time'
 									] //Thank you to @ReyBisCO, @Ceran, @MaybeSteveRogers, @BradleyTheGreat, @DebbieS, @SuperSaraA, @ieahleen, @citrusella, @QuartzFox, @BattleOfTheWarwings, @littlepurpleslipper for contributing to some of the sayings 
 
 

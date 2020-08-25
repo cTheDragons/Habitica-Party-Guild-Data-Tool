@@ -1237,7 +1237,7 @@ function fetchGroupForUser() {
 	function fetchFailure(data ,rl) {
         if (debug) console.log('debug fetchFailure start');
 		rlCurrent = rl
-		
+		console.log(data)
         $('#loading .good').hide();
         $('#loading .bad' ).show();
         $('#documentationAndForm').show(); // in case user has done a re-fetch
@@ -3546,7 +3546,10 @@ function parseData() {
 										quests[obj.key].pet = content.questEggs[obj2.key]
 									}
 									
-									if (quests[obj.key].category=='hatchingPotion' && obj2.type=='hatchingPotions'){
+									if (
+											((quests[obj.key].category=='hatchingPotion') || (quests[obj.key].category=='timeTravelers') ) && 
+											(obj2.type=='hatchingPotions')
+									){
 										quests[obj.key].magicPotion = content.hatchingPotions[obj2.key]
 									}
 								} else {
@@ -4156,7 +4159,7 @@ function parseData() {
 								if (
 									(
 										(obj2.id == 'questMagicCompleted') && 
-										(obj.category == 'hatchingPotion')
+										(obj.magicPotion.text != undefined)
 									) || 
 									(
 										(obj2.id == 'questPetCompleted') && 
@@ -5263,14 +5266,15 @@ ul#tableOfContents > li {
 <div id="versionChanges" class="hide"><!-- VERSION SECTION -->
     <h2>Version History</h2>
     <dl>
-		<dt>5.4 - Cookie Cutter<span class="date">2020-08-22</span></dt>
+		<dt>5.4 - Cookie Cutter<span class="date">2020-08-26</span></dt>
         <dd><ul>
 	        <li>Features:
                 <ul>
 					<li>Showing version of API as well as version of tool</li>
 					<li>Modifying text around Wacky Pets completed. (Not the same as Magic)</li>
+					<li>Ensuring Windup (Timetraveler quest) is dispalyed.</li>
 				</ul>
-			</li
+			</li>
 		</ul></dd>
 		<dt>5.3 - Bigger helping<span class="date">2020-08-06</span></dt>
         <dd><ul>
