@@ -22,7 +22,7 @@
 
 
 function getApiVersion() {
-	return '2.0'
+	return '2.1'
 }
 	
 function makeAjaxCall(call, userId, apiToken, rl){
@@ -160,7 +160,8 @@ function makeAjaxCall(call, userId, apiToken, rl){
 										'Whispering a lullaby to the wind',
 										'Waiting for the cat to get off my laptop...',
 										'Hey wake up sleepy server! We have customers!',
-										'Counting the grains in the sands of time'
+										'Counting the grains in the sands of time',
+										'Rearranging the furniture while your not looking'
 									] //Thank you to @ReyBisCO, @Ceran, @MaybeSteveRogers, @BradleyTheGreat, @DebbieS, @SuperSaraA, @ieahleen, @citrusella, @QuartzFox, @BattleOfTheWarwings, @littlepurpleslipper for contributing to some of the sayings 
 
 
@@ -312,9 +313,8 @@ function makeAjaxCall(call, userId, apiToken, rl){
 			if (debug) console.log('Success! ' + urlTo)
 			if (debug) console.log('Remaining ' + jqxhr.getResponseHeader('X-RateLimit-Remaining') + '  Reset: '+ jqxhr.getResponseHeader('X-RateLimit-Reset'))
 			rl.rlRemaining = jqxhr.getResponseHeader('X-RateLimit-Remaining')
-			rl.rlResetDateTime = jqxhr.getResponseHeader('X-RateLimit-Reset')
-			fnSuccess(data, rl)
-			
+			rl.rlResetDateTime = moment(jqxhr.getResponseHeader('X-RateLimit-Reset'),'ddd MMM DD YYYY HH:mm:ss Z' ).utc().format('YYYY-MM-DDTHH:mm:ssZ')
+			fnSuccess(data, rl)		
 		});
 		//this section is executed when the server responds with error
 		jqxhr.fail(function(data){
@@ -330,7 +330,7 @@ function makeAjaxCall(call, userId, apiToken, rl){
 				}, timeoutPeriod);
 			} else {
 				rl.rlRemaining = jqxhr.getResponseHeader('X-RateLimit-Remaining')
-				rl.rlResetDateTime = jqxhr.getResponseHeader('X-RateLimit-Reset')
+				rl.rlResetDateTime = moment(jqxhr.getResponseHeader('X-RateLimit-Reset'),'ddd MMM DD YYYY HH:mm:ss Z' ).utc().format('YYYY-MM-DDTHH:mm:ssZ')
 				fnFailure(data, rl)
 			}
 			

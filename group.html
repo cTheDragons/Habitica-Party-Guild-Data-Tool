@@ -35,7 +35,7 @@ Contributors:
 	
 
 	<script src="https://code.jquery.com/jquery-1.12.3.js"></script> <!--- jquery -->
-	<script src="https://momentjs.com/downloads/moment-with-locales.min.js"></script> <!--- time functions -->
+	<script src="js/moment.js"></script> <!--- time functions -->
 	<script src="js/habitica-markdown.min.js"></script> <!--- Markdown -->
 	<script src="js/habitica-avatar.js"></script>  <!--- Avatar Generation https://github.com/crookedneighbor/habitica-avatar -->
 	<script src="js/lodash.js"></script> <!--lodash / copy objects -->
@@ -877,8 +877,8 @@ var maxMembersStart 			; //hold the max members to fetch input (will be rounded 
 var ajaxTryAgainMax				= 3;
 var rlCurrent 							= {}; //holds the Current API Remaining details - must be a better way to do this.
 
-var debug						= false;
-var debugShowObject				= false;
+var debug						= true;
+var debugShowObject				= true;
 
 if (debug || debugShowObject) serverName = '*** TURN DEBUG OFF! *** - ' + serverName
 if (debug) console.log('debug 1');
@@ -4563,7 +4563,7 @@ function parseData() {
 				html += '<p><span class="highlight">Categories:</span> '
 				if (group.categories.length > 0 ) {
 					$.each(group.categories, function(index, obj){
-						html += toTitleCase((obj.name.replace(/_/g, ' '))) + '&nbsp;&nbsp;&nbsp;&nbsp;' 
+						if (obj.name != undefined) html += toTitleCase((obj.name.replace(/_/g, ' '))) + '&nbsp;&nbsp;&nbsp;&nbsp;' 
 					})
 				} else {
 					html += 'None'
@@ -5230,7 +5230,7 @@ ul#tableOfContents > li {
 </head>
 <body><div id="innerBody">	
 <h1><a href="https://habitica.com/">Habitica</a> Party & Guild Data Tool
-    <span class="showHideToggle" data-target="versionChanges" data-closemainsections="true">(v5.4 - vApi<span class="apiVersion" id="apiVersion"> NOT INSTALLED !</span>)</span></h1><!-- VERSION TOGGLE -->
+    <span class="showHideToggle" data-target="versionChanges" data-closemainsections="true">(v5.5 - vApi<span class="apiVersion" id="apiVersion"> NOT INSTALLED !</span>)</span></h1><!-- VERSION TOGGLE -->
 <div id="headerExtras"></div>
 <hr class="clear" />
 <div id="headerGroupExtras"></div>
@@ -5266,6 +5266,15 @@ ul#tableOfContents > li {
 <div id="versionChanges" class="hide"><!-- VERSION SECTION -->
     <h2>Version History</h2>
     <dl>
+		<dt>5.5 - Insert name here<span class="date">2020-11-20</span></dt>
+        <dd><ul>
+	        <li>Bug Fixes:
+                <ul>
+					<li>Handling when the name key is missing from the Category (Yes messy data from Habitica).</li>
+					<li>Removing moment warnings</li>
+				</ul>
+			</li>
+		</ul></dd>
 		<dt>5.4 - Cookie Cutter<span class="date">2020-08-26</span></dt>
         <dd><ul>
 	        <li>Features:
