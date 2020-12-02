@@ -22,7 +22,7 @@
 
 
 function getApiVersion() {
-	return '2.1'
+	return '2.2'
 }
 	
 function makeAjaxCall(call, userId, apiToken, rl){
@@ -134,7 +134,7 @@ function makeAjaxCall(call, userId, apiToken, rl){
 										'Why is the sky blue?',
 										'Uh-oh my shoe is untied!',
 										'Waiting for the grass to grow.',
-										'Look at the clouds!',
+										'Look! Clouds!',
 										'Take a deep breath. Hold it... Hold it... Almost there... Almost there... why are you blue?',
 										'Hold on I' + SINGLEQUOTE + 'm almost ready.... I just need to get my hat.',
 										'Jotting down a meeting for us in my day planner... how does the middle of next week work for you?',
@@ -302,6 +302,7 @@ function makeAjaxCall(call, userId, apiToken, rl){
 			contentType: 'application/json',
 			data: newData,
 			dataType: 'json',
+//			headers: {'Authorization': 'Basic ' + btoa('admin:PASSWORD')},
 			cache: false,
 			beforeSend: function(xhr){
 					xhr.setRequestHeader('x-api-user', userId);
@@ -322,7 +323,7 @@ function makeAjaxCall(call, userId, apiToken, rl){
 			
 			if (data.status == 429) {
 				var timeoutPeriod = jqxhr.getResponseHeader('Retry-After')*1000 + Math.floor((Math.random() * rlTimeoutBasePeriod) + 1);
-				if (debug) console.log("getting header Retry-After: " + jqxhr.getResponseHeader('Retry-After') + '  ms: ' + timeoutPeriod);
+				if (debug) console.log('getting header Retry-After: ' + jqxhr.getResponseHeader('Retry-After') + '  ms: ' + timeoutPeriod);
 				//call again
 				$('#loading #statusWait').text('Opps I lost my place, one moment...'); 
 				setTimeout(function () {
@@ -342,4 +343,3 @@ function makeAjaxCall(call, userId, apiToken, rl){
 		});
 	}
 }
-
