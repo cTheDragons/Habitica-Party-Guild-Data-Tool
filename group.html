@@ -1851,7 +1851,7 @@ function postRemoveUser(rowData, uuidIndex, nameIndex) {
 		if (debugShowObject) console.log(newData);
 		if (debugShowObject) console.log(urlToPost);
 
-		call.push({requestType: 'POST', urlTo: urlToPost, newData: '', fnSuccess: postRemoveUserSuccess, fnFailure: postRemoveUserFailure, statusText: 'Remvoing user ' + obj[actionIndex]})
+		call.push({requestType: 'POST', urlTo: urlToPost, newData: '', fnSuccess: postRemoveUserSuccess, fnFailure: postRemoveUserFailure, statusText: 'Removing user ' + obj[actionIndex]})
 		makeAjaxCall(call, userId, apiToken, rlCurrent)
 		
 	}
