@@ -161,7 +161,7 @@ function makeAjaxCall(call, userId, apiToken, rl){
 										'Waiting for the cat to get off my laptop...',
 										'Hey wake up sleepy server! We have customers!',
 										'Counting the grains in the sands of time',
-										'Rearranging the furniture while your not looking'
+										'Rearranging the furniture while you are not looking'
 									] //Thank you to @ReyBisCO, @Ceran, @MaybeSteveRogers, @BradleyTheGreat, @DebbieS, @SuperSaraA, @ieahleen, @citrusella, @QuartzFox, @BattleOfTheWarwings, @littlepurpleslipper for contributing to some of the sayings 
 
 
