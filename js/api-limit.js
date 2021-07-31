@@ -19,6 +19,7 @@
 // v 1.0 - 2020-07-22 - Creation
 // v 1.1 - 2020-07-22 - Slowed down the sayings. More sayings
 // v 2.0 - 2020-08-23 - Return version to display. More sayings. Few typo corrections.
+// v 2.1 - 2020-08-23 - More Typo Corrections
 
 
 function getApiVersion() {
