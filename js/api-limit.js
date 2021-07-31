@@ -50,7 +50,7 @@ function makeAjaxCall(call, userId, apiToken, rl){
 										'How do you start a dragon?',
 										'Did I break a nail?',
 										'I don' + SINGLEQUOTE + 't need to ask for directions!',
-										'Sword, sheild, food, shoes, I think I have everything for the quest!',
+										'Sword, shield, food, shoes, I think I have everything for the quest!',
 										'Did you hear that? I think something is under the bed...',
 										'Watching the pot boil',
 										'Let' + SINGLEQUOTE + 's see how long it takes paint to dry',
@@ -160,7 +160,7 @@ function makeAjaxCall(call, userId, apiToken, rl){
 										'Building a blanket fort',
 										'Whispering a lullaby to the wind',
 										'Waiting for the cat to get off my laptop...',
-										'Hey wake up sleepy server! We have customers!',
+										'Hey wake up, sleepy server! We have customers!',
 										'Counting the grains in the sands of time',
 										'Rearranging the furniture while you are not looking'
 									] //Thank you to @ReyBisCO, @Ceran, @MaybeSteveRogers, @BradleyTheGreat, @DebbieS, @SuperSaraA, @ieahleen, @citrusella, @QuartzFox, @BattleOfTheWarwings, @littlepurpleslipper for contributing to some of the sayings 
