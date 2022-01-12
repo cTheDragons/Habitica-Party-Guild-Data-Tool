@@ -22,9 +22,10 @@
 // v 2.1 - 2020-08-23 - More Typo Corrections
 // v 2.2 - 2020-08-23 - More Typo Corrections
 // v 2.3 - 2020-08-23 - More Typo Corrections
+// v 2.4 - 2020-08-23 - More Typo Corrections (This getting to be a habit)
 
 function getApiVersion() {
-	return '2.3'
+	return '2.4'
 }
 	
 function makeAjaxCall(call, userId, apiToken, rl){
@@ -204,7 +205,7 @@ function makeAjaxCall(call, userId, apiToken, rl){
 			}
 
 			$('#loading #statusMessage').text(call[0].statusText);
-			$('#loading #statusWait').text('Looks like we been a little too busy talking to Habitica Servers. Lets get a drink and continue! Drinks for ' + Math.floor(timeoutPeriod/1000) + 's.'); 
+			$('#loading #statusWait').text('Looks like we have been a little too busy talking to Habitica Servers. Lets get drinks and continue! Drinks for ' + Math.floor(timeoutPeriod/1000) + 's.'); 
 			
 			if (debug) console.log(moment(rl.rlResetDateTime).diff(moment(), 'ms'))
 
@@ -225,7 +226,7 @@ function makeAjaxCall(call, userId, apiToken, rl){
 		
 		if (debug) console.log('Getting Drinks for ' + timeoutPeriod)
 		setTimeout(function () {
-			$('#loading #statusWait').text('Looks like we been a little too busy talking to Habitica Servers. Lets get a drink and continue! Drinks for ' + Math.floor(timeoutPeriod/1000) + 's.'); 
+			$('#loading #statusWait').text('Looks like we have been a little too busy talking to Habitica Servers. Lets get drinks and continue! Drinks for ' + Math.floor(timeoutPeriod/1000) + 's.'); 
 			timeoutPeriod = timeoutPeriod - rlTimeoutCountDown
 			if (timeoutPeriod > rlTimeoutCountDown) {	
 				drinksAjaxCall(call)
